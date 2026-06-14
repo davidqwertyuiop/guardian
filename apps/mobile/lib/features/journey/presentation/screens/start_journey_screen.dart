@@ -18,17 +18,28 @@ class StartJourneyScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Where are you heading?', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text(
+              'Where are you heading?',
+              style: GoogleFonts.outfit(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 24),
             TextField(
               decoration: InputDecoration(
                 labelText: 'Destination Address',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 prefixIcon: const Icon(Icons.pin_drop_outlined),
               ),
             ),
             const SizedBox(height: 24),
-            Text('Select Transport Mode', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+            Text(
+              'Select Transport Mode',
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -44,13 +55,26 @@ class StartJourneyScreen extends StatelessWidget {
               height: size.height * 0.065,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushReplacement(FadeRoute(page: const ActiveJourneyScreen(destination: 'Workplace')));
+                  Navigator.of(context).pushReplacement(
+                    FadeRoute(
+                      page: const ActiveJourneyScreen(destination: 'Workplace'),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: Text('Start Share Location', style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                child: Text(
+                  'Start Share Location',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
@@ -63,14 +87,22 @@ class StartJourneyScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary : Colors.grey.withOpacity(0.1),
+        color: isSelected
+            ? AppColors.primary
+            : Colors.grey.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Icon(icon, color: isSelected ? Colors.white : Colors.grey),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.grey, fontSize: 12)),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.grey,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );

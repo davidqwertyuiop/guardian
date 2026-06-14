@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -26,7 +25,9 @@ class ApiService {
       }
     } catch (e) {
       if (e is http.ClientException || e is SocketException) {
-        throw Exception("Cannot connect to server. Please verify the backend is running.");
+        throw Exception(
+          "Cannot connect to server. Please verify the backend is running.",
+        );
       }
       rethrow;
     }
@@ -51,7 +52,9 @@ class ApiService {
       }
     } catch (e) {
       if (e is http.ClientException || e is SocketException) {
-        throw Exception("Cannot connect to server. Please verify the backend is running.");
+        throw Exception(
+          "Cannot connect to server. Please verify the backend is running.",
+        );
       }
       rethrow;
     }

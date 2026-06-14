@@ -56,7 +56,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
             const SizedBox(height: 40),
             CircleAvatar(
               radius: 80,
-              backgroundColor: Colors.redAccent.withOpacity(0.1),
+              backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
               child: CircleAvatar(
                 radius: 64,
                 backgroundColor: Colors.redAccent,

@@ -30,7 +30,7 @@ class ActiveJourneyScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1C1C28) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
                 ),
                 child: Column(
                   children: [

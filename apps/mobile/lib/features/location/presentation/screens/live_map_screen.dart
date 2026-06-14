@@ -20,9 +20,7 @@ class LiveMapScreen extends StatelessWidget {
           Positioned.fill(
             child: Container(
               color: isDark ? const Color(0xFF111116) : const Color(0xFFF0EFFF),
-              child: CustomPaint(
-                painter: MapGridPainter(isDark: isDark),
-              ),
+              child: CustomPaint(painter: MapGridPainter(isDark: isDark)),
             ),
           ),
           // Top Status Bar
@@ -33,14 +31,22 @@ class LiveMapScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E28).withOpacity(0.9) : Colors.white.withOpacity(0.9),
+                color: isDark
+                    ? const Color(0xFF1E1E28).withValues(alpha: 0.9)
+                    : Colors.white.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Circle: Family Core', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    'Circle: Family Core',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                   const Icon(Icons.people_outline, color: AppColors.primary),
                 ],
               ),
@@ -59,23 +65,41 @@ class LiveMapScreen extends StatelessWidget {
                   children: [
                     FloatingActionButton.extended(
                       heroTag: 'journey',
-                      onPressed: () => Navigator.of(context).push(FadeRoute(page: const StartJourneyScreen())),
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).push(FadeRoute(page: const StartJourneyScreen())),
                       icon: const Icon(Icons.directions_run),
-                      label: Text('Journey', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                      label: Text(
+                        'Journey',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                      ),
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                     ),
                     FloatingActionButton(
                       heroTag: 'sos',
-                      onPressed: () => Navigator.of(context).push(FadeRoute(page: const EmergencyScreen())),
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).push(FadeRoute(page: const EmergencyScreen())),
                       backgroundColor: Colors.redAccent,
-                      child: const Icon(Icons.sos, color: Colors.white, size: 28),
+                      child: const Icon(
+                        Icons.sos,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
                     FloatingActionButton(
                       heroTag: 'history',
-                      onPressed: () => Navigator.of(context).push(FadeRoute(page: const LocationHistoryScreen())),
-                      backgroundColor: isDark ? const Color(0xFF1C1C28) : Colors.white,
-                      child: const Icon(Icons.history, color: AppColors.primary),
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).push(FadeRoute(page: const LocationHistoryScreen())),
+                      backgroundColor: isDark
+                          ? const Color(0xFF1C1C28)
+                          : Colors.white,
+                      child: const Icon(
+                        Icons.history,
+                        color: AppColors.primary,
+                      ),
                     ),
                   ],
                 ),
@@ -94,7 +118,9 @@ class MapGridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05)
+      ..color = isDark
+          ? Colors.white.withValues(alpha: 0.05)
+          : Colors.black.withValues(alpha: 0.05)
       ..strokeWidth = 1;
     for (double i = 0; i < size.width; i += 40) {
       canvas.drawLine(Offset(i, 0), Offset(i, size.height), paint);
@@ -103,6 +129,7 @@ class MapGridPainter extends CustomPainter {
       canvas.drawLine(Offset(0, i), Offset(size.width, i), paint);
     }
   }
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
