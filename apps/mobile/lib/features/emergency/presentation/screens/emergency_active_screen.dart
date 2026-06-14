@@ -1,0 +1,47 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+class EmergencyActiveScreen extends StatelessWidget {
+  const EmergencyActiveScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF1C0505) : const Color(0xFFFFEAEA),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Spacer(),
+              const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 80),
+              const SizedBox(height: 24),
+              Text('SOS ACTIVE', style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+              const SizedBox(height: 12),
+              Text(
+                'Help has been requested. Circle members have received your live location and audio recording.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
+              ),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.redAccent,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text('Deactivate SOS', style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
