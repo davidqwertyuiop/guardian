@@ -1,12 +1,13 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import '../widgets/onboarding_top_icon.dart';
 
 class PasteLinkScreen extends StatefulWidget {
   const PasteLinkScreen({super.key});
@@ -17,22 +18,10 @@ class PasteLinkScreen extends StatefulWidget {
 
 class _PasteLinkScreenState extends State<PasteLinkScreen> {
   final TextEditingController _controller = TextEditingController();
-  StreamSubscription<AuthState>? _subscription;
-  bool _isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _subscription = locator<AuthBloc>().stream.listen((state) {
-      if (!mounted) return;
-      setState(() => _isLoading = state.status == AuthStatus.loading);
-    });
-  }
 
   @override
   void dispose() {
     _controller.dispose();
-    _subscription?.cancel();
     super.dispose();
   }
 
@@ -85,7 +74,7 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                     SizedBox(height: statusBarHeight + 20),
 
                     // Top shake icon
-                    _buildTopIcon(context, isDark),
+                    OnboardingTopIcon(isDark: isDark),
 
                     SizedBox(height: AdaptiveLayout.h(context, 24)),
 
@@ -142,9 +131,7 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                                   fontFamily: 'Inter',
                                   color: Colors.grey.shade400,
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 18,
-                                ),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 18),
                               ),
                             ),
                           ),
@@ -179,43 +166,49 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                     SizedBox(height: AdaptiveLayout.h(context, 24)),
 
                     // Join via Link button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 54,
-                      child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () {
-                                locator<AuthBloc>().add(
-                                  SubmitInviteLink(_controller.text),
-                                );
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: isDark ? Colors.white : Colors.black,
-                          foregroundColor: isDark ? Colors.black : Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: _isLoading
-                            ? SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
-                                  color: isDark ? Colors.black : Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                "Join circle",
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                    BlocBuilder<AuthBloc, AuthState>(
+                      bloc: locator<AuthBloc>(),
+                      builder: (context, state) {
+                        final isLoading = state.status == AuthStatus.loading;
+                        return SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    locator<AuthBloc>().add(
+                                      SubmitInviteLink(_controller.text),
+                                    );
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDark ? Colors.white : Colors.black,
+                              foregroundColor: isDark ? Colors.black : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
                               ),
-                      ),
+                              elevation: 0,
+                            ),
+                            child: isLoading
+                                ? SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: isDark ? Colors.black : Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    "Join circle",
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                          ),
+                        );
+                      },
                     ),
 
                     SizedBox(height: AdaptiveLayout.h(context, 16)),
@@ -242,24 +235,6 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTopIcon(BuildContext context, bool isDark) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withOpacity(0.08)
-            : Colors.black.withOpacity(0.05),
-        shape: BoxShape.circle,
-      ),
-      padding: const EdgeInsets.all(10),
-      child: Image.asset(
-        AppAssets.shake,
-        color: isDark ? Colors.white : Colors.black,
       ),
     );
   }

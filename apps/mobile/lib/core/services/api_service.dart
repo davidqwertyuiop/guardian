@@ -164,6 +164,32 @@ class ApiService {
     }
   }
 
+  /// Check if the circle identified by [inviteCode] already has members.
+  /// Returns true  → circle has members (proceed to onboarding).
+  /// Returns false → circle is empty (show CircleEmptyScreen).
+  /// Falls back to true if the backend is unreachable so the user is never blocked.
+  static Future<bool> checkCircleHasMembers(String inviteCode) async {
+    final url = Uri.parse(
+      '$baseUrl/auth/circle-status?code=${Uri.encodeQueryComponent(inviteCode)}',
+    );
+    try {
+      final response = await http.get(
+        url,
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // Backend should return { "has_members": true/false }
+        return (data['has_members'] as bool?) ?? true;
+      }
+      // Non-200 → treat as has members (don't block the user)
+      return true;
+    } catch (_) {
+      // Network failure → assume has members so user isn't blocked
+      return true;
+    }
+  }
+
   static String _extractErrorMessage(String responseBody) {
     try {
       final decoded = jsonDecode(responseBody);

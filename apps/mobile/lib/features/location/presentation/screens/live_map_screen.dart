@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
+import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/fade_route.dart';
 import 'package:guardian/features/journey/presentation/screens/start_journey_screen.dart';
@@ -52,19 +53,11 @@ class _LiveMapScreenState extends State<LiveMapScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Green circle handshake/key icon
-              Container(
+              // icon1.png at top of sheet
+              Image.asset(
+                AppAssets.icon1,
                 width: 60,
                 height: 60,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE6F4EA),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.vpn_key_outlined,
-                  color: Color(0xFF137333),
-                  size: 32,
-                ),
               ),
 
               const SizedBox(height: 20),

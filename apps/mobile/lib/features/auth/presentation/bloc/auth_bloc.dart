@@ -196,6 +196,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final prefs = locator<SharedPreferences>();
       await prefs.setString('invite_code', event.code);
 
+      // 1. Verify with backend if the circle has members
+      final hasMembers = await ApiService.checkCircleHasMembers(event.code);
+
+      if (!hasMembers) {
+        // Circle is empty → show CircleEmptyScreen
+        emit(state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty));
+        return;
+      }
+
+      // 2. Circle has members → attempt to join
       try {
         final fullPhone = '${state.dialCode}${state.phoneNumber}';
         await ApiService.joinCircle(fullPhone, event.code);
@@ -203,13 +213,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         print('Backend fallback: joinCircle failed ($e)');
       }
 
-      if (state.isJoiningCircle) {
-        // From WelcomeScreen -> EnterInviteCode -> Join -> Setting up profile screen (AuthStep.profile)
-        emit(state.copyWith(status: AuthStatus.success, step: AuthStep.profile));
-      } else {
-        // From AlmostIn -> EnterInviteCode -> Join -> Success
-        emit(state.copyWith(status: AuthStatus.success));
-      }
+      // 3. Go to profile setup; isJoiningCircle=true skips almostIn after notifications
+      emit(state.copyWith(
+        status: AuthStatus.success,
+        step: AuthStep.profile,
+        isJoiningCircle: true,
+      ));
     } catch (e) {
       emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
     }
@@ -290,7 +299,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final link = event.link.trim();
       if (link.isEmpty) {
-        // Empty link → show circle empty screen
+        // Blank field → show circle empty screen immediately without hitting backend
         emit(state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty));
         return;
       }
@@ -298,6 +307,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final prefs = locator<SharedPreferences>();
       await prefs.setString('invite_link', link);
 
+      // 1. Ask backend if the circle behind this link has members
+      final hasMembers = await ApiService.checkCircleHasMembers(link);
+
+      if (!hasMembers) {
+        // Circle is empty → show CircleEmptyScreen
+        emit(state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty));
+        return;
+      }
+
+      // 2. Circle has members → attempt to join
       try {
         final fullPhone = '${state.dialCode}${state.phoneNumber}';
         await ApiService.joinCircle(fullPhone, link);
@@ -305,8 +324,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         print('Backend fallback: joinCircle via link failed ($e)');
       }
 
-      // Valid link → go to profile setup so name is saved to DB.
-      // isJoiningCircle stays true so after notifications → completed (almostIn skipped).
+      // 3. Go to profile setup; isJoiningCircle=true skips almostIn after notifications
       emit(state.copyWith(
         status: AuthStatus.success,
         step: AuthStep.profile,

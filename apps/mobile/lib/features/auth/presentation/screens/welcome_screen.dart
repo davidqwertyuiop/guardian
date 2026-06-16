@@ -1,9 +1,10 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
+import 'package:guardian/core/theme/smooth_page_route.dart';
 import 'package:guardian/features/auth/presentation/widgets/welcome_card.dart';
 import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
 import '../bloc/auth_bloc.dart';
@@ -28,24 +29,12 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
-  StreamSubscription<AuthState>? _subscription;
   AuthStep _currentStep = AuthStep.splash;
 
   @override
   void initState() {
     super.initState();
-    final authBloc = locator<AuthBloc>();
-    _currentStep = authBloc.state.step;
-    _subscription = authBloc.stream.listen((state) {
-      if (!mounted) return;
-      _handleStepTransition(state.step);
-    });
-  }
-
-  @override
-  void dispose() {
-    _subscription?.cancel();
-    super.dispose();
+    _currentStep = locator<AuthBloc>().state.step;
   }
 
   void _handleStepTransition(AuthStep newStep) {
@@ -58,7 +47,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     if (newStep == AuthStep.completed) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const LiveMapScreen()),
+        SmoothPageRoute(child: const LiveMapScreen()),
         (route) => false,
       );
       return;
@@ -113,14 +102,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       Navigator.of(context).pop();
     } else {
       Navigator.of(context).push(
-        MaterialPageRoute(builder: (context) => getScreen(newStep)),
+        SmoothPageRoute(child: getScreen(newStep)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return const SplashStepView();
+    return BlocListener<AuthBloc, AuthState>(
+      bloc: locator<AuthBloc>(),
+      listenWhen: (previous, current) => previous.step != current.step,
+      listener: (context, state) => _handleStepTransition(state.step),
+      child: const SplashStepView(),
+    );
   }
 }
 
@@ -250,7 +244,7 @@ class WelcomeStepView extends StatelessWidget {
               ),
             ),
             child: Text(
-              'I have an invite link',
+              'Got a link instead? Tap here',
               style: TextStyle(
                 fontFamily: 'Inter',
                 color: isDark ? Colors.white : Colors.black,

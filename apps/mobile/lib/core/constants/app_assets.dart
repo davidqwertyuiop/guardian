@@ -12,6 +12,8 @@ class AppAssets {
   // Icons
   static const String shake = 'assets/icons/shake.png';
   static const String phBell = 'assets/icons/ph_bell-ringing.png';
+  static const String appIcon = 'assets/icons/App Icon.png';
+  static const String icon1 = 'assets/icons/icon1.png';
 
   // Local Avatars
   static const String avatarTop = 'assets/images/avatar1.png';

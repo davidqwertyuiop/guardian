@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
+import '../widgets/onboarding_top_icon.dart';
 
 class CircleEmptyScreen extends StatelessWidget {
   const CircleEmptyScreen({super.key});
+
+  static const String _inviteLink = "wa.me/guardian/abc123";
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
+    final bottomPad = MediaQuery.paddingOf(context).bottom;
+    final screenWidth = MediaQuery.sizeOf(context).width;
 
     return PopScope(
       canPop: false,
@@ -25,7 +30,7 @@ class CircleEmptyScreen extends StatelessWidget {
         backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
         body: Stack(
           children: [
-            // Map address background image
+            // map-address.png background
             Positioned.fill(
               child: Opacity(
                 opacity: isDark ? 0.15 : 0.6,
@@ -49,7 +54,7 @@ class CircleEmptyScreen extends StatelessWidget {
                     SizedBox(height: statusBarHeight + 20),
 
                     // Top shake icon
-                    _buildTopIcon(context, isDark),
+                    OnboardingTopIcon(isDark: isDark),
 
                     SizedBox(height: AdaptiveLayout.h(context, 24)),
 
@@ -79,67 +84,85 @@ class CircleEmptyScreen extends StatelessWidget {
 
                     SizedBox(height: AdaptiveLayout.h(context, 32)),
 
-                    // Link sharing row
+                    // ── Link row ────────────────────────────────────────────
+                    // Left: link text box (flexible, takes remaining space)
+                    // Right: copy button (fixed 87px wide, 43px tall per spec)
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Link box (blue)
+                        // Long link box
                         Expanded(
-                          flex: 3,
                           child: Container(
-                            height: 54,
+                            height: AdaptiveLayout.h(context, 43),
                             decoration: BoxDecoration(
                               color: const Color(0xFF1A73E8),
-                              borderRadius: BorderRadius.circular(16),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              "wa.me/guardian/abc123",
-                              style: const TextStyle(
+                              _inviteLink,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
                                 fontFamily: 'Inter',
+                                fontWeight: FontWeight.w500,
+                                // Spec: 12px, letter-spacing -2%
+                                fontSize: AdaptiveLayout.sp(context, 12),
+                                letterSpacing: -0.24, // 12 * -0.02
+                                height: 1.0,
                                 color: Colors.white,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        // Copy link button (black)
-                        Expanded(
-                          flex: 2,
-                          child: SizedBox(
-                            height: 54,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                Clipboard.setData(
-                                  const ClipboardData(text: "wa.me/guardian/abc123"),
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Text("Link copied!"),
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
+
+                        const SizedBox(width: 10),
+
+                        // Copy button — spec: 87w × 43h, radius 12, pad 13v/14h
+                        SizedBox(
+                          width: _adaptiveCopyWidth(screenWidth),
+                          height: AdaptiveLayout.h(context, 43),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Clipboard.setData(
+                                const ClipboardData(text: _inviteLink),
+                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text(
+                                    "Link copied!",
+                                    style: TextStyle(fontFamily: 'Inter'),
                                   ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
                                 ),
-                                elevation: 0,
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  isDark ? Colors.white : Colors.black,
+                              foregroundColor:
+                                  isDark ? Colors.black : Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 13,
                               ),
-                              child: const Text(
-                                "Copy link",
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              "Copy link",
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: AdaptiveLayout.sp(context, 12),
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: -0.24,
+                                height: 1.0,
                               ),
                             ),
                           ),
@@ -152,7 +175,7 @@ class CircleEmptyScreen extends StatelessWidget {
                     // WhatsApp share button
                     SizedBox(
                       width: double.infinity,
-                      height: 54,
+                      height: AdaptiveLayout.h(context, 54),
                       child: ElevatedButton.icon(
                         onPressed: () {},
                         icon: const Icon(
@@ -178,29 +201,54 @@ class CircleEmptyScreen extends StatelessWidget {
                       ),
                     ),
 
-                    SizedBox(height: AdaptiveLayout.h(context, 16)),
+                    SizedBox(height: AdaptiveLayout.h(context, 12)),
 
-                    // Share another way link
-                    Center(
-                      child: GestureDetector(
-                        onTap: () {
-                          // Complete onboarding
-                          locator<AuthBloc>().add(const CompleteCircleOnboarding());
+                    // Share another way — system share sheet action button
+                    SizedBox(
+                      width: double.infinity,
+                      height: AdaptiveLayout.h(context, 54),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Share.share(
+                            'Join my Guardian circle: $_inviteLink',
+                            subject: 'Guardian circle invite',
+                          );
                         },
-                        child: Text(
-                          "Share another way",
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            fontSize: AdaptiveLayout.sp(context, 14),
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isDark
+                              ? const Color(0xFF1E1E22)
+                              : const Color(0xFFF3F3F6),
+                          foregroundColor:
+                              isDark ? Colors.white : Colors.black,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.share_rounded,
+                              size: 18,
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Share another way",
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: AdaptiveLayout.sp(context, 15),
+                                color: isDark ? Colors.white : Colors.black,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
 
-                    SizedBox(height: AdaptiveLayout.h(context, 24)),
+                    SizedBox(height: AdaptiveLayout.h(context, 24) + bottomPad),
                   ],
                 ),
               ),
@@ -211,19 +259,13 @@ class CircleEmptyScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopIcon(BuildContext context, bool isDark) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
-        shape: BoxShape.circle,
-      ),
-      padding: const EdgeInsets.all(10),
-      child: Image.asset(
-        AppAssets.shake,
-        color: isDark ? Colors.white : Colors.black,
-      ),
-    );
+  /// Scale the copy button width proportionally so it always looks right
+  /// regardless of screen size. Reference is 87px on a 390px-wide screen.
+  double _adaptiveCopyWidth(double screenWidth) {
+    const referenceWidth = 390.0;
+    const referenceButtonWidth = 87.0;
+    final ratio = screenWidth / referenceWidth;
+    return (referenceButtonWidth * ratio).clamp(70.0, 110.0);
   }
+
 }

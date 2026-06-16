@@ -1,5 +1,5 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
@@ -17,29 +17,12 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
-  StreamSubscription<AuthState>? _subscription;
   late final AuthBloc _authBloc;
 
   @override
   void initState() {
     super.initState();
     _authBloc = locator<AuthBloc>();
-    _subscription = _authBloc.stream.listen((state) {
-      if (!mounted) return;
-      if (state.status == AuthStatus.failure && state.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.errorMessage!),
-            backgroundColor: Colors.redAccent,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(16),
-          ),
-        );
-      }
-    });
   }
 
   void _completeOnboarding() {
@@ -48,7 +31,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _subscription?.cancel();
     _nameController.dispose();
     super.dispose();
   }
@@ -62,7 +44,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
         if (didPop) return;
         locator<AuthBloc>().add(const NavigateBack());
       },
-      child: Scaffold(
+      child: BlocListener<AuthBloc, AuthState>(
+        bloc: locator<AuthBloc>(),
+        listenWhen: (previous, current) =>
+            previous.status != current.status &&
+            current.status == AuthStatus.failure,
+        listener: (context, state) {
+          if (state.errorMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage!),
+                backgroundColor: Colors.redAccent,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                margin: const EdgeInsets.all(16),
+              ),
+            );
+          }
+        },
+        child: Scaffold(
         backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
         resizeToAvoidBottomInset: true,
         body: Stack(
@@ -146,6 +148,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }

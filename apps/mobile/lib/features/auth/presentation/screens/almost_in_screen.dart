@@ -5,6 +5,7 @@ import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
+import '../widgets/onboarding_top_icon.dart';
 
 class AlmostInScreen extends StatelessWidget {
   const AlmostInScreen({super.key});
@@ -49,7 +50,7 @@ class AlmostInScreen extends StatelessWidget {
                     SizedBox(height: statusBarHeight + 20),
 
                     // Top shake icon circular button
-                    _buildTopIcon(context, isDark),
+                    OnboardingTopIcon(isDark: isDark),
 
                     SizedBox(height: AdaptiveLayout.h(context, 24)),
 
@@ -108,22 +109,6 @@ class AlmostInScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTopIcon(BuildContext context, bool isDark) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
-        shape: BoxShape.circle,
-      ),
-      padding: const EdgeInsets.all(10),
-      child: Image.asset(
-        AppAssets.shake,
-        color: isDark ? Colors.white : Colors.black,
       ),
     );
   }
