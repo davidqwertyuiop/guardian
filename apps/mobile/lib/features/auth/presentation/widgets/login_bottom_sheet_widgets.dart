@@ -1,0 +1,80 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:guardian/core/constants/app_colors.dart';
+import 'package:guardian/core/utils/adaptive_layout.dart';
+
+class LoginBottomSheetHeader extends StatelessWidget {
+  const LoginBottomSheetHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final closeBg = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF2F2F7);
+    final closeIconColor = isDark ? Colors.white70 : Colors.black54;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: isDark ? const Color(0xFF2A1F4C) : const Color(0xFFF2EFFE), shape: BoxShape.circle),
+          child: const Icon(Icons.auto_awesome, color: Color(0xFF8860FF), size: 18),
+        ),
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: closeBg, shape: BoxShape.circle),
+            child: Icon(Icons.close, color: closeIconColor, size: 18),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class LoginBottomSheetTerms extends StatelessWidget {
+  const LoginBottomSheetTerms({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text.rich(
+      TextSpan(
+        text: 'By continuing, you agree to our ',
+        children: [
+          TextSpan(text: 'Terms of Service', style: GoogleFonts.inter(color: AppColors.primary, fontWeight: FontWeight.w600)),
+          const TextSpan(text: ' and '),
+          TextSpan(text: 'Privacy Policy', style: GoogleFonts.inter(color: AppColors.primary, fontWeight: FontWeight.w600)),
+          const TextSpan(text: '.'),
+        ],
+      ),
+      textAlign: TextAlign.center,
+      style: GoogleFonts.inter(fontSize: AdaptiveLayout.sp(context, 12), color: Colors.grey[500]),
+    );
+  }
+}
+
+class LoginContinueButton extends StatelessWidget {
+  final bool isLoading;
+  final bool enabled;
+  final VoidCallback? onPressed;
+
+  const LoginContinueButton({super.key, required this.isLoading, required this.enabled, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity, height: AdaptiveLayout.h(context, 54),
+      child: ElevatedButton(
+        onPressed: enabled && !isLoading ? onPressed : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 0,
+        ),
+        child: isLoading
+            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+            : Text('Continue', style: GoogleFonts.inter(color: Colors.white, fontSize: AdaptiveLayout.sp(context, 16), fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
+}

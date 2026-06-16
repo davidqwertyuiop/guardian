@@ -4,6 +4,8 @@ class AppAssets {
   // Local assets
   static const String logo = 'assets/images/splash-screen.png';
   static const String mapIntro = 'assets/animations/map-intro.png';
+  static const String line2 = 'assets/images/line-2.png';
+  static const String line6 = 'assets/images/line-6.png';
   static const String mapImage = 'assets/animations/map-image.png';
   static const String circleCreature = 'assets/animations/circle-creature.png';
 

@@ -42,3 +42,12 @@ class SubmitVerificationCode extends AuthEvent {
 class ResetAuth extends AuthEvent {
   const ResetAuth();
 }
+
+class CompleteProfile extends AuthEvent {
+  final String username;
+
+  const CompleteProfile(this.username);
+
+  @override
+  List<Object?> get props => [username];
+}

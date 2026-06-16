@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:guardian/core/constants/app_colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/fade_route.dart';
 import 'package:guardian/core/security/token_manager.dart';
-import 'login_screen.dart';
+import 'package:guardian/core/utils/fade_route.dart';
+import 'package:guardian/core/utils/adaptive_layout.dart';
 import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
+import 'welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -25,49 +27,46 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
+    final prefs = locator<SharedPreferences>();
+    final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
     final token = await TokenManager().getAccessToken();
     final hasJwt = token != null && token.isNotEmpty;
 
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        FadeRoute(page: hasJwt ? const LiveMapScreen() : const LoginScreen()),
-      );
+      Widget nextPage;
+      if (onboardingCompleted && hasJwt) {
+        nextPage = const LiveMapScreen();
+      } else {
+        nextPage = const WelcomeScreen();
+      }
+      Navigator.of(context).pushReplacement(FadeRoute(page: nextPage));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A0A0F) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1C1C28) : const Color(0xFFF4F1FF),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.35),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              padding: const EdgeInsets.all(16),
-              child: Image.asset(AppAssets.logo, fit: BoxFit.contain),
+            Image.asset(
+              AppAssets.logo,
+              width: AdaptiveLayout.w(context, 100),
+              height: AdaptiveLayout.h(context, 100),
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AdaptiveLayout.h(context, 16)),
             Text(
-              'Guardian',
+              'guardian',
               style: GoogleFonts.outfit(
-                fontSize: 36,
+                fontSize: AdaptiveLayout.sp(context, 32),
                 fontWeight: FontWeight.w800,
-                color: isDark ? Colors.white : const Color(0xFF1A1A2E),
+                color: isDark ? Colors.white : Colors.black,
+                letterSpacing: -0.5,
               ),
             ),
           ],

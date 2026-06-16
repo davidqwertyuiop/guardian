@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum AuthStatus { initial, loading, codeSent, success, failure }
+enum AuthStatus { initial, loading, codeSent, success, profileCompleted, failure }
 
 class AuthState extends Equatable {
   final String countryCode;
@@ -8,6 +8,7 @@ class AuthState extends Equatable {
   final String phoneNumber;
   final AuthStatus status;
   final String? errorMessage;
+  final String username;
 
   const AuthState({
     required this.countryCode,
@@ -15,6 +16,7 @@ class AuthState extends Equatable {
     required this.phoneNumber,
     required this.status,
     this.errorMessage,
+    required this.username,
   });
 
   factory AuthState.initial() {
@@ -23,6 +25,7 @@ class AuthState extends Equatable {
       dialCode: '+234',
       phoneNumber: '',
       status: AuthStatus.initial,
+      username: '',
     );
   }
 
@@ -32,6 +35,7 @@ class AuthState extends Equatable {
     String? phoneNumber,
     AuthStatus? status,
     String? errorMessage,
+    String? username,
   }) {
     return AuthState(
       countryCode: countryCode ?? this.countryCode,
@@ -39,9 +43,10 @@ class AuthState extends Equatable {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       status: status ?? this.status,
       errorMessage: errorMessage,
+      username: username ?? this.username,
     );
   }
 
   @override
-  List<Object?> get props => [countryCode, dialCode, phoneNumber, status, errorMessage];
+  List<Object?> get props => [countryCode, dialCode, phoneNumber, status, errorMessage, username];
 }

@@ -31,17 +31,13 @@ class PhoneInputField extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          // Country Selector
           GestureDetector(
             onTap: onTapCountry,
             behavior: HitTestBehavior.opaque,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  flag,
-                  style: const TextStyle(fontSize: 18),
-                ),
+                Text(flag, style: const TextStyle(fontSize: 18)),
                 const SizedBox(width: 6),
                 Text(
                   dialCode,
@@ -60,23 +56,17 @@ class PhoneInputField extends StatelessWidget {
               ],
             ),
           ),
-
-          // Vertical divider line
           Container(
             height: 20,
             width: 1,
             color: isDark ? Colors.white24 : Colors.black12,
             margin: const EdgeInsets.symmetric(horizontal: 12),
           ),
-
-          // Phone input textfield
           Expanded(
             child: TextField(
               controller: controller,
               keyboardType: TextInputType.phone,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-              ],
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               style: GoogleFonts.inter(
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
