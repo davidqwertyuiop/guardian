@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_assets.dart';
 import 'avatar_item.dart';
 
@@ -9,95 +8,91 @@ class AvatarCluster extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final size = MediaQuery.of(context).size;
-    final clusterW = size.width * 0.65;
-    final clusterH = clusterW * 0.70;
-    final topSize = clusterW * 0.34;
-    final sideSize = clusterW * 0.30;
+
+    // Exact sizing and offsets matching the design reference image
+    const double containerW = 220.0;
+    const double containerH = 180.0;
+
+    const double leftAvatarSize = 108.0;
+    const double topAvatarSize = 74.0;
+    const double rightAvatarSize = 82.0;
+
     final sideColor = isDark
         ? const Color(0xFF2C2C2E)
         : const Color(0xFFE2E2E8);
 
     return SizedBox(
-      height: clusterH + 32,
-      width: clusterW,
+      height: containerH,
+      width: containerW,
       child: Stack(
-        alignment: Alignment.center,
+        clipBehavior: Clip.none,
         children: [
+          // 1. Right Avatar ( Bald woman, microphone, blue top ) - Background
           Positioned(
-            left: 0,
-            bottom: 20,
+            right: 20,
+            bottom: 30,
             child: AvatarItem(
               imagePath: AppAssets.avatarLeft,
-              size: sideSize,
+              size: rightAvatarSize,
               borderColor: sideColor,
             ),
           ),
+          // 2. Top Avatar ( Person in parka hood ) - Middle
           Positioned(
-            right: 0,
-            bottom: 24,
+            left: 64,
+            top: 4,
             child: AvatarItem(
               imagePath: AppAssets.avatarRight,
-              size: sideSize,
-              borderColor: sideColor,
+              size: topAvatarSize,
+              borderColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
             ),
           ),
+          // 3. Left Avatar ( Curly hair, green top ) - Foreground (Largest)
           Positioned(
-            top: 0,
+            left: 0,
+            bottom: 10,
             child: AvatarItem(
               imagePath: AppAssets.avatarTop,
-              size: topSize,
-              borderColor: Colors.white,
+              size: leftAvatarSize,
+              borderColor: isDark ? const Color(0xFF1C1C1E) : Colors.white,
             ),
           ),
+          // 4. Rotated glassmorphic badge "mabushi, FCT" (lowercase) - Foreground Overlay
           Positioned(
-            top: topSize * 0.78,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12.0,
-                vertical: 5.0,
-              ),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? const Color(0xFF1E1E22).withValues(alpha: 0.92)
-                    : Colors.white.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : Colors.black.withValues(alpha: 0.08),
+            left: 48,
+            top: 58,
+            child: Transform.rotate(
+              angle: -0.1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14.0,
+                  vertical: 6.0,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.14),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.65),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 0.8,
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF34C759),
-                      shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                ),
+                child: const Text(
+                  "mabushi, FCT",
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: -0.2,
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Mabushi, FCT",
-                    style: GoogleFonts.inter(
-                      fontSize: size.width * 0.03,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.95)
-                          : Colors.black87,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

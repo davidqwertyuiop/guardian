@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 class OtpInputField extends StatelessWidget {
   final List<TextEditingController> controllers;
   final List<FocusNode> focusNodes;
@@ -39,14 +37,14 @@ class OtpInputField extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLength: null,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              style: GoogleFonts.inter(
+              style: TextStyle(fontFamily: 'Inter', 
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: textColor,
               ),
               decoration: InputDecoration(
                 hintText: "—",
-                hintStyle: GoogleFonts.inter(
+                hintStyle: TextStyle(fontFamily: 'Inter', 
                   color: isDark ? Colors.white30 : Colors.black.withAlpha(30),
                   fontSize: 18,
                   fontWeight: FontWeight.w700,

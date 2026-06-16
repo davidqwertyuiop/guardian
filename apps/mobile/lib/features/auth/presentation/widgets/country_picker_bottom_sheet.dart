@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_country_data/intl_country_data.dart';
 import '../../../../core/constants/app_colors.dart';
 
@@ -35,7 +34,7 @@ class CountryPickerBottomSheet extends StatelessWidget {
         children: [
           Text(
             'Select Country',
-            style: GoogleFonts.outfit(
+            style: TextStyle(fontFamily: 'Inter', 
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: isDark ? Colors.white : Colors.black,
@@ -54,14 +53,14 @@ class CountryPickerBottomSheet extends StatelessWidget {
                   ),
                   title: Text(
                     country.name,
-                    style: GoogleFonts.inter(
+                    style: TextStyle(fontFamily: 'Inter', 
                       fontWeight: FontWeight.w500,
                       color: isDark ? Colors.white : Colors.black,
                     ),
                   ),
                   trailing: Text(
                     '+${country.telephoneCode}',
-                    style: GoogleFonts.inter(
+                    style: TextStyle(fontFamily: 'Inter', 
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.grey[400] : AppColors.greyText,
                     ),

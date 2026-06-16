@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/fade_route.dart';
 import 'active_journey_screen.dart';
@@ -12,7 +11,7 @@ class StartJourneyScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: Text('Start Journey', style: GoogleFonts.outfit())),
+      appBar: AppBar(title: Text('Start Journey', style: TextStyle(fontFamily: 'Outfit', ))),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -20,7 +19,7 @@ class StartJourneyScreen extends StatelessWidget {
           children: [
             Text(
               'Where are you heading?',
-              style: GoogleFonts.outfit(
+              style: TextStyle(fontFamily: 'Outfit', 
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
@@ -38,7 +37,7 @@ class StartJourneyScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Select Transport Mode',
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+              style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Row(
@@ -69,7 +68,7 @@ class StartJourneyScreen extends StatelessWidget {
                 ),
                 child: Text(
                   'Start Share Location',
-                  style: GoogleFonts.inter(
+                  style: TextStyle(fontFamily: 'Inter', 
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

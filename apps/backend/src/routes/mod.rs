@@ -7,6 +7,7 @@ use crate::modules::auth::services::otp::OtpStore;
 pub struct AppState {
     pub config: AppConfig,
     pub otp_store: Arc<OtpStore>,
+    pub db_pool: sqlx::PgPool,
 }
 
 pub fn create_router(state: AppState) -> Router {

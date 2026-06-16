@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 class MemberLocationScreen extends StatelessWidget {
   final String memberName;
   const MemberLocationScreen({super.key, required this.memberName});
@@ -22,12 +20,12 @@ class MemberLocationScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               memberName,
-              style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(fontFamily: 'Outfit', fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
               'Last active: 2 minutes ago',
-              style: GoogleFonts.inter(color: Colors.grey),
+              style: TextStyle(fontFamily: 'Inter', color: Colors.grey),
             ),
           ],
         ),

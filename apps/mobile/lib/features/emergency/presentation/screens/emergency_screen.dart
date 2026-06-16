@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:guardian/core/utils/fade_route.dart';
 import 'emergency_active_screen.dart';
 
@@ -50,9 +49,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('SOS Activation', style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+            Text('SOS Activation', style: TextStyle(fontFamily: 'Outfit', fontSize: 28, fontWeight: FontWeight.bold, color: Colors.redAccent)),
             const SizedBox(height: 16),
-            Text('Sending SOS alert in:', style: GoogleFonts.inter(fontSize: 16, color: Colors.grey)),
+            Text('Sending SOS alert in:', style: TextStyle(fontFamily: 'Inter', fontSize: 16, color: Colors.grey)),
             const SizedBox(height: 40),
             CircleAvatar(
               radius: 80,
@@ -60,7 +59,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
               child: CircleAvatar(
                 radius: 64,
                 backgroundColor: Colors.redAccent,
-                child: Text('$_countdown', style: GoogleFonts.outfit(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white)),
+                child: Text('$_countdown', style: TextStyle(fontFamily: 'Outfit', fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
             const SizedBox(height: 60),
@@ -74,7 +73,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: Text('Cancel Alert', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: Text('Cancel Alert', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ],
         ),

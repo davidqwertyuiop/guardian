@@ -7,6 +7,7 @@ pub struct AppConfig {
     pub jwt_secret: String,
     pub otp_ttl_seconds: u64,
     pub rate_limit_window_seconds: u64,
+    pub database_url: String,
 }
 
 impl AppConfig {
@@ -27,6 +28,7 @@ impl AppConfig {
             .ok()
             .and_then(|w| w.parse().ok())
             .unwrap_or(60);
+        let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://guardian_user:secure_db_pass@localhost:5432/guardian_db".to_string());
 
         Self {
             server_host,
@@ -34,6 +36,7 @@ impl AppConfig {
             jwt_secret,
             otp_ttl_seconds,
             rate_limit_window_seconds,
+            database_url,
         }
     }
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/fade_route.dart';
 import 'completed_journey_screen.dart';
@@ -21,9 +20,9 @@ class ActiveJourneyScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              Text('Active Journey', style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold)),
+              Text('Active Journey', style: TextStyle(fontFamily: 'Outfit', fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('Sharing location live to destination: $destination', style: GoogleFonts.inter(color: Colors.grey)),
+              Text('Sharing location live to destination: $destination', style: TextStyle(fontFamily: 'Inter', color: Colors.grey)),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.all(24),
@@ -34,9 +33,9 @@ class ActiveJourneyScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    Text('ETA', style: GoogleFonts.inter(fontSize: 14, color: Colors.grey)),
+                    Text('ETA', style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: Colors.grey)),
                     const SizedBox(height: 4),
-                    Text('15 Mins', style: GoogleFonts.outfit(fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    Text('15 Mins', style: TextStyle(fontFamily: 'Outfit', fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.primary)),
                     const SizedBox(height: 16),
                     const LinearProgressIndicator(value: 0.45, backgroundColor: Color(0xFFECEBFF), color: AppColors.primary),
                   ],
@@ -54,7 +53,7 @@ class ActiveJourneyScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: Text('Trigger SOS', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                      child: Text('Trigger SOS', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold)),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -68,7 +67,7 @@ class ActiveJourneyScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: Text('Arrived Safely', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text('Arrived Safely', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],

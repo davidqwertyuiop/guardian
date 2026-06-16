@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 class EmergencyActiveScreen extends StatelessWidget {
   const EmergencyActiveScreen({super.key});
 
@@ -18,12 +16,12 @@ class EmergencyActiveScreen extends StatelessWidget {
               const Spacer(),
               const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 80),
               const SizedBox(height: 24),
-              Text('SOS ACTIVE', style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.redAccent)),
+              Text('SOS ACTIVE', style: TextStyle(fontFamily: 'Outfit', fontSize: 32, fontWeight: FontWeight.bold, color: Colors.redAccent)),
               const SizedBox(height: 12),
               Text(
                 'Help has been requested. Circle members have received your live location and audio recording.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(fontSize: 16, color: Colors.grey),
+                style: TextStyle(fontFamily: 'Inter', fontSize: 16, color: Colors.grey),
               ),
               const Spacer(),
               SizedBox(
@@ -35,7 +33,7 @@ class EmergencyActiveScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text('Deactivate SOS', style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Deactivate SOS', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

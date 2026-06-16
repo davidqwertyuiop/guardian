@@ -1,9 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:guardian/bootstrap/dependency_injection.dart';
+import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:guardian/core/utils/fade_route.dart';
-import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -18,13 +17,38 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
+  StreamSubscription<AuthState>? _subscription;
+  late final AuthBloc _authBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _authBloc = locator<AuthBloc>();
+    _subscription = _authBloc.stream.listen((state) {
+      if (!mounted) return;
+      if (state.status == AuthStatus.failure && state.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.errorMessage!),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    });
+  }
 
   void _completeOnboarding() {
-    context.read<AuthBloc>().add(CompleteProfile(_nameController.text));
+    _authBloc.add(CompleteProfile(_nameController.text));
   }
 
   @override
   void dispose() {
+    _subscription?.cancel();
     _nameController.dispose();
     super.dispose();
   }
@@ -32,65 +56,95 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
-      resizeToAvoidBottomInset: true,
-      body: BlocListener<AuthBloc, AuthState>(
-        listenWhen: (prev, curr) => prev.status != curr.status,
-        listener: (context, state) {
-          if (state.status == AuthStatus.profileCompleted) {
-            Navigator.of(context).pushAndRemoveUntil(
-              FadeRoute(page: const LiveMapScreen()),
-              (route) => false,
-            );
-          } else if (state.status == AuthStatus.failure && state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!), backgroundColor: Colors.red),
-            );
-          }
-        },
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Padding(
-                      padding: EdgeInsets.all(AdaptiveLayout.padding(context, 24)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: AdaptiveLayout.h(context, 20)),
-                          Text("Setting up your profile!",
-                              style: GoogleFonts.outfit(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        locator<AuthBloc>().add(const NavigateBack());
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
+        resizeToAvoidBottomInset: true,
+        body: Stack(
+          children: [
+            // Map Intro background image covering the whole bottom screen adaptively
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Image.asset(
+                AppAssets.mapIntro,
+                fit: BoxFit.fitWidth,
+                alignment: Alignment.bottomCenter,
+              ),
+            ),
+            SafeArea(
+              top: false, // Extend layout under status bar
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: EdgeInsets.all(
+                            AdaptiveLayout.padding(context, 24),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.paddingOf(context).top + 10.0,
+                              ),
+                              Text(
+                                "Setting up your profile!",
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
                                   fontSize: AdaptiveLayout.sp(context, 28),
                                   fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black)),
-                          SizedBox(height: AdaptiveLayout.h(context, 24)),
-                          Text("What should we call you?",
-                              style: GoogleFonts.inter(
+                                  color: isDark ? Colors.white : Colors.black,
+                                ),
+                              ),
+                              SizedBox(height: AdaptiveLayout.h(context, 20)),
+                              Text(
+                                "What should we call you?",
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
                                   fontSize: AdaptiveLayout.sp(context, 15),
-                                  color: isDark ? Colors.white70 : Colors.black87,
-                                  fontWeight: FontWeight.w600)),
-                          SizedBox(height: AdaptiveLayout.h(context, 8)),
-                          RegisterNameInput(controller: _nameController),
-                          const SizedBox(height: 4),
-                          Text("This is what your circle will see.",
-                              style: GoogleFonts.inter(fontSize: AdaptiveLayout.sp(context, 12), color: Colors.grey)),
-                          const Spacer(),
-                          const CircleCreatureImage(),
-                          const Spacer(),
-                          RegisterButtons(onPressed: _completeOnboarding),
-                        ],
+                                  color: isDark
+                                      ? Colors.white70
+                                      : Colors.black87,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: AdaptiveLayout.h(context, 8)),
+                              RegisterNameInput(controller: _nameController),
+                              const SizedBox(height: 4),
+                              Text(
+                                "This is what your circle will see.",
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
+                                  fontSize: AdaptiveLayout.sp(context, 12),
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const Spacer(),
+                              SizedBox(height: AdaptiveLayout.h(context, 160)),
+                              RegisterButtons(onPressed: _completeOnboarding),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              );
-            },
-          ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );

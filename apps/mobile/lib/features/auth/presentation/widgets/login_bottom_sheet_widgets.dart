@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
 
 class LoginBottomSheetHeader extends StatelessWidget {
   const LoginBottomSheetHeader({super.key});
@@ -20,7 +22,7 @@ class LoginBottomSheetHeader extends StatelessWidget {
           child: const Icon(Icons.auto_awesome, color: Color(0xFF8860FF), size: 18),
         ),
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () => locator<AuthBloc>().add(const NavigateBack()),
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: closeBg, shape: BoxShape.circle),
@@ -41,14 +43,14 @@ class LoginBottomSheetTerms extends StatelessWidget {
       TextSpan(
         text: 'By continuing, you agree to our ',
         children: [
-          TextSpan(text: 'Terms of Service', style: GoogleFonts.inter(color: AppColors.primary, fontWeight: FontWeight.w600)),
+          TextSpan(text: 'Terms of Service', style: TextStyle(fontFamily: 'Inter', color: AppColors.primary, fontWeight: FontWeight.w600)),
           const TextSpan(text: ' and '),
-          TextSpan(text: 'Privacy Policy', style: GoogleFonts.inter(color: AppColors.primary, fontWeight: FontWeight.w600)),
+          TextSpan(text: 'Privacy Policy', style: TextStyle(fontFamily: 'Inter', color: AppColors.primary, fontWeight: FontWeight.w600)),
           const TextSpan(text: '.'),
         ],
       ),
       textAlign: TextAlign.center,
-      style: GoogleFonts.inter(fontSize: AdaptiveLayout.sp(context, 12), color: Colors.grey[500]),
+      style: TextStyle(fontFamily: 'Inter', fontSize: AdaptiveLayout.sp(context, 12), color: Colors.grey[500]),
     );
   }
 }
@@ -73,7 +75,7 @@ class LoginContinueButton extends StatelessWidget {
         ),
         child: isLoading
             ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-            : Text('Continue', style: GoogleFonts.inter(color: Colors.white, fontSize: AdaptiveLayout.sp(context, 16), fontWeight: FontWeight.w600)),
+            : Text('Continue', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: AdaptiveLayout.sp(context, 16), fontWeight: FontWeight.w600)),
       ),
     );
   }

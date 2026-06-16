@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 class PhoneInputField extends StatelessWidget {
   final TextEditingController controller;
   final String flag;
@@ -41,7 +39,7 @@ class PhoneInputField extends StatelessWidget {
                 const SizedBox(width: 6),
                 Text(
                   dialCode,
-                  style: GoogleFonts.inter(
+                  style: TextStyle(fontFamily: 'Inter', 
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
                     color: textColor,
@@ -67,14 +65,14 @@ class PhoneInputField extends StatelessWidget {
               controller: controller,
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              style: GoogleFonts.inter(
+              style: TextStyle(fontFamily: 'Inter', 
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
                 color: textColor,
               ),
               decoration: InputDecoration(
                 hintText: "Mobile number",
-                hintStyle: GoogleFonts.inter(
+                hintStyle: TextStyle(fontFamily: 'Inter', 
                   color: isDark ? Colors.white38 : Colors.grey[400],
                   fontSize: 15,
                 ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl_country_data/intl_country_data.dart';
+import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
 import '../bloc/auth_bloc.dart';
@@ -20,14 +19,15 @@ class LoginBottomSheet extends StatefulWidget {
 
 class _LoginBottomSheetState extends State<LoginBottomSheet> {
   late final TextEditingController _phoneController;
+  late final AuthBloc _authBloc;
 
   @override
   void initState() {
     super.initState();
-    final bloc = context.read<AuthBloc>();
-    _phoneController = TextEditingController(text: bloc.state.phoneNumber);
+    _authBloc = locator<AuthBloc>();
+    _phoneController = TextEditingController(text: _authBloc.state.phoneNumber);
     _phoneController.addListener(() {
-      bloc.add(PhoneNumberChanged(_phoneController.text));
+      _authBloc.add(PhoneNumberChanged(_phoneController.text));
     });
   }
 
@@ -40,9 +40,14 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        final flag = IntlCountryData.fromCountryCodeAlpha2(state.countryCode).flag;
+    return StreamBuilder<AuthState>(
+      stream: _authBloc.stream,
+      initialData: _authBloc.state,
+      builder: (context, snapshot) {
+        final state = snapshot.data ?? _authBloc.state;
+        final flag = IntlCountryData.fromCountryCodeAlpha2(
+          state.countryCode,
+        ).flag;
         return Container(
           margin: EdgeInsets.all(AdaptiveLayout.padding(context, 16)),
           decoration: BoxDecoration(
@@ -61,29 +66,43 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const LoginBottomSheetHeader(),
-              SizedBox(height: AdaptiveLayout.h(context, 20)),
-              Text("Enter your number",
-                  style: GoogleFonts.outfit(
-                      fontSize: AdaptiveLayout.sp(context, 20),
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black)),
+              SizedBox(height: AdaptiveLayout.h(context, 1)),
+              Text(
+                "Enter your number",
+                style: TextStyle(fontFamily: 'Inter', 
+                  fontSize: AdaptiveLayout.sp(context, 20),
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text("We'll send you a verification code.",
-                  style: GoogleFonts.inter(fontSize: AdaptiveLayout.sp(context, 14), color: AppColors.greyText)),
+              Text(
+                "We'll send you a verification code.",
+                style: TextStyle(fontFamily: 'Inter', 
+                  fontSize: AdaptiveLayout.sp(context, 14),
+                  color: AppColors.greyText,
+                ),
+              ),
               SizedBox(height: AdaptiveLayout.h(context, 24)),
               PhoneInputField(
                 controller: _phoneController,
                 flag: flag,
                 dialCode: state.dialCode,
                 onTapCountry: () => CountryPickerBottomSheet.show(context, (c) {
-                  context.read<AuthBloc>().add(CountryChanged(countryCode: c.codeAlpha2, dialCode: '+${c.telephoneCode}'));
+                  _authBloc.add(
+                    CountryChanged(
+                      countryCode: c.codeAlpha2,
+                      dialCode: '+${c.telephoneCode}',
+                    ),
+                  );
                 }),
               ),
               SizedBox(height: AdaptiveLayout.h(context, 20)),
               LoginContinueButton(
                 isLoading: state.status == AuthStatus.loading,
                 enabled: state.phoneNumber.isNotEmpty,
-                onPressed: () => context.read<AuthBloc>().add(const SubmitPhoneNumber()),
+                onPressed: () =>
+                    _authBloc.add(const SubmitPhoneNumber()),
               ),
               SizedBox(height: AdaptiveLayout.h(context, 16)),
               const LoginBottomSheetTerms(),

@@ -26,9 +26,36 @@ async fn main() {
 
     let otp_store = Arc::new(OtpStore::new());
 
+    // Establish Postgres connection pool
+    let database_url = config.database_url.clone();
+    let db_pool = match crate::infrastructure::database::establish_connection(&database_url).await {
+        Ok(pool) => {
+            tracing::info!("✅ Connected to Postgres database!");
+            // Initialize schema: create table if not exists
+            if let Err(e) = sqlx::query(
+                "CREATE TABLE IF NOT EXISTS users (
+                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                    phone VARCHAR(20) UNIQUE NOT NULL,
+                    name VARCHAR(100),
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                );"
+            )
+            .execute(&pool)
+            .await {
+                tracing::warn!("⚠️ Could not run CREATE TABLE query (it might already exist or gen_random_uuid requires extension): {}", e);
+            }
+            pool
+        }
+        Err(e) => {
+            tracing::error!("❌ Failed to connect to database at {}: {}", database_url, e);
+            std::process::exit(1);
+        }
+    };
+
     let state = AppState {
         config: config.clone(),
         otp_store,
+        db_pool,
     };
 
     let cors = CorsLayer::new()

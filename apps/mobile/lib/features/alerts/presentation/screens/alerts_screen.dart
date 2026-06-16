@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
 class AlertsScreen extends StatelessWidget {
   const AlertsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Security Alerts', style: GoogleFonts.outfit())),
+      appBar: AppBar(title: Text('Security Alerts', style: TextStyle(fontFamily: 'Outfit', ))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -48,8 +46,8 @@ class AlertsScreen extends StatelessWidget {
           backgroundColor: color.withValues(alpha: 0.1),
           child: Icon(icon, color: color),
         ),
-        title: Text(title, style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-        subtitle: Text(time, style: GoogleFonts.inter(fontSize: 12)),
+        title: Text(title, style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold)),
+        subtitle: Text(time, style: TextStyle(fontFamily: 'Inter', fontSize: 12)),
       ),
     );
   }

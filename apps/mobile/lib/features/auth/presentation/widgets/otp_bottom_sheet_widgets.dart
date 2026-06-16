@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
 
 class OtpBottomSheetHeader extends StatelessWidget {
   const OtpBottomSheetHeader({super.key});
@@ -15,13 +17,13 @@ class OtpBottomSheetHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: Icon(Icons.arrow_back, color: iconColor, size: 22),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => locator<AuthBloc>().add(const NavigateBack()),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
         IconButton(
           icon: Icon(Icons.close, color: iconColor, size: 22),
-          onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+          onPressed: () => locator<AuthBloc>().add(const NavigateToWelcome()),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
@@ -41,16 +43,16 @@ class OtpBottomSheetSubtitle extends StatelessWidget {
       children: [
         Text(
           "We sent a 4-digit code to $maskedPhone. ",
-          style: GoogleFonts.inter(
+          style: TextStyle(fontFamily: 'Inter', 
             fontSize: AdaptiveLayout.sp(context, 13),
             color: AppColors.greyText,
           ),
         ),
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () => locator<AuthBloc>().add(const NavigateBack()),
           child: Text(
             "Edit",
-            style: GoogleFonts.inter(
+            style: TextStyle(fontFamily: 'Inter', 
               fontSize: AdaptiveLayout.sp(context, 13),
               color: AppColors.primary,
               fontWeight: FontWeight.bold,
@@ -74,7 +76,7 @@ class OtpTimerText extends StatelessWidget {
       onTap: seconds == 0 ? onResend : null,
       child: Text(
         seconds > 0 ? "Resend code in 0:${seconds.toString().padLeft(2, '0')}" : "Resend code",
-        style: GoogleFonts.inter(
+        style: TextStyle(fontFamily: 'Inter', 
           fontSize: AdaptiveLayout.sp(context, 14),
           color: seconds > 0 ? AppColors.greyText : AppColors.primary,
           fontWeight: seconds > 0 ? FontWeight.normal : FontWeight.bold,

@@ -51,3 +51,80 @@ class CompleteProfile extends AuthEvent {
   @override
   List<Object?> get props => [username];
 }
+
+class NavigateToLogin extends AuthEvent {
+  const NavigateToLogin();
+}
+
+class NavigateToWelcome extends AuthEvent {
+  const NavigateToWelcome();
+}
+
+class NavigateBack extends AuthEvent {
+  const NavigateBack();
+}
+
+class AppStarted extends AuthEvent {
+  const AppStarted();
+}
+
+class EnableLocation extends AuthEvent {
+  const EnableLocation();
+}
+
+class SkipLocation extends AuthEvent {
+  const SkipLocation();
+}
+
+class EnableNotifications extends AuthEvent {
+  const EnableNotifications();
+}
+
+class SkipNotifications extends AuthEvent {
+  const SkipNotifications();
+}
+
+// New events for the circle flow
+class ClickInviteLink extends AuthEvent {
+  const ClickInviteLink();
+}
+
+class SelectCreateCircle extends AuthEvent {
+  const SelectCreateCircle();
+}
+
+class SelectJoinCircle extends AuthEvent {
+  const SelectJoinCircle();
+}
+
+class CreateCircle extends AuthEvent {
+  final String circleName;
+  const CreateCircle(this.circleName);
+
+  @override
+  List<Object?> get props => [circleName];
+}
+
+class SubmitInviteCode extends AuthEvent {
+  final String code;
+  const SubmitInviteCode(this.code);
+
+  @override
+  List<Object?> get props => [code];
+}
+
+class CompleteCircleOnboarding extends AuthEvent {
+  const CompleteCircleOnboarding();
+}
+
+class NavigateToPasteLink extends AuthEvent {
+  const NavigateToPasteLink();
+}
+
+class SubmitInviteLink extends AuthEvent {
+  final String link;
+  const SubmitInviteLink(this.link);
+
+  @override
+  List<Object?> get props => [link];
+}

@@ -1,13 +1,133 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/fade_route.dart';
 import 'package:guardian/features/journey/presentation/screens/start_journey_screen.dart';
 import 'package:guardian/features/emergency/presentation/screens/emergency_screen.dart';
 import 'package:guardian/features/location/presentation/screens/location_history_screen.dart';
+import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
 
-class LiveMapScreen extends StatelessWidget {
+class LiveMapScreen extends StatefulWidget {
   const LiveMapScreen({super.key});
+
+  @override
+  State<LiveMapScreen> createState() => _LiveMapScreenState();
+}
+
+class _LiveMapScreenState extends State<LiveMapScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authBloc = locator<AuthBloc>();
+      if (authBloc.state.isJoiningCircle) {
+        _showYoureInSheet();
+      }
+    });
+  }
+
+  void _showYoureInSheet() {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        final isDark = Theme.of(sheetContext).brightness == Brightness.dark;
+        return Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF16161A) : Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
+            ),
+          ),
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 32,
+            bottom: 24 + MediaQuery.paddingOf(sheetContext).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Green circle handshake/key icon
+              Container(
+                width: 60,
+                height: 60,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE6F4EA),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.vpn_key_outlined,
+                  color: Color(0xFF137333),
+                  size: 32,
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Title
+              Text(
+                "You're in 🤝",
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              // Subtitle
+              Text(
+                "You've joined Ngozi's circle. You can now see each other's location.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Button: Go to map
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(sheetContext).pop();
+                    locator<AuthBloc>().add(const CompleteCircleOnboarding());
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    "Go to map",
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +160,10 @@ class LiveMapScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Circle: Family Core',
-                    style: GoogleFonts.outfit(
+                  const Text(
+                    'Circle: Ngozi\'s Circle',
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -69,9 +190,9 @@ class LiveMapScreen extends StatelessWidget {
                         context,
                       ).push(FadeRoute(page: const StartJourneyScreen())),
                       icon: const Icon(Icons.directions_run),
-                      label: Text(
+                      label: const Text(
                         'Journey',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                        style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold),
                       ),
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,

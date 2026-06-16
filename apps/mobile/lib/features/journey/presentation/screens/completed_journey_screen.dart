@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/fade_route.dart';
 import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
@@ -26,9 +25,9 @@ class CompletedJourneyScreen extends StatelessWidget {
                 child: Icon(Icons.check_circle, color: Colors.green, size: 54),
               ),
               const SizedBox(height: 24),
-              Text('Journey Completed!', style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold)),
+              Text('Journey Completed!', style: TextStyle(fontFamily: 'Outfit', fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
-              Text('Your circle members have been notified that you arrived safely.', textAlign: TextAlign.center, style: GoogleFonts.inter(color: Colors.grey)),
+              Text('Your circle members have been notified that you arrived safely.', textAlign: TextAlign.center, style: TextStyle(fontFamily: 'Inter', color: Colors.grey)),
               const Spacer(),
               SizedBox(
                 width: double.infinity,
@@ -41,7 +40,7 @@ class CompletedJourneyScreen extends StatelessWidget {
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: Text('Back to Home', style: GoogleFonts.inter(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                  child: Text('Back to Home', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

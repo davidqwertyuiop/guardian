@@ -66,6 +66,10 @@
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>Guardian needs access to your location so your circle knows you are safe.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Guardian needs access to your location in the background so your circle knows you are safe even when the app is closed.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>

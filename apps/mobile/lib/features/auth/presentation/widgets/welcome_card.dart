@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
@@ -9,26 +8,29 @@ class WelcomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      height: AdaptiveLayout.h(context, 540),
+      height: AdaptiveLayout.h(context, 510),
       decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(36),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF8069FF), Color(0xFF6C38FF)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: isDark ? AppColors.primary : const Color(0xFF8069FF),
+        borderRadius: BorderRadius.circular(40),
+        gradient: isDark
+            ? const LinearGradient(
+                colors: [Color(0xFF8069FF), Color(0xFF6C38FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(36),
+        borderRadius: BorderRadius.circular(38),
         child: Stack(
           children: [
             // Watermark background image
             Positioned.fill(
               child: Opacity(
-                opacity: 0.15,
+                opacity: 0.8,
                 child: Image.asset(AppAssets.line6, fit: BoxFit.cover),
               ),
             ),
@@ -40,7 +42,8 @@ class WelcomeCard extends StatelessWidget {
                   SizedBox(height: AdaptiveLayout.h(context, 16)),
                   Text(
                     "Know\nthey're\nsafe.",
-                    style: GoogleFonts.outfit(
+                    style: TextStyle(
+                      fontFamily: 'Inter',
                       fontSize: AdaptiveLayout.sp(context, 52),
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
@@ -51,11 +54,12 @@ class WelcomeCard extends StatelessWidget {
                   SizedBox(height: AdaptiveLayout.h(context, 24)),
                   Text(
                     "The simplest way to share your location with the people who matter most.",
-                    style: GoogleFonts.inter(
-                      fontSize: AdaptiveLayout.sp(context, 16),
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontSize: AdaptiveLayout.sp(context, 20),
                       fontWeight: FontWeight.w400,
-                      color: Colors.white.withValues(alpha: 0.7),
-                      height: 1.4,
+                      color: Colors.white.withValues(alpha: 0.8),
+                      height: 28 / 18,
                     ),
                   ),
                   SizedBox(height: AdaptiveLayout.h(context, 20)),
@@ -108,7 +112,8 @@ class WelcomeCard extends StatelessWidget {
           ),
           child: Text(
             text,
-            style: GoogleFonts.inter(
+            style: const TextStyle(
+              fontFamily: 'Inter',
               color: Colors.black,
               fontSize: 12,
               fontWeight: FontWeight.w600,

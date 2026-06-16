@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
 
@@ -18,10 +17,10 @@ class RegisterNameInput extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: controller,
-        style: GoogleFonts.inter(color: isDark ? Colors.white : Colors.black),
+        style: TextStyle(fontFamily: 'Inter', color: isDark ? Colors.white : Colors.black),
         decoration: InputDecoration(
           hintText: "e.g. non-olem",
-          hintStyle: GoogleFonts.inter(color: Colors.grey[400]),
+          hintStyle: TextStyle(fontFamily: 'Inter', color: Colors.grey[400]),
           border: InputBorder.none,
         ),
       ),
@@ -35,14 +34,34 @@ class CircleCreatureImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    Widget image = Image.asset(AppAssets.circleCreature, height: AdaptiveLayout.h(context, 180), fit: BoxFit.contain);
+    Widget image = Image.asset(
+      AppAssets.mapIntro,
+      height: AdaptiveLayout.h(context, 180),
+      fit: BoxFit.contain,
+    );
     if (isDark) {
       image = ColorFiltered(
         colorFilter: const ColorFilter.matrix([
-          -1.0, 0.0, 0.0, 0.0, 255.0,
-          0.0, -1.0, 0.0, 0.0, 255.0,
-          0.0, 0.0, -1.0, 0.0, 255.0,
-          0.0, 0.0, 0.0, 1.0, 0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          255.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          255.0,
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          255.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
         ]),
         child: image,
       );
@@ -61,18 +80,23 @@ class RegisterButtons extends StatelessWidget {
     return Column(
       children: [
         SizedBox(
-          width: double.infinity, height: AdaptiveLayout.h(context, 54),
+          width: double.infinity,
+          height: AdaptiveLayout.h(context, 54),
           child: ElevatedButton(
             onPressed: onPressed,
             style: ElevatedButton.styleFrom(
               backgroundColor: isDark ? Colors.white : Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               elevation: 0,
             ),
-            child: Text('Continue',
-              style: GoogleFonts.inter(
+            child: Text(
+              'Continue',
+              style: TextStyle(fontFamily: 'Inter', 
                 color: isDark ? Colors.black : Colors.white,
-                fontSize: AdaptiveLayout.sp(context, 16), fontWeight: FontWeight.w600,
+                fontSize: AdaptiveLayout.sp(context, 16),
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -80,8 +104,13 @@ class RegisterButtons extends StatelessWidget {
         SizedBox(height: AdaptiveLayout.h(context, 12)),
         TextButton(
           onPressed: onPressed,
-          child: Text('Skip for now',
-            style: GoogleFonts.inter(color: Colors.grey[500], fontSize: AdaptiveLayout.sp(context, 15), fontWeight: FontWeight.w600),
+          child: Text(
+            'Skip for now',
+            style: TextStyle(fontFamily: 'Inter', 
+              color: Colors.grey[500],
+              fontSize: AdaptiveLayout.sp(context, 15),
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

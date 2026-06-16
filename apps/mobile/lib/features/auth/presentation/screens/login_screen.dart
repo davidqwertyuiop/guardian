@@ -1,36 +1,67 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:guardian/core/utils/fade_route.dart';
 import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../widgets/avatar_cluster.dart';
 import '../widgets/login_bottom_sheet.dart';
-import 'otp_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  StreamSubscription<AuthState>? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscription = locator<AuthBloc>().stream.listen((state) {
+      if (!mounted) return;
+      if (state.status == AuthStatus.failure && state.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(state.errorMessage!),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
-      resizeToAvoidBottomInset: true,
-      body: BlocListener<AuthBloc, AuthState>(
-        listenWhen: (prev, curr) => prev.status != curr.status,
-        listener: (context, state) {
-          if (state.status == AuthStatus.codeSent) {
-            Navigator.of(context).push(FadeRoute(page: const OtpScreen()));
-          } else if (state.status == AuthStatus.failure && state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!), backgroundColor: Colors.red),
-            );
-          }
-        },
-        child: SafeArea(
+    final statusBarHeight = MediaQuery.paddingOf(context).top;
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        locator<AuthBloc>().add(const NavigateBack());
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          top: false, // Extend layout under status bar
           child: LayoutBuilder(
             builder: (context, constraints) {
               return SingleChildScrollView(
@@ -43,17 +74,23 @@ class LoginScreen extends StatelessWidget {
                         _buildBackgroundEllipses(context),
                         Column(
                           children: [
+                            SizedBox(height: statusBarHeight),
                             const Spacer(flex: 2),
                             const AvatarCluster(),
                             SizedBox(height: AdaptiveLayout.h(context, 24)),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                              child: Text("Let's get you\nsigned in",
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0,
+                              ),
+                              child: Text(
+                                "Let's get you\nsigned in",
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.outfit(
+                                style: TextStyle(
+                                  fontFamily: 'Inter',
                                   fontSize: AdaptiveLayout.sp(context, 32),
                                   fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : Colors.black, height: 1.1,
+                                  color: isDark ? Colors.white : Colors.black,
+                                  height: 1.1,
                                 ),
                               ),
                             ),
@@ -74,23 +111,44 @@ class LoginScreen extends StatelessWidget {
   }
 
   Widget _buildBackgroundEllipses(BuildContext context) {
+    final statusBarHeight = MediaQuery.paddingOf(context).top;
     return Stack(
       children: [
         Positioned(
-          top: AdaptiveLayout.h(context, 20), left: AdaptiveLayout.w(context, 20),
-          child: Image.asset(AppAssets.ellipse1, width: 40, opacity: const AlwaysStoppedAnimation(0.6)),
+          top: statusBarHeight + AdaptiveLayout.h(context, 20),
+          left: AdaptiveLayout.w(context, 20),
+          child: Image.asset(
+            AppAssets.ellipse1,
+            width: 40,
+            opacity: const AlwaysStoppedAnimation(0.6),
+          ),
         ),
         Positioned(
-          top: AdaptiveLayout.h(context, 100), right: AdaptiveLayout.w(context, 30),
-          child: Image.asset(AppAssets.ellipse2, width: 30, opacity: const AlwaysStoppedAnimation(0.5)),
+          top: statusBarHeight + AdaptiveLayout.h(context, 100),
+          right: AdaptiveLayout.w(context, 30),
+          child: Image.asset(
+            AppAssets.ellipse2,
+            width: 30,
+            opacity: const AlwaysStoppedAnimation(0.5),
+          ),
         ),
         Positioned(
-          top: AdaptiveLayout.h(context, 250), left: AdaptiveLayout.w(context, 10),
-          child: Image.asset(AppAssets.ellipse3, width: 50, opacity: const AlwaysStoppedAnimation(0.4)),
+          top: statusBarHeight + AdaptiveLayout.h(context, 250),
+          left: AdaptiveLayout.w(context, 10),
+          child: Image.asset(
+            AppAssets.ellipse3,
+            width: 50,
+            opacity: const AlwaysStoppedAnimation(0.4),
+          ),
         ),
         Positioned(
-          top: AdaptiveLayout.h(context, 350), right: AdaptiveLayout.w(context, 15),
-          child: Image.asset(AppAssets.ellipse4, width: 45, opacity: const AlwaysStoppedAnimation(0.6)),
+          top: statusBarHeight + AdaptiveLayout.h(context, 350),
+          right: AdaptiveLayout.w(context, 15),
+          child: Image.asset(
+            AppAssets.ellipse4,
+            width: 45,
+            opacity: const AlwaysStoppedAnimation(0.6),
+          ),
         ),
       ],
     );

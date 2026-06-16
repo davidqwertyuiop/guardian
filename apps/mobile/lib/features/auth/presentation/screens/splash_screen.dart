@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_assets.dart';
@@ -62,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
             SizedBox(height: AdaptiveLayout.h(context, 16)),
             Text(
               'guardian',
-              style: GoogleFonts.outfit(
+              style: TextStyle(fontFamily: 'Inter', 
                 fontSize: AdaptiveLayout.sp(context, 32),
                 fontWeight: FontWeight.w800,
                 color: isDark ? Colors.white : Colors.black,

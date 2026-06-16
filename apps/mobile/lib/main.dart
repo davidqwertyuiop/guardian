@@ -1,31 +1,26 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc/bloc.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/bloc/app_bloc_observer.dart';
 import 'package:guardian/core/theme/app_theme.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:guardian/features/journey/presentation/bloc/journey_bloc.dart';
-import 'package:guardian/features/auth/presentation/screens/splash_screen.dart';
+import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
+import 'package:guardian/features/auth/presentation/screens/welcome_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   // Set the Bloc Observer to monitor all blocs
   Bloc.observer = AppBlocObserver();
 
   // Initialize dependency injection
   await initDependencies();
 
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarDividerColor: Colors.transparent,
-    ),
-  );
+  // Dispatch AppStarted to initialize the active onboarding/authenticated step
+  locator<AuthBloc>().add(const AppStarted());
 
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   runApp(const GuardianApp());
 }
 
@@ -34,19 +29,21 @@ class GuardianApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider<AuthBloc>(create: (context) => AuthBloc()),
-        BlocProvider<JourneyBloc>(create: (context) => JourneyBloc()),
-      ],
-      child: MaterialApp(
-        title: 'Guardian',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: const SplashScreen(),
-      ),
+    final brightness = PlatformDispatcher.instance.platformBrightness;
+    final isDark = brightness == Brightness.dark;
+
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    ));
+
+    return MaterialApp(
+      title: 'Guardian',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      debugShowCheckedModeBanner: false,
+      home: const WelcomeScreen(),
     );
   }
 }

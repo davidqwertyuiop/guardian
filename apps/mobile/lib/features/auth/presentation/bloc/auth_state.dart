@@ -2,21 +2,41 @@ import 'package:equatable/equatable.dart';
 
 enum AuthStatus { initial, loading, codeSent, success, profileCompleted, failure }
 
+enum AuthStep {
+  splash,
+  welcome,
+  login,
+  otp,
+  profile,
+  location,
+  notifications,
+  almostIn,
+  nameCircle,
+  enterInviteCode,
+  pasteLink,
+  circleEmpty,
+  completed
+}
+
 class AuthState extends Equatable {
   final String countryCode;
   final String dialCode;
   final String phoneNumber;
   final AuthStatus status;
+  final AuthStep step;
   final String? errorMessage;
   final String username;
+  final bool isJoiningCircle;
 
   const AuthState({
     required this.countryCode,
     required this.dialCode,
     required this.phoneNumber,
     required this.status,
+    required this.step,
     this.errorMessage,
     required this.username,
+    required this.isJoiningCircle,
   });
 
   factory AuthState.initial() {
@@ -25,7 +45,9 @@ class AuthState extends Equatable {
       dialCode: '+234',
       phoneNumber: '',
       status: AuthStatus.initial,
+      step: AuthStep.splash,
       username: '',
+      isJoiningCircle: false,
     );
   }
 
@@ -34,19 +56,32 @@ class AuthState extends Equatable {
     String? dialCode,
     String? phoneNumber,
     AuthStatus? status,
+    AuthStep? step,
     String? errorMessage,
     String? username,
+    bool? isJoiningCircle,
   }) {
     return AuthState(
       countryCode: countryCode ?? this.countryCode,
       dialCode: dialCode ?? this.dialCode,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       status: status ?? this.status,
+      step: step ?? this.step,
       errorMessage: errorMessage,
       username: username ?? this.username,
+      isJoiningCircle: isJoiningCircle ?? this.isJoiningCircle,
     );
   }
 
   @override
-  List<Object?> get props => [countryCode, dialCode, phoneNumber, status, errorMessage, username];
+  List<Object?> get props => [
+        countryCode,
+        dialCode,
+        phoneNumber,
+        status,
+        step,
+        errorMessage,
+        username,
+        isJoiningCircle,
+      ];
 }

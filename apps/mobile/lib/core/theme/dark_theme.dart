@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:guardian/core/constants/app_colors.dart';
+import 'fade_page_transitions_builder.dart';
 
 ThemeData getDarkTheme() {
   return ThemeData(
@@ -18,23 +18,28 @@ ThemeData getDarkTheme() {
     cardColor: const Color(0xFF161618),
     canvasColor: const Color(0xFF161618),
     dividerColor: AppColors.greyDark,
-    textTheme: GoogleFonts.interTextTheme().copyWith(
-      displayLarge: GoogleFonts.outfit(
+    fontFamily: 'Inter',
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      displayMedium: GoogleFonts.outfit(
+      displayMedium: TextStyle(
+        fontFamily: 'Outfit',
         fontSize: 28,
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
-      bodyLarge: GoogleFonts.inter(
+      bodyLarge: TextStyle(
+        fontFamily: 'Inter',
         fontSize: 16,
         fontWeight: FontWeight.normal,
         color: Colors.white,
       ),
-      bodyMedium: GoogleFonts.inter(
+      bodyMedium: TextStyle(
+        fontFamily: 'Inter',
         fontSize: 14,
         color: AppColors.greyText,
       ),
@@ -52,6 +57,15 @@ ThemeData getDarkTheme() {
         systemNavigationBarDividerColor: Colors.transparent,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
+    ),
+    pageTransitionsTheme: const PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: FadePageTransitionsBuilder(),
+        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.windows: FadePageTransitionsBuilder(),
+        TargetPlatform.linux: FadePageTransitionsBuilder(),
+      },
     ),
     dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF161618)),
   );
