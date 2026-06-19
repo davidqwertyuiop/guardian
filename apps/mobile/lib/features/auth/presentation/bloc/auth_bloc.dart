@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:bloc/bloc.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -8,7 +10,7 @@ import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc() : super(AuthState.initial()) {
+  AuthBloc({AuthStep initialStep = AuthStep.welcome}) : super(AuthState.initial(step: initialStep)) {
     on<CountryChanged>(_onCountryChanged);
     on<PhoneNumberChanged>(_onPhoneNumberChanged);
     on<SubmitPhoneNumber>(_onSubmitPhoneNumber);
@@ -23,7 +25,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SkipLocation>(_onSkipLocation);
     on<EnableNotifications>(_onEnableNotifications);
     on<SkipNotifications>(_onSkipNotifications);
-    
+
     // New circle events
     on<ClickInviteLink>(_onClickInviteLink);
     on<SelectCreateCircle>(_onSelectCreateCircle);
@@ -36,15 +38,19 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _onCountryChanged(CountryChanged event, Emitter<AuthState> emit) {
-    emit(state.copyWith(countryCode: event.countryCode, dialCode: event.dialCode));
+    emit(
+      state.copyWith(countryCode: event.countryCode, dialCode: event.dialCode),
+    );
   }
 
-  void _onPhoneNumberChanged(PhoneNumberChanged event, Emitter<AuthState> emit) {
+  void _onPhoneNumberChanged(
+    PhoneNumberChanged event,
+    Emitter<AuthState> emit,
+  ) {
     emit(state.copyWith(phoneNumber: event.phoneNumber));
   }
 
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
-    await Future.delayed(const Duration(seconds: 2));
     final prefs = locator<SharedPreferences>();
     final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
     final token = await TokenManager().getAccessToken();
@@ -57,57 +63,91 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onSubmitPhoneNumber(SubmitPhoneNumber event, Emitter<AuthState> emit) async {
+  Future<void> _onSubmitPhoneNumber(
+    SubmitPhoneNumber event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
       try {
         await ApiService.sendOtp(fullPhone);
       } catch (e) {
-        print('Backend fallback: sendOtp failed ($e). Continuing with mock.');
+        log('Backend fallback: sendOtp failed ($e). Continuing with mock.');
       }
       emit(state.copyWith(status: AuthStatus.codeSent, step: AuthStep.otp));
     } catch (e) {
-      emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
-  Future<void> _onSubmitVerificationCode(SubmitVerificationCode event, Emitter<AuthState> emit) async {
+  Future<void> _onSubmitVerificationCode(
+    SubmitVerificationCode event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
-      String token = 'mock_jwt_token';
+      Map<String, dynamic> responseData = {
+        'access_token': 'mock_jwt_token',
+        'refresh_token': 'mock_jwt_token',
+        'is_profile_complete': false,
+      };
       try {
-        token = await ApiService.verifyOtp(fullPhone, event.code);
+        responseData = await ApiService.verifyOtp(fullPhone, event.code);
       } catch (e) {
-        print('Backend fallback: verifyOtp failed ($e). Continuing with mock.');
+        log('Backend fallback: verifyOtp failed ($e). Continuing with mock.');
+        await TokenManager().saveTokens(accessToken: 'mock_jwt_token', refreshToken: 'mock_jwt_token');
       }
-      await TokenManager().saveTokens(accessToken: token, refreshToken: token);
-      emit(state.copyWith(status: AuthStatus.success, step: AuthStep.profile));
+
+      final isProfileComplete = responseData['is_profile_complete'] as bool? ?? false;
+
+      if (isProfileComplete) {
+        emit(state.copyWith(status: AuthStatus.success, step: AuthStep.completed));
+      } else {
+        emit(state.copyWith(status: AuthStatus.success, step: AuthStep.profile));
+      }
     } catch (e) {
-      emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
-  Future<void> _onCompleteProfile(CompleteProfile event, Emitter<AuthState> emit) async {
+  Future<void> _onCompleteProfile(
+    CompleteProfile event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
-      final fullPhone = '${state.dialCode}${state.phoneNumber}';
       try {
-        await ApiService.updateProfile(fullPhone, event.username);
+        await ApiService.updateProfile(event.username);
       } catch (e) {
-        print('Backend fallback: updateProfile failed ($e). Storing locally.');
+        log('Backend fallback: updateProfile failed ($e). Storing locally.');
         final prefs = locator<SharedPreferences>();
         await prefs.setString('username', event.username);
       }
 
-      emit(state.copyWith(status: AuthStatus.profileCompleted, step: AuthStep.location, username: event.username));
+      emit(
+        state.copyWith(
+          status: AuthStatus.profileCompleted,
+          step: AuthStep.location,
+          username: event.username,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
-  Future<void> _onEnableLocation(EnableLocation event, Emitter<AuthState> emit) async {
+  Future<void> _onEnableLocation(
+    EnableLocation event,
+    Emitter<AuthState> emit,
+  ) async {
     try {
       final currentStatus = await Permission.location.status;
       PermissionStatus status;
@@ -121,25 +161,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final prefs = locator<SharedPreferences>();
       await prefs.setBool('location_enabled', granted);
     } catch (e) {
-      print('Permission request failed: $e');
+      log('Permission request failed: $e');
     }
     emit(state.copyWith(step: AuthStep.notifications));
   }
 
-  Future<void> _onSkipLocation(SkipLocation event, Emitter<AuthState> emit) async {
+  Future<void> _onSkipLocation(
+    SkipLocation event,
+    Emitter<AuthState> emit,
+  ) async {
     final prefs = locator<SharedPreferences>();
     await prefs.setBool('location_enabled', false);
     emit(state.copyWith(step: AuthStep.notifications));
   }
 
-  Future<void> _onEnableNotifications(EnableNotifications event, Emitter<AuthState> emit) async {
+  Future<void> _onEnableNotifications(
+    EnableNotifications event,
+    Emitter<AuthState> emit,
+  ) async {
     try {
       final status = await Permission.notification.request();
       final granted = status.isGranted;
       final prefs = locator<SharedPreferences>();
       await prefs.setBool('notifications_enabled', granted);
     } catch (e) {
-      print('Permission request failed: $e');
+      log('Permission request failed: $e');
     }
     if (state.isJoiningCircle) {
       emit(state.copyWith(step: AuthStep.completed));
@@ -148,7 +194,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
-  Future<void> _onSkipNotifications(SkipNotifications event, Emitter<AuthState> emit) async {
+  Future<void> _onSkipNotifications(
+    SkipNotifications event,
+    Emitter<AuthState> emit,
+  ) async {
     final prefs = locator<SharedPreferences>();
     await prefs.setBool('notifications_enabled', false);
     if (state.isJoiningCircle) {
@@ -163,7 +212,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(step: AuthStep.enterInviteCode, isJoiningCircle: true));
   }
 
-  void _onSelectCreateCircle(SelectCreateCircle event, Emitter<AuthState> emit) {
+  void _onSelectCreateCircle(
+    SelectCreateCircle event,
+    Emitter<AuthState> emit,
+  ) {
     emit(state.copyWith(step: AuthStep.nameCircle));
   }
 
@@ -171,7 +223,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(step: AuthStep.enterInviteCode));
   }
 
-  Future<void> _onCreateCircle(CreateCircle event, Emitter<AuthState> emit) async {
+  Future<void> _onCreateCircle(
+    CreateCircle event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final prefs = locator<SharedPreferences>();
@@ -181,16 +236,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final fullPhone = '${state.dialCode}${state.phoneNumber}';
         await ApiService.createCircle(fullPhone, event.circleName);
       } catch (e) {
-        print('Backend fallback: createCircle failed ($e)');
+        log('Backend fallback: createCircle failed ($e)');
       }
 
       emit(state.copyWith(status: AuthStatus.success));
     } catch (e) {
-      emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
-  Future<void> _onSubmitInviteCode(SubmitInviteCode event, Emitter<AuthState> emit) async {
+  Future<void> _onSubmitInviteCode(
+    SubmitInviteCode event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final prefs = locator<SharedPreferences>();
@@ -201,7 +261,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (!hasMembers) {
         // Circle is empty → show CircleEmptyScreen
-        emit(state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty));
+        emit(
+          state.copyWith(
+            status: AuthStatus.initial,
+            step: AuthStep.circleEmpty,
+          ),
+        );
         return;
       }
 
@@ -210,21 +275,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final fullPhone = '${state.dialCode}${state.phoneNumber}';
         await ApiService.joinCircle(fullPhone, event.code);
       } catch (e) {
-        print('Backend fallback: joinCircle failed ($e)');
+        log('Backend fallback: joinCircle failed ($e)');
       }
 
       // 3. Go to profile setup; isJoiningCircle=true skips almostIn after notifications
-      emit(state.copyWith(
-        status: AuthStatus.success,
-        step: AuthStep.profile,
-        isJoiningCircle: true,
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          step: AuthStep.profile,
+          isJoiningCircle: true,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
-  Future<void> _onCompleteCircleOnboarding(CompleteCircleOnboarding event, Emitter<AuthState> emit) async {
+  Future<void> _onCompleteCircleOnboarding(
+    CompleteCircleOnboarding event,
+    Emitter<AuthState> emit,
+  ) async {
     final prefs = locator<SharedPreferences>();
     await prefs.setBool('onboarding_completed', true);
     emit(state.copyWith(step: AuthStep.completed));
@@ -248,59 +320,107 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       case AuthStep.welcome:
         break;
       case AuthStep.login:
-        emit(state.copyWith(step: AuthStep.welcome, status: AuthStatus.initial, isJoiningCircle: false));
+        emit(
+          state.copyWith(
+            step: AuthStep.welcome,
+            status: AuthStatus.initial,
+            isJoiningCircle: false,
+          ),
+        );
         break;
       case AuthStep.otp:
         emit(state.copyWith(step: AuthStep.login, status: AuthStatus.initial));
         break;
       case AuthStep.profile:
         if (state.isJoiningCircle) {
-          emit(state.copyWith(step: AuthStep.enterInviteCode, status: AuthStatus.initial));
+          emit(
+            state.copyWith(
+              step: AuthStep.enterInviteCode,
+              status: AuthStatus.initial,
+            ),
+          );
         } else {
           emit(state.copyWith(step: AuthStep.otp, status: AuthStatus.codeSent));
         }
         break;
       case AuthStep.location:
-        emit(state.copyWith(step: AuthStep.profile, status: AuthStatus.success));
+        emit(
+          state.copyWith(step: AuthStep.profile, status: AuthStatus.success),
+        );
         break;
       case AuthStep.notifications:
-        emit(state.copyWith(step: AuthStep.location, status: AuthStatus.success));
+        emit(
+          state.copyWith(step: AuthStep.location, status: AuthStatus.success),
+        );
         break;
       case AuthStep.almostIn:
-        emit(state.copyWith(step: AuthStep.notifications, status: AuthStatus.success));
+        emit(
+          state.copyWith(
+            step: AuthStep.notifications,
+            status: AuthStatus.success,
+          ),
+        );
         break;
       case AuthStep.nameCircle:
-        emit(state.copyWith(step: AuthStep.almostIn, status: AuthStatus.initial));
+        emit(
+          state.copyWith(step: AuthStep.almostIn, status: AuthStatus.initial),
+        );
         break;
       case AuthStep.enterInviteCode:
         if (state.isJoiningCircle) {
-          emit(state.copyWith(step: AuthStep.welcome, status: AuthStatus.initial, isJoiningCircle: false));
+          emit(
+            state.copyWith(
+              step: AuthStep.welcome,
+              status: AuthStatus.initial,
+              isJoiningCircle: false,
+            ),
+          );
         } else {
-          emit(state.copyWith(step: AuthStep.almostIn, status: AuthStatus.initial));
+          emit(
+            state.copyWith(step: AuthStep.almostIn, status: AuthStatus.initial),
+          );
         }
         break;
       case AuthStep.circleEmpty:
-        emit(state.copyWith(step: AuthStep.nameCircle, status: AuthStatus.initial));
+        emit(
+          state.copyWith(step: AuthStep.nameCircle, status: AuthStatus.initial),
+        );
         break;
       case AuthStep.pasteLink:
-        emit(state.copyWith(step: AuthStep.enterInviteCode, status: AuthStatus.initial));
+        emit(
+          state.copyWith(
+            step: AuthStep.enterInviteCode,
+            status: AuthStatus.initial,
+          ),
+        );
         break;
       case AuthStep.completed:
         break;
     }
   }
 
-  void _onNavigateToPasteLink(NavigateToPasteLink event, Emitter<AuthState> emit) {
+  void _onNavigateToPasteLink(
+    NavigateToPasteLink event,
+    Emitter<AuthState> emit,
+  ) {
     emit(state.copyWith(step: AuthStep.pasteLink));
   }
 
-  Future<void> _onSubmitInviteLink(SubmitInviteLink event, Emitter<AuthState> emit) async {
+  Future<void> _onSubmitInviteLink(
+    SubmitInviteLink event,
+    Emitter<AuthState> emit,
+  ) async {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final link = event.link.trim();
       if (link.isEmpty) {
         // Blank field → show circle empty screen immediately without hitting backend
-        emit(state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty));
+        emit(
+          state.copyWith(
+            status: AuthStatus.initial,
+            step: AuthStep.circleEmpty,
+          ),
+        );
         return;
       }
 
@@ -312,7 +432,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       if (!hasMembers) {
         // Circle is empty → show CircleEmptyScreen
-        emit(state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty));
+        emit(
+          state.copyWith(
+            status: AuthStatus.initial,
+            step: AuthStep.circleEmpty,
+          ),
+        );
         return;
       }
 
@@ -321,17 +446,21 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final fullPhone = '${state.dialCode}${state.phoneNumber}';
         await ApiService.joinCircle(fullPhone, link);
       } catch (e) {
-        print('Backend fallback: joinCircle via link failed ($e)');
+        log('Backend fallback: joinCircle via link failed ($e)');
       }
 
       // 3. Go to profile setup; isJoiningCircle=true skips almostIn after notifications
-      emit(state.copyWith(
-        status: AuthStatus.success,
-        step: AuthStep.profile,
-        isJoiningCircle: true,
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          step: AuthStep.profile,
+          isJoiningCircle: true,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 }

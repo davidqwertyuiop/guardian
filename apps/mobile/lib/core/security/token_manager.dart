@@ -5,12 +5,20 @@ class TokenManager {
   static const String _accessTokenKey = 'jwt_access_token';
   static const String _refreshTokenKey = 'jwt_refresh_token';
 
+  Future<void> saveAccessToken(String token) async {
+    await _secureStorage.write(_accessTokenKey, token);
+  }
+
+  Future<void> saveRefreshToken(String token) async {
+    await _secureStorage.write(_refreshTokenKey, token);
+  }
+
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
   }) async {
-    await _secureStorage.write(_accessTokenKey, accessToken);
-    await _secureStorage.write(_refreshTokenKey, refreshToken);
+    await saveAccessToken(accessToken);
+    await saveRefreshToken(refreshToken);
   }
 
   Future<String?> getAccessToken() async {

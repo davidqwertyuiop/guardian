@@ -1,9 +1,8 @@
 pub mod auth;
-pub mod crypto;
 pub mod errors;
 pub mod middleware;
-pub mod permissions;
-pub mod responses;
+pub mod crypto;
+pub mod events;
+pub mod security;
 pub mod telemetry;
-pub mod traits;
 pub mod utils;

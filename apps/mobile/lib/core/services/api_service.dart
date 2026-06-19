@@ -2,87 +2,90 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:guardian/core/security/token_manager.dart';
 
+/// Guardian API Service — v2
+/// All calls go through the Shuttle-hosted Rust backend.
+/// Base URL is set to the live Shuttle deployment URL after first deploy.
 class ApiService {
-  static String get baseUrl {
-    return 'https://guardian-backend-qp3j.onrender.com';
-  }
+  // ── Base URL ──────────────────────────────────────────────────────────────
+  // After running `shuttle deploy`, replace this with your .shuttleapp.com URL.
+  static const String _baseUrl = 'https://guardian-backend-qp3j.onrender.com';
 
-  /// Send OTP code to the given phone number
+  static String get baseUrl => _baseUrl;
+
+  // ── Auth: v2 endpoints ────────────────────────────────────────────────────
+
+  /// POST /api/v1/auth/send-otp
   static Future<bool> sendOtp(String phone) async {
-    final url = Uri.parse('$baseUrl/auth/send-otp');
+    final url = Uri.parse('$baseUrl/api/v1/auth/send-otp');
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phone': phone}),
       );
-
       if (response.statusCode == 200) {
         return true;
       } else {
-        final errorMsg = _extractErrorMessage(response.body);
-        throw Exception(errorMsg);
+        throw Exception(_extractErrorMessage(response.body));
       }
     } catch (e) {
-      if (e is http.ClientException || e is SocketException) {
-        throw Exception(
-          "Cannot connect to server. Please verify the backend is running.",
-        );
-      }
-      rethrow;
+      _rethrowNetworkError(e);
     }
   }
 
-  /// Verify OTP code and return JWT token
-  static Future<String> verifyOtp(String phone, String code) async {
-    final url = Uri.parse('$baseUrl/auth/verify-otp');
+  /// POST /api/v1/auth/verify-otp
+  /// Returns the full auth response map (access_token, refresh_token, user_id, phone, is_profile_complete).
+  static Future<Map<String, dynamic>> verifyOtp(
+      String phone, String code) async {
+    final url = Uri.parse('$baseUrl/api/v1/auth/verify-otp');
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phone': phone, 'code': code}),
       );
-
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final token = data['token'] as String;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+
+        // Persist tokens securely
+        final tokenMgr = TokenManager();
+        await tokenMgr.saveAccessToken(data['access_token'] as String);
+        await tokenMgr.saveRefreshToken(data['refresh_token'] as String);
 
         final prefs = await SharedPreferences.getInstance();
         if (data['user_id'] != null) {
           await prefs.setString('user_id', data['user_id'] as String);
         }
-        if (data['name'] != null) {
-          await prefs.setString('username', data['name'] as String);
-        }
 
-        return token;
+        return data;
       } else {
-        final errorMsg = _extractErrorMessage(response.body);
-        throw Exception(errorMsg);
+        throw Exception(_extractErrorMessage(response.body));
       }
     } catch (e) {
-      if (e is http.ClientException || e is SocketException) {
-        throw Exception(
-          "Cannot connect to server. Please verify the backend is running.",
-        );
-      }
-      rethrow;
+      _rethrowNetworkError(e);
     }
   }
 
-  /// Update user profile name in the database
-  static Future<bool> updateProfile(String phone, String name) async {
-    final url = Uri.parse('$baseUrl/auth/profile');
+  /// PATCH /api/v1/auth/profile  (requires Bearer token)
+  static Future<bool> updateProfile(String name) async {
+    final tokenMgr = TokenManager();
+    final token = await tokenMgr.getAccessToken();
+
+    final url = Uri.parse('$baseUrl/api/v1/auth/profile');
     try {
-      final response = await http.post(
+      final response = await http.patch(
         url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'name': name}),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'name': name}),
       );
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
         final prefs = await SharedPreferences.getInstance();
         if (data['user_id'] != null) {
           await prefs.setString('user_id', data['user_id'] as String);
@@ -90,105 +93,73 @@ class ApiService {
         await prefs.setString('username', name);
         return true;
       } else {
-        final errorMsg = _extractErrorMessage(response.body);
-        throw Exception(errorMsg);
+        throw Exception(_extractErrorMessage(response.body));
       }
     } catch (e) {
-      if (e is http.ClientException || e is SocketException) {
-        throw Exception(
-          "Cannot connect to server. Please verify the backend is running.",
-        );
-      }
-      rethrow;
+      _rethrowNetworkError(e);
     }
   }
 
-  /// Fetch the latest generated OTP from the server (dev helper)
-  static Future<String?> getLatestOtp() async {
-    final url = Uri.parse('$baseUrl/auth/latest-otp');
-    try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['code'] != null) {
-          return data['code'] as String;
-        }
-      }
-      return null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  /// Create a new circle
-  static Future<bool> createCircle(String phone, String circleName) async {
-    final url = Uri.parse('$baseUrl/auth/create-circle');
+  /// POST /api/v1/auth/refresh
+  static Future<String> refreshToken(String refreshToken) async {
+    final url = Uri.parse('$baseUrl/api/v1/auth/refresh');
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'circle_name': circleName}),
+        body: jsonEncode({'refresh_token': refreshToken}),
       );
       if (response.statusCode == 200) {
-        return true;
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final newToken = data['access_token'] as String;
+        await TokenManager().saveAccessToken(newToken);
+        return newToken;
       } else {
         throw Exception(_extractErrorMessage(response.body));
       }
     } catch (e) {
-      if (e is http.ClientException || e is SocketException) {
-        throw Exception("Cannot connect to server.");
-      }
-      rethrow;
+      _rethrowNetworkError(e);
     }
   }
 
-  /// Join an existing circle using invite code
-  static Future<bool> joinCircle(String phone, String inviteCode) async {
-    final url = Uri.parse('$baseUrl/auth/join-circle');
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'invite_code': inviteCode}),
-      );
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        throw Exception(_extractErrorMessage(response.body));
-      }
-    } catch (e) {
-      if (e is http.ClientException || e is SocketException) {
-        throw Exception("Cannot connect to server.");
-      }
-      rethrow;
-    }
-  }
-
-  /// Check if the circle identified by [inviteCode] already has members.
-  /// Returns true  → circle has members (proceed to onboarding).
-  /// Returns false → circle is empty (show CircleEmptyScreen).
-  /// Falls back to true if the backend is unreachable so the user is never blocked.
-  static Future<bool> checkCircleHasMembers(String inviteCode) async {
-    final url = Uri.parse(
-      '$baseUrl/auth/circle-status?code=${Uri.encodeQueryComponent(inviteCode)}',
-    );
+  /// GET /api/v1/auth/me  (requires Bearer token)
+  static Future<Map<String, dynamic>> getMe() async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/auth/me');
     try {
       final response = await http.get(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
       );
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        // Backend should return { "has_members": true/false }
-        return (data['has_members'] as bool?) ?? true;
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception(_extractErrorMessage(response.body));
       }
-      // Non-200 → treat as has members (don't block the user)
-      return true;
-    } catch (_) {
-      // Network failure → assume has members so user isn't blocked
-      return true;
+    } catch (e) {
+      _rethrowNetworkError(e);
     }
   }
+
+  // ── Circles (to be implemented in circles domain) ─────────────────────────
+
+  static Future<bool> createCircle(String phone, String circleName) async {
+    throw UnimplementedError('circles domain not yet implemented');
+  }
+
+  static Future<bool> joinCircle(String phone, String inviteCode) async {
+    throw UnimplementedError('circles domain not yet implemented');
+  }
+
+  static Future<bool> checkCircleHasMembers(String inviteCode) async {
+    // Default to true (don't block user) until circles domain is built
+    return true;
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
   static String _extractErrorMessage(String responseBody) {
     try {
@@ -197,5 +168,13 @@ class ApiService {
     } catch (_) {
       return 'Server error. Please try again.';
     }
+  }
+
+  static Never _rethrowNetworkError(Object e) {
+    if (e is http.ClientException || e is SocketException) {
+      throw Exception(
+          'Cannot connect to Guardian servers. Please check your connection.');
+    }
+    throw e;
   }
 }

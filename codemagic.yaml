@@ -1,0 +1,65 @@
+workflows:
+  ios-testflight-workflow:
+    name: iOS TestFlight Build & Publish
+    working_directory: apps/mobile
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      groups:
+        - apple_credentials
+      vars:
+        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+        BUNDLE_ID: "com.sijibomi.guardian"
+        # Replace with your actual App Store Connect App Apple ID (10-digit number)
+        APP_STORE_APPLE_ID: "YOUR_APP_STORE_APPLE_ID"
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+
+    scripts:
+      - name: Set up keychain
+        script: |
+          keychain initialize
+      - name: Fetch Apple signing files
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_STORE --create
+      - name: Add certificates to keychain
+        script: |
+          keychain add-certificates
+      - name: Set up code signing settings
+        script: |
+          xcode-project use-profiles
+      - name: Get Flutter dependencies
+        script: |
+          flutter packages pub get
+      - name: Build IPA for App Store
+        script: |
+          flutter build ipa --release \
+            --build-name=0.0.1 \
+            --build-number=$BUILD_NUMBER \
+            --export-method=app-store
+            
+    artifacts:
+      - build/ios/ipa/*.ipa
+
+    publishing:
+      email:
+        recipients:
+          - davidqwertyuiop39@gmail.com
+        on_failure: true
+        on_success: true
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
+        submit_to_testflight: true
+        internal_testing_only: false

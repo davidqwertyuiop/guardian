@@ -48,11 +48,11 @@ dependencies:
   permission_handler: ^11.3.1
   page_transition: ^2.1.0
   share_plus: ^9.0.0
+  pinput: ^6.0.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_native_splash: ^2.4.1
   flutter_launcher_icons: ^0.14.4
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -78,6 +78,8 @@ flutter:
     - assets/animations/
     - assets/fonts/
     - assets/icons/
+    - assets/icons/android/
+    - assets/icons/ios/
   fonts:
     - family: Outfit
       fonts:
@@ -127,9 +129,4 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-flutter_native_splash:
-  color: "#ffffff"
-  image: assets/images/splash-screen.png
-  android: true
-  ios: true
-  web: false
+

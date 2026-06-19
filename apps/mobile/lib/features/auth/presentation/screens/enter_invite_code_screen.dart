@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pinput/pinput.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
 import '../bloc/auth_bloc.dart';
@@ -18,50 +18,22 @@ class EnterInviteCodeScreen extends StatefulWidget {
 }
 
 class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
-  final FocusNode _fn1 = FocusNode();
-  final FocusNode _fn2 = FocusNode();
-  final FocusNode _fn3 = FocusNode();
-  final FocusNode _fn4 = FocusNode();
-
-  final TextEditingController _c1 = TextEditingController();
-  final TextEditingController _c2 = TextEditingController();
-  final TextEditingController _c3 = TextEditingController();
-  final TextEditingController _c4 = TextEditingController();
-
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
   bool _canSubmit = false;
 
   @override
   void initState() {
     super.initState();
-    _c1.addListener(_onCodeChanged);
-    _c2.addListener(_onCodeChanged);
-    _c3.addListener(_onCodeChanged);
-    _c4.addListener(_onCodeChanged);
-  }
-
-  void _onCodeChanged() {
-    if (_c1.text.length == 1 && _fn1.hasFocus) _fn2.requestFocus();
-    if (_c2.text.length == 1 && _fn2.hasFocus) _fn3.requestFocus();
-    if (_c3.text.length == 1 && _fn3.hasFocus) _fn4.requestFocus();
-
-    setState(() {
-      _canSubmit = _c1.text.length == 1 &&
-          _c2.text.length == 1 &&
-          _c3.text.length == 1 &&
-          _c4.text.length == 1;
+    _pinController.addListener(() {
+      setState(() => _canSubmit = _pinController.text.length == 4);
     });
   }
 
   @override
   void dispose() {
-    _fn1.dispose();
-    _fn2.dispose();
-    _fn3.dispose();
-    _fn4.dispose();
-    _c1.dispose();
-    _c2.dispose();
-    _c3.dispose();
-    _c4.dispose();
+    _pinController.dispose();
+    _pinFocusNode.dispose();
     super.dispose();
   }
 
@@ -80,6 +52,42 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
     final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+
+    final fillColor = isDark
+        ? const Color(0xFF1E1E22)
+        : const Color(0xFFF3F3F6);
+    final textColor = isDark ? Colors.white : Colors.black;
+    final focusBorderColor = isDark ? Colors.white38 : const Color(0xFF1A73E8);
+
+    final defaultPinTheme = PinTheme(
+      width: 64,
+      height: 64,
+      textStyle: TextStyle(
+        fontFamily: 'Inter',
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        color: textColor,
+        letterSpacing: 1.0,
+      ),
+      decoration: BoxDecoration(
+        color: fillColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+    );
+
+    final focusedPinTheme = defaultPinTheme.copyDecorationWith(
+      border: Border.all(color: focusBorderColor, width: 1.5),
+      borderRadius: BorderRadius.circular(16),
+    );
+
+    final submittedPinTheme = defaultPinTheme.copyWith(
+      decoration: defaultPinTheme.decoration?.copyWith(
+        border: Border.all(
+          color: isDark ? Colors.white12 : const Color(0xFFD0D0D8),
+          width: 1,
+        ),
+      ),
+    );
 
     return BlocListener<AuthBloc, AuthState>(
       bloc: locator<AuthBloc>(),
@@ -154,16 +162,46 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
 
                       SizedBox(height: AdaptiveLayout.h(context, 32)),
 
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildCodeBox(context, _c1, _fn1, isDark),
-                          _buildCodeBox(context, _c2, _fn2, isDark),
-                          _buildCodeBox(context, _c3, _fn3, isDark),
-                          _buildCodeBox(context, _c4, _fn4, isDark),
-                        ],
+                      // ── Pinput invite code input ──────────────────────────
+                      Center(
+                        child: Pinput(
+                          length: 4,
+                          controller: _pinController,
+                          focusNode: _pinFocusNode,
+                          keyboardType: TextInputType.text,
+                          textCapitalization: TextCapitalization.characters,
+                          defaultPinTheme: defaultPinTheme,
+                          focusedPinTheme: focusedPinTheme,
+                          submittedPinTheme: submittedPinTheme,
+                          showCursor: true,
+                          cursor: Container(
+                            width: 2,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white54
+                                  : const Color(0xFF1A73E8),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          closeKeyboardWhenCompleted: true,
+                          obscureText: true,
+                          obscuringWidget: Container(
+                            width: 14,
+                            height: 14,
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.white70 : Colors.black87,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          hapticFeedbackType: HapticFeedbackType.lightImpact,
+                          onCompleted: (code) {
+                            locator<AuthBloc>().add(SubmitInviteCode(code));
+                          },
+                        ),
                       ),
 
+                      // ─────────────────────────────────────────────────────
                       SizedBox(height: AdaptiveLayout.h(context, 32)),
 
                       BlocBuilder<AuthBloc, AuthState>(
@@ -176,13 +214,18 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
                             child: ElevatedButton(
                               onPressed: (_canSubmit && !isLoading)
                                   ? () {
-                                      final fullCode = "${_c1.text}${_c2.text}${_c3.text}${_c4.text}";
-                                      locator<AuthBloc>().add(SubmitInviteCode(fullCode));
+                                      locator<AuthBloc>().add(
+                                        SubmitInviteCode(_pinController.text),
+                                      );
                                     }
                                   : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark ? Colors.white : Colors.black,
-                                foregroundColor: isDark ? Colors.black : Colors.white,
+                                backgroundColor: isDark
+                                    ? Colors.white
+                                    : Colors.black,
+                                foregroundColor: isDark
+                                    ? Colors.black
+                                    : Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -193,7 +236,9 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
                                       width: 24,
                                       height: 24,
                                       child: CircularProgressIndicator(
-                                        color: isDark ? Colors.black : Colors.white,
+                                        color: isDark
+                                            ? Colors.black
+                                            : Colors.white,
                                         strokeWidth: 2,
                                       ),
                                     )
@@ -214,7 +259,9 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
 
                       Center(
                         child: GestureDetector(
-                          onTap: () => locator<AuthBloc>().add(const NavigateToPasteLink()),
+                          onTap: () => locator<AuthBloc>().add(
+                            const NavigateToPasteLink(),
+                          ),
                           child: Text(
                             "Got a link instead? Tap here",
                             style: TextStyle(
@@ -232,41 +279,6 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCodeBox(
-    BuildContext context,
-    TextEditingController controller,
-    FocusNode focusNode,
-    bool isDark,
-  ) {
-    return Container(
-      width: AdaptiveLayout.w(context, 60),
-      height: AdaptiveLayout.h(context, 54),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E22) : const Color(0xFFF3F3F6),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      alignment: Alignment.center,
-      child: TextField(
-        controller: controller,
-        focusNode: focusNode,
-        maxLength: 1,
-        textAlign: TextAlign.center,
-        keyboardType: TextInputType.text,
-        textCapitalization: TextCapitalization.characters,
-        style: TextStyle(
-          fontFamily: 'Inter',
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: isDark ? Colors.white : Colors.black,
-        ),
-        decoration: const InputDecoration(
-          border: InputBorder.none,
-          counterText: "",
         ),
       ),
     );

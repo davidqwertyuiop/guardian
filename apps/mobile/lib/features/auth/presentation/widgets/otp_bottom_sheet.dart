@@ -18,11 +18,8 @@ class OtpBottomSheet extends StatefulWidget {
 }
 
 class _OtpBottomSheetState extends State<OtpBottomSheet> {
-  final List<TextEditingController> _controllers = List.generate(
-    4,
-    (_) => TextEditingController(),
-  );
-  final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
   int _seconds = 30;
   Timer? _timer;
   late final AuthBloc _authBloc;
@@ -32,9 +29,6 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
     super.initState();
     _authBloc = locator<AuthBloc>();
     _startTimer();
-    for (var c in _controllers) {
-      c.addListener(_checkOtpComplete);
-    }
   }
 
   void _startTimer() {
@@ -49,22 +43,11 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
     });
   }
 
-  void _checkOtpComplete() {
-    final code = _controllers.map((c) => c.text).join();
-    if (code.length == 4) {
-      _authBloc.add(SubmitVerificationCode(code));
-    }
-  }
-
   @override
   void dispose() {
     _timer?.cancel();
-    for (var c in _controllers) {
-      c.dispose();
-    }
-    for (var f in _focusNodes) {
-      f.dispose();
-    }
+    _pinController.dispose();
+    _pinFocusNode.dispose();
     super.dispose();
   }
 
@@ -112,12 +95,18 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
               const SizedBox(height: 4),
               OtpBottomSheetSubtitle(maskedPhone: masked),
               SizedBox(height: AdaptiveLayout.h(context, 24)),
-              OtpInputField(controllers: _controllers, focusNodes: _focusNodes),
+              OtpInputField(
+                controller: _pinController,
+                focusNode: _pinFocusNode,
+                onCompleted: (pin) =>
+                    _authBloc.add(SubmitVerificationCode(pin)),
+              ),
               SizedBox(height: AdaptiveLayout.h(context, 24)),
               OtpTimerText(
                 seconds: _seconds,
                 onResend: () {
                   _startTimer();
+                  _pinController.clear();
                   _authBloc.add(const SubmitPhoneNumber());
                 },
               ),

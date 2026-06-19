@@ -1,24 +1,31 @@
 use std::sync::Arc;
 use axum::{routing::get, Router};
+use sqlx::PgPool;
 use crate::config::AppConfig;
-use crate::modules::auth::services::otp::OtpStore;
+use crate::domains::identity::domain::repositories::{
+    user_repository::UserRepository,
+    otp_repository::OtpRepository,
+};
+use crate::domains::identity::infrastructure::sms_gateway::SmsGateway;
 
+/// Central application state — cloned into every request handler.
 #[derive(Clone)]
 pub struct AppState {
     pub config: AppConfig,
-    pub otp_store: Arc<OtpStore>,
-    pub db_pool: sqlx::PgPool,
+    pub db_pool: PgPool,
+    pub user_repo: Arc<dyn UserRepository>,
+    pub otp_repo: Arc<dyn OtpRepository>,
+    pub sms_gateway: Arc<dyn SmsGateway>,
 }
 
+/// Build the complete Axum router with all domain routes nested.
 pub fn create_router(state: AppState) -> Router {
     Router::new()
-        .route("/health", get(|| async { "OK" }))
-        .nest("/api/v1/auth", crate::modules::auth::routes::router())
-        .nest("/api/v1/family", crate::modules::family::routes::router())
-        .nest("/api/v1/location", crate::modules::location::routes::router())
-        .nest("/api/v1/journey", crate::modules::journey::routes::router())
-        .nest("/api/v1/emergency", crate::modules::emergency::routes::router())
-        .nest("/api/v1/alerts", crate::modules::alerts::routes::router())
-        .nest("/api/v1/settings", crate::modules::settings::routes::router())
+        .route("/health", get(|| async { "Guardian API v2 — OK" }))
+        .nest("/api/v1/auth", crate::domains::identity::api::routes::router())
+        // Future domains nested here as they are implemented:
+        // .nest("/api/v1/circles",   crate::domains::circles::api::routes::router())
+        // .nest("/api/v1/location",  crate::domains::location::api::routes::router())
+        // .nest("/api/v1/sos",       crate::domains::sos::api::routes::router())
         .with_state(state)
 }

@@ -1,42 +1,36 @@
-use std::env;
-
+/// Application configuration, loaded from environment variables (local `.env` or production env).
 #[derive(Clone, Debug)]
 pub struct AppConfig {
-    pub server_host: String,
-    pub server_port: u16,
     pub jwt_secret: String,
+    pub jwt_refresh_secret: String,
     pub otp_ttl_seconds: u64,
     pub rate_limit_window_seconds: u64,
-    pub database_url: String,
 }
 
 impl AppConfig {
+    /// Build config from environment variables.
     pub fn from_env() -> Self {
-        let _ = dotenvy::dotenv();
+        let jwt_secret = std::env::var("JWT_SECRET")
+            .expect("JWT_SECRET must be set");
 
-        let server_host = env::var("SERVER_HOST").unwrap_or_else(|_| "0.0.0.0".to_string());
-        let server_port = env::var("SERVER_PORT")
+        let jwt_refresh_secret = std::env::var("JWT_REFRESH_SECRET")
+            .expect("JWT_REFRESH_SECRET must be set");
+
+        let otp_ttl_seconds = std::env::var("OTP_TTL_SECONDS")
             .ok()
-            .and_then(|p| p.parse().ok())
-            .unwrap_or(8080);
-        let jwt_secret = env::var("JWT_SECRET").unwrap_or_else(|_| "your-super-secret-key-change-me-in-production".to_string());
-        let otp_ttl_seconds = env::var("OTP_TTL_SECONDS")
-            .ok()
-            .and_then(|t| t.parse().ok())
+            .and_then(|v| v.parse().ok())
             .unwrap_or(300);
-        let rate_limit_window_seconds = env::var("RATE_LIMIT_WINDOW_SECONDS")
+
+        let rate_limit_window_seconds = std::env::var("RATE_LIMIT_WINDOW_SECONDS")
             .ok()
-            .and_then(|w| w.parse().ok())
+            .and_then(|v| v.parse().ok())
             .unwrap_or(60);
-        let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "postgres://guardian_user:secure_db_pass@localhost:5432/guardian_db".to_string());
 
         Self {
-            server_host,
-            server_port,
             jwt_secret,
+            jwt_refresh_secret,
             otp_ttl_seconds,
             rate_limit_window_seconds,
-            database_url,
         }
     }
 }

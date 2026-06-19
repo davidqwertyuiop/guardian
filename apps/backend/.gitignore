@@ -1,4 +1,4 @@
 /target
 /.env
-/middleware
-/migrations
+Secrets.toml
+Secrets.dev.toml

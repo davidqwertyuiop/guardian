@@ -5,7 +5,7 @@ import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/security/token_manager.dart';
 import 'package:guardian/core/utils/fade_route.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
+import 'package:guardian/features/home/presentation/screens/home_screen.dart';
 import 'welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (mounted) {
       Widget nextPage;
       if (onboardingCompleted && hasJwt) {
-        nextPage = const LiveMapScreen();
+        nextPage = const HomeScreen();
       } else {
         nextPage = const WelcomeScreen();
       }

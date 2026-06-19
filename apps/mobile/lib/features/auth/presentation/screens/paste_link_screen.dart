@@ -144,8 +144,8 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                               ),
                               decoration: BoxDecoration(
                                 color: isDark
-                                    ? Colors.white.withOpacity(0.08)
-                                    : Colors.black.withOpacity(0.06),
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : Colors.black.withValues(alpha: 0.06),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(

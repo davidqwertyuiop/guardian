@@ -39,13 +39,13 @@ class AuthState extends Equatable {
     required this.isJoiningCircle,
   });
 
-  factory AuthState.initial() {
-    return const AuthState(
+  factory AuthState.initial({AuthStep step = AuthStep.welcome}) {
+    return AuthState(
       countryCode: 'NG',
       dialCode: '+234',
       phoneNumber: '',
       status: AuthStatus.initial,
-      step: AuthStep.splash,
+      step: step,
       username: '',
       isJoiningCircle: false,
     );

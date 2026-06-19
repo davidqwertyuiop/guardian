@@ -1,0 +1,20 @@
+name: Deploy Guardian Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/backend/**'
+      - 'render.yaml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render Deploy Hook
+        run: |
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            echo "⚠️ RENDER_DEPLOY_HOOK_URL secret is not set. Skipping deploy trigger."
+            exit 0
+          fi
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"

@@ -86,24 +86,36 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       if (oldS == AuthStep.login && newS == AuthStep.welcome) return true;
       if (oldS == AuthStep.otp && newS == AuthStep.login) return true;
       if (oldS == AuthStep.profile && newS == AuthStep.otp) return true;
-      if (oldS == AuthStep.profile && newS == AuthStep.enterInviteCode) return true;
+      if (oldS == AuthStep.profile && newS == AuthStep.enterInviteCode) {
+        return true;
+      }
       if (oldS == AuthStep.location && newS == AuthStep.profile) return true;
-      if (oldS == AuthStep.notifications && newS == AuthStep.location) return true;
-      if (oldS == AuthStep.almostIn && newS == AuthStep.notifications) return true;
+      if (oldS == AuthStep.notifications && newS == AuthStep.location) {
+        return true;
+      }
+      if (oldS == AuthStep.almostIn && newS == AuthStep.notifications) {
+        return true;
+      }
       if (oldS == AuthStep.nameCircle && newS == AuthStep.almostIn) return true;
-      if (oldS == AuthStep.enterInviteCode && newS == AuthStep.almostIn) return true;
-      if (oldS == AuthStep.enterInviteCode && newS == AuthStep.welcome) return true;
-      if (oldS == AuthStep.circleEmpty && newS == AuthStep.nameCircle) return true;
-      if (oldS == AuthStep.pasteLink && newS == AuthStep.enterInviteCode) return true;
+      if (oldS == AuthStep.enterInviteCode && newS == AuthStep.almostIn) {
+        return true;
+      }
+      if (oldS == AuthStep.enterInviteCode && newS == AuthStep.welcome) {
+        return true;
+      }
+      if (oldS == AuthStep.circleEmpty && newS == AuthStep.nameCircle) {
+        return true;
+      }
+      if (oldS == AuthStep.pasteLink && newS == AuthStep.enterInviteCode) {
+        return true;
+      }
       return false;
     }
 
     if (isBackTransition(oldStep, newStep)) {
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).push(
-        SmoothPageRoute(child: getScreen(newStep)),
-      );
+      Navigator.of(context).push(SmoothPageRoute(child: getScreen(newStep)));
     }
   }
 
@@ -113,7 +125,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       bloc: locator<AuthBloc>(),
       listenWhen: (previous, current) => previous.step != current.step,
       listener: (context, state) => _handleStepTransition(state.step),
-      child: const SplashStepView(),
+      child: const WelcomeStepView(),
     );
   }
 }
@@ -244,7 +256,7 @@ class WelcomeStepView extends StatelessWidget {
               ),
             ),
             child: Text(
-              'Got a link instead? Tap here',
+              'I have an invite link',
               style: TextStyle(
                 fontFamily: 'Inter',
                 color: isDark ? Colors.white : Colors.black,

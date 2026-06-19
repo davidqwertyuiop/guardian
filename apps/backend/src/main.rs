@@ -1,84 +1,70 @@
+mod bootstrap;
 mod config;
-mod routes;
 mod shared;
 mod infrastructure;
-mod modules;
+mod domains;
+mod routes;
+mod websocket;
+mod workers;
 
-use std::sync::Arc;
-use tower_http::cors::{Any, CorsLayer};
-use tower_http::trace::TraceLayer;
+use std::net::SocketAddr;
+use sqlx::postgres::PgPoolOptions;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::config::AppConfig;
-use crate::routes::AppState;
-use crate::modules::auth::services::otp::OtpStore;
-
+/// Guardian Backend v2
+/// Hosted on Render via Docker.
 #[tokio::main]
-async fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Load local .env file if present
+    dotenvy::dotenv().ok();
+
+    // Initialize telemetry/tracing
+    tracing_subscriber::registry()
+        .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "guardian_backend=info,tower_http=debug".into()),
+                .unwrap_or_else(|_| "guardian_backend=info,tower_http=info,axum=info".into()),
         )
+        .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let config = AppConfig::from_env();
-    tracing::info!("🔧 Loaded configuration: {:?}", config);
+    tracing::info!("🚀 Starting Guardian Backend v2 (Docker/Render)...");
 
-    let otp_store = Arc::new(OtpStore::new());
+    // Load AppConfig
+    let config = config::AppConfig::from_env();
+    tracing::info!("✅ Configuration loaded");
 
-    // Establish Postgres connection pool
-    let database_url = config.database_url.clone();
-    let db_pool = match crate::infrastructure::database::establish_connection(&database_url).await {
-        Ok(pool) => {
-            tracing::info!("✅ Connected to Postgres database!");
-            // Initialize schema: create table if not exists
-            if let Err(e) = sqlx::query(
-                "CREATE TABLE IF NOT EXISTS users (
-                    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                    phone VARCHAR(20) UNIQUE NOT NULL,
-                    name VARCHAR(100),
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-                );"
-            )
-            .execute(&pool)
-            .await {
-                tracing::warn!("⚠️ Could not run CREATE TABLE query (it might already exist or gen_random_uuid requires extension): {}", e);
-            }
-            pool
-        }
-        Err(e) => {
-            tracing::error!("❌ Failed to connect to database at {}: {}", database_url, e);
-            std::process::exit(1);
-        }
-    };
+    // Database connection
+    let db_url = std::env::var("DATABASE_URL")
+        .expect("DATABASE_URL must be set in environment or .env file");
+    
+    let pool = PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&db_url)
+        .await?;
+    
+    tracing::info!("✅ Connected to Postgres database");
 
-    let state = AppState {
-        config: config.clone(),
-        otp_store,
-        db_pool,
-    };
+    // Run pending migrations
+    sqlx::migrate!("./migrations")
+        .run(&pool)
+        .await?;
+    
+    tracing::info!("✅ Database migrations applied successfully");
 
-    let cors = CorsLayer::new()
-        .allow_origin(Any)
-        .allow_methods(Any)
-        .allow_headers(Any);
+    // Build the Router
+    let router = bootstrap::build_router(pool, config).await;
 
-    let app = routes::create_router(state)
-        .layer(TraceLayer::new_for_http())
-        .layer(cors);
+    // Get the binding port
+    let port = std::env::var("PORT")
+        .ok()
+        .and_then(|p| p.parse::<u16>().ok())
+        .unwrap_or(8000);
+    
+    let addr = SocketAddr::from(([0, 0, 0, 0], port));
+    tracing::info!("📡 Listening on {}", addr);
 
-    let addr = format!("{}:{}", config.server_host, config.server_port);
-    let listener = match tokio::net::TcpListener::bind(&addr).await {
-        Ok(l) => l,
-        Err(e) => {
-            tracing::error!("❌ Failed to bind to {}: {}", addr, e);
-            std::process::exit(1);
-        }
-    };
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(listener, router).await?;
 
-    tracing::info!("🚀 Guardian Backend running on http://{}", addr);
-
-    if let Err(e) = axum::serve(listener, app).await {
-        tracing::error!("❌ Server error: {}", e);
-    }
+    Ok(())
 }

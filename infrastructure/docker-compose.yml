@@ -11,6 +11,7 @@ services:
       - SERVER_HOST=0.0.0.0
       - SERVER_PORT=8080
       - JWT_SECRET=production-secret-key-change-me-in-production
+      - JWT_REFRESH_SECRET=production-refresh-key-change-me-in-production
       - OTP_TTL_SECONDS=300
       - RATE_LIMIT_WINDOW_SECONDS=60
       - DATABASE_URL=postgres://guardian_user:secure_db_pass@postgres:5432/guardian_db
@@ -29,7 +30,8 @@ services:
       - POSTGRES_DB=guardian_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    # Do not expose ports to public host to ensure database security
+    ports:
+      - "127.0.0.1:5432:5432"
     networks:
       - guardian-net
 

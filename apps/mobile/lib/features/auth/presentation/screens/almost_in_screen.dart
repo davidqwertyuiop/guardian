@@ -148,7 +148,7 @@ class AlmostInScreen extends StatelessWidget {
               style: TextStyle(
                 fontFamily: 'Inter',
                 fontSize: AdaptiveLayout.sp(context, 13),
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
               ),
             ),
             SizedBox(height: AdaptiveLayout.h(context, 20)),

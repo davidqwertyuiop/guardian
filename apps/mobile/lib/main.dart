@@ -7,7 +7,9 @@ import 'package:guardian/core/bloc/app_bloc_observer.dart';
 import 'package:guardian/core/theme/app_theme.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
+import 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
 import 'package:guardian/features/auth/presentation/screens/welcome_screen.dart';
+import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +21,12 @@ void main() async {
 
   // Dispatch AppStarted to initialize the active onboarding/authenticated step
   locator<AuthBloc>().add(const AppStarted());
+
+  // Lock to portrait — landscape causes overflow on all screens.
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   runApp(const GuardianApp());
@@ -37,13 +45,18 @@ class GuardianApp extends StatelessWidget {
       statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
 
+    final initialStep = locator<AuthBloc>().state.step;
+    final Widget homeScreen = (initialStep == AuthStep.completed)
+        ? const LiveMapScreen()
+        : const WelcomeScreen();
+
     return MaterialApp(
       title: 'Guardian',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
       debugShowCheckedModeBanner: false,
-      home: const WelcomeScreen(),
+      home: homeScreen,
     );
   }
 }
