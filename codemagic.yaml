@@ -31,9 +31,6 @@ workflows:
       - name: Get Flutter dependencies
         script: |
           flutter packages pub get
-      - name: Install Pods
-        script: |
-          cd ios && pod install
       - name: Build IPA for App Store
         script: |
           flutter build ipa --release \
