@@ -80,6 +80,7 @@ flutter:
     - assets/icons/
     - assets/icons/android/
     - assets/icons/ios/
+    - shorebird.yaml
   fonts:
     - family: Outfit
       fonts:
