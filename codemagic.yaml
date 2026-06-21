@@ -62,4 +62,4 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        apple_id: 6782626434 # Replace with the 10-digit number from App Store Connect app page
+        apple_id: "6782626434"
