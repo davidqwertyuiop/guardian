@@ -37,11 +37,17 @@ workflows:
       - name: Set up code signing settings
         script: |
           xcode-project use-profiles
+          # Find the installed provisioning profile name and inject into ExportOptions.plist
+          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" | head -1)
+          PROFILE_NAME=$(security cms -D -i "$PROFILE_PATH" | plutil -extract Name raw -)
+          echo "Using provisioning profile: $PROFILE_NAME"
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.sijibomi.guardian $PROFILE_NAME" ios/ExportOptions.plist
       - name: Build IPA for App Store
         script: |
           flutter build ipa --release \
             --build-name=0.0.1 \
-            --build-number=$BUILD_NUMBER
+            --build-number=$BUILD_NUMBER \
+            --export-options-plist=ios/ExportOptions.plist
             
     artifacts:
       - build/ios/ipa/*.ipa
