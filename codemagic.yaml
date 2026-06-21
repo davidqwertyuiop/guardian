@@ -48,7 +48,7 @@ workflows:
             --build-name=0.0.1 \
             --build-number=$BUILD_NUMBER \
             --export-options-plist=ios/ExportOptions.plist
-            
+
     artifacts:
       - build/ios/ipa/*.ipa
 
@@ -62,3 +62,4 @@ workflows:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
+        apple_id: 6782626434 # Replace with the 10-digit number from App Store Connect app page
