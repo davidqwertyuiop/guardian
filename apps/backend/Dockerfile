@@ -31,10 +31,10 @@ RUN apt-get update && apt-get install -y \
 COPY --from=builder /usr/src/app/target/release/guardian-backend /app/guardian-backend
 COPY --from=builder /usr/src/app/migrations /app/migrations
 
-# Expose server port (Render automatically listens on the defined port)
-EXPOSE 8000
+# Render injects PORT at runtime — expose 8080 to match render.yaml default.
+EXPOSE 8080
 
-ENV PORT=8000
+# Do NOT hardcode PORT here — Render overrides it with its own value.
 ENV RUST_LOG=info
 
 # Run the app
