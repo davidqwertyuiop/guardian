@@ -29,7 +29,7 @@ class IosTabBar extends StatelessWidget {
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.40),
+              color: Colors.black.withValues(alpha: 0.40),
               blurRadius: 28,
               offset: const Offset(0, 10),
             ),
@@ -99,7 +99,7 @@ class _IosHomeTab extends StatelessWidget {
             Icon(
               Icons.favorite_rounded,
               size: 20,
-              color: Colors.white.withOpacity(isActive ? 1.0 : 0.45),
+              color: Colors.white.withValues(alpha: isActive ? 1.0 : 0.45),
             ),
             if (isActive) ...[
               const SizedBox(width: 6),
@@ -143,14 +143,14 @@ class _IosIconTab extends StatelessWidget {
         height: 48,
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.primary.withOpacity(0.20)
+              ? AppColors.primary.withValues(alpha: 0.20)
               : const Color(0xFF2E2E30),
           shape: BoxShape.circle,
         ),
         child: Icon(
           icon,
           size: 22,
-          color: isActive ? AppColors.primary : Colors.white.withOpacity(0.45),
+          color: isActive ? AppColors.primary : Colors.white.withValues(alpha: 0.45),
         ),
       ),
     );
@@ -196,7 +196,7 @@ class _IosProfileTab extends StatelessWidget {
                 Icons.person_rounded,
                 size: 22,
                 color:
-                    isActive ? AppColors.primary : Colors.white.withOpacity(0.45),
+                    isActive ? AppColors.primary : Colors.white.withValues(alpha: 0.45),
               )
             : null,
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
@@ -104,22 +105,28 @@ class CircleReadySheet extends StatelessWidget {
             width: double.infinity,
             height: 54,
             child: TextButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                Share.share(
+                  'Join my Guardian circle: https://guardian.app/invite/abc123',
+                  subject: 'Guardian circle invite',
+                );
+              },
               style: TextButton.styleFrom(
-                backgroundColor: isDark ? const Color(0xFF26262B) : const Color(0xFFEBEBEF),
+                backgroundColor: isDark ? const Color(0xFF1A73E8) : const Color(0xFF1A73E8),
+                foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
               icon: const Icon(
-                Icons.chat_bubble_outline_rounded,
-                color: Colors.green,
+                Icons.ios_share_rounded,
+                color: Colors.white,
               ),
-              label: Text(
-                "Share on WhatsApp",
+              label: const Text(
+                "Share invite link",
                 style: TextStyle(
                   fontFamily: 'Inter',
-                  color: isDark ? Colors.white : Colors.black,
+                  color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),

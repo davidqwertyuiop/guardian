@@ -8,23 +8,35 @@ use crate::config::AppConfig;
 use crate::routes::{AppState, create_router};
 use crate::domains::identity::infrastructure::{
     postgres_user_repo::PostgresUserRepository,
+    postgres_session_repo::PostgresSessionRepository,
     in_memory_otp_repo::InMemoryOtpRepository,
     sms_gateway::MockSmsGateway,
+};
+use crate::domains::circles::infrastructure::{
+    postgres_circle_repo::PostgresCircleRepository,
+    postgres_invite_repo::PostgresInviteRepository,
 };
 
 /// Wires together the application: config, repos, gateways → Router.
 /// Called once during app startup in main.rs.
 pub async fn build_router(pool: PgPool, config: AppConfig) -> Router {
     let user_repo = Arc::new(PostgresUserRepository { pool: pool.clone() });
+    let session_repo = Arc::new(PostgresSessionRepository { pool: pool.clone() });
     let otp_repo  = Arc::new(InMemoryOtpRepository::new());
     let sms_gw    = Arc::new(MockSmsGateway);
+    
+    let circle_repo = Arc::new(PostgresCircleRepository { pool: pool.clone() });
+    let invite_repo = Arc::new(PostgresInviteRepository { pool: pool.clone() });
 
     let state = AppState {
         config,
         db_pool: pool,
         user_repo,
+        session_repo,
         otp_repo,
         sms_gateway: sms_gw,
+        circle_repo,
+        invite_repo,
     };
 
     let cors = CorsLayer::new()

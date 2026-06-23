@@ -3,6 +3,7 @@ import 'package:intl_country_data/intl_country_data.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
+import 'package:guardian/core/utils/phone_number_utils.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -48,6 +49,11 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
         final flag = IntlCountryData.fromCountryCodeAlpha2(
           state.countryCode,
         ).flag;
+        final maxDigits = PhoneNumberUtils.getMaxDigits(state.dialCode);
+        final isComplete = PhoneNumberUtils.isPhoneComplete(
+          state.dialCode,
+          state.phoneNumber,
+        );
         return Container(
           margin: EdgeInsets.all(AdaptiveLayout.padding(context, 16)),
           decoration: BoxDecoration(
@@ -88,6 +94,7 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
                 controller: _phoneController,
                 flag: flag,
                 dialCode: state.dialCode,
+                maxDigits: maxDigits,
                 onTapCountry: () => CountryPickerBottomSheet.show(context, (c) {
                   _authBloc.add(
                     CountryChanged(
@@ -95,12 +102,15 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
                       dialCode: '+${c.telephoneCode}',
                     ),
                   );
+                  // Clear the field when country changes so the old
+                  // digits don't violate the new country's length rule.
+                  _phoneController.clear();
                 }),
               ),
               SizedBox(height: AdaptiveLayout.h(context, 20)),
               LoginContinueButton(
                 isLoading: state.status == AuthStatus.loading,
-                enabled: state.phoneNumber.isNotEmpty,
+                enabled: isComplete,
                 onPressed: () =>
                     _authBloc.add(const SubmitPhoneNumber()),
               ),

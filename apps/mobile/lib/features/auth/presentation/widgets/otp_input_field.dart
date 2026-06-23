@@ -6,7 +6,7 @@ class OtpInputField extends StatelessWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
 
-  /// Called with the joined 4-digit string when all digits are entered.
+  /// Called with the joined 6-digit string when all digits are entered.
   final ValueChanged<String>? onCompleted;
 
   const OtpInputField({
@@ -19,6 +19,9 @@ class OtpInputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Compute box width so 6 boxes + 5 gaps fit within screen width minus padding
+    final availableWidth = MediaQuery.sizeOf(context).width - 80;
+    final boxSize = (availableWidth / 6).clamp(42.0, 54.0);
 
     final fillColor =
         isDark ? const Color(0xFF1E1E24) : const Color(0xFFF3F3F6);
@@ -27,8 +30,8 @@ class OtpInputField extends StatelessWidget {
         isDark ? Colors.white38 : const Color(0xFF1A73E8);
 
     final defaultTheme = PinTheme(
-      width: 56,
-      height: 56,
+      width: boxSize,
+      height: boxSize,
       textStyle: TextStyle(
         fontFamily: 'Inter',
         fontSize: 20,
@@ -57,7 +60,7 @@ class OtpInputField extends StatelessWidget {
     );
 
     return Pinput(
-      length: 4,
+      length: 6,
       controller: controller,
       focusNode: focusNode,
       keyboardType: TextInputType.number,
@@ -75,8 +78,8 @@ class OtpInputField extends StatelessWidget {
       ),
       obscureText: true,
       obscuringWidget: Container(
-        width: 14,
-        height: 14,
+        width: 12,
+        height: 12,
         decoration: BoxDecoration(
           color: isDark ? Colors.white70 : Colors.black87,
           shape: BoxShape.circle,

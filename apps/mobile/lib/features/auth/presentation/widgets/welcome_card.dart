@@ -9,9 +9,13 @@ class WelcomeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenH = MediaQuery.sizeOf(context).height;
+    // Always 58% of screen height — naturally adaptive on every device size.
+    final cardHeight = screenH * 0.58;
+
     return Container(
       width: double.infinity,
-      height: AdaptiveLayout.h(context, 510),
+      height: cardHeight,
       decoration: BoxDecoration(
         color: isDark ? AppColors.primary : const Color(0xFF8069FF),
         borderRadius: BorderRadius.circular(40),
@@ -39,7 +43,7 @@ class WelcomeCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: AdaptiveLayout.h(context, 16)),
+                  SizedBox(height: cardHeight * 0.03),
                   Text(
                     "Know\nthey're\nsafe.",
                     style: TextStyle(
@@ -51,23 +55,23 @@ class WelcomeCard extends StatelessWidget {
                       letterSpacing: -0.5,
                     ),
                   ),
-                  SizedBox(height: AdaptiveLayout.h(context, 24)),
+                  SizedBox(height: cardHeight * 0.045),
                   Text(
                     "The simplest way to share your location with the people who matter most.",
                     style: TextStyle(
                       fontFamily: 'Inter',
-                      fontSize: AdaptiveLayout.sp(context, 20),
+                      fontSize: AdaptiveLayout.sp(context, 18),
                       fontWeight: FontWeight.w400,
                       color: Colors.white.withValues(alpha: 0.8),
-                      height: 28 / 18,
+                      height: 1.5,
                     ),
                   ),
-                  SizedBox(height: AdaptiveLayout.h(context, 20)),
+                  SizedBox(height: cardHeight * 0.038),
                   Center(
                     child: Image.asset(
                       AppAssets.line2,
                       width: AdaptiveLayout.w(context, 300),
-                      height: AdaptiveLayout.h(context, 80),
+                      height: cardHeight * 0.16,
                       fit: BoxFit.contain,
                     ),
                   ),

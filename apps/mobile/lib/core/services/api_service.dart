@@ -37,14 +37,12 @@ class ApiService {
 
   /// POST /api/v1/auth/verify-otp
   /// Returns the full auth response map (access_token, refresh_token, user_id, phone, is_profile_complete).
-  static Future<Map<String, dynamic>> verifyOtp(
-      String phone, String code) async {
-    final url = Uri.parse('$baseUrl/api/v1/auth/verify-otp');
+  static Future<Map<String, dynamic>> verifyOtp(String phone, String idToken) async {
     try {
       final response = await http.post(
-        url,
+        Uri.parse('$baseUrl/api/v1/auth/firebase-exchange'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'code': code}),
+        body: jsonEncode({'phone': phone, 'id_token': idToken}),
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;

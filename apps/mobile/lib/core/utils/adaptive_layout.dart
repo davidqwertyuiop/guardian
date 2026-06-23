@@ -38,4 +38,19 @@ class AdaptiveLayout {
   static double padding(BuildContext context, double val) {
     return val * (screenWidth(context) / _designWidth);
   }
+
+  /// Maximum width for page content on tablets.
+  /// Keeps content centred and readable on wide screens (iPad, iPad Pro).
+  static double maxContentWidth(BuildContext context) {
+    return isTablet(context) ? 480.0 : double.infinity;
+  }
+
+  /// Horizontal padding that increases on wider screens.
+  static double responsiveHorizontalPadding(BuildContext context) {
+    final w = screenWidth(context);
+    if (w >= 768) return (w - 480) / 2;   // iPad: centre the content column
+    if (w >= 600) return 40.0;             // Small tablet
+    return 0.0;                            // Phone: callers use their own padding
+  }
 }
+

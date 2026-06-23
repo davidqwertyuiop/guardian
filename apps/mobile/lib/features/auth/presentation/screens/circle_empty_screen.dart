@@ -172,38 +172,7 @@ class CircleEmptyScreen extends StatelessWidget {
 
                     const Spacer(),
 
-                    // WhatsApp share button
-                    SizedBox(
-                      width: double.infinity,
-                      height: AdaptiveLayout.h(context, 54),
-                      child: ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(
-                          Icons.chat_bubble_outline_rounded,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          "Share on WhatsApp",
-                          style: TextStyle(
-                            fontFamily: 'Inter',
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: AdaptiveLayout.h(context, 12)),
-
-                    // Share another way — system share sheet action button
+                    // Share invite link button (universal system share sheet)
                     SizedBox(
                       width: double.infinity,
                       height: AdaptiveLayout.h(context, 54),
@@ -215,11 +184,8 @@ class CircleEmptyScreen extends StatelessWidget {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isDark
-                              ? const Color(0xFF1E1E22)
-                              : const Color(0xFFF3F3F6),
-                          foregroundColor:
-                              isDark ? Colors.white : Colors.black,
+                          backgroundColor: const Color(0xFF1A73E8),
+                          foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -228,18 +194,18 @@ class CircleEmptyScreen extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.share_rounded,
+                            const Icon(
+                              Icons.ios_share_rounded,
                               size: 18,
-                              color: isDark ? Colors.white : Colors.black,
+                              color: Colors.white,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              "Share another way",
+                              "Share invite link",
                               style: TextStyle(
                                 fontFamily: 'Inter',
-                                fontSize: AdaptiveLayout.sp(context, 15),
-                                color: isDark ? Colors.white : Colors.black,
+                                fontSize: AdaptiveLayout.sp(context, 16),
+                                color: Colors.white,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

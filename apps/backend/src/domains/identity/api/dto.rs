@@ -24,6 +24,12 @@ pub struct RefreshTokenRequest {
     pub refresh_token: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct FirebaseExchangeRequest {
+    pub phone: String,
+    pub id_token: String,
+}
+
 // ── Responses ───────────────────────────────────────────────────────────────
 
 #[derive(Debug, Serialize)]
@@ -53,4 +59,13 @@ pub struct ProfileResponse {
 #[derive(Debug, Serialize)]
 pub struct RefreshTokenResponse {
     pub access_token: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SessionResponse {
+    pub device_name: String,
+    pub device_model: Option<String>,
+    pub platform: String,
+    pub last_active_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
 }

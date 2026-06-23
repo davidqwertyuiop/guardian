@@ -1,1 +1,4 @@
-// circles domain — stub, implementation coming in subsequent sprints.
+pub mod domain;
+pub mod application;
+pub mod infrastructure;
+pub mod api;

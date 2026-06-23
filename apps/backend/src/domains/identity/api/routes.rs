@@ -1,12 +1,21 @@
-use axum::{routing::{get, post, patch}, Router};
-use crate::routes::AppState;
 use super::handlers;
+use crate::routes::AppState;
+use axum::{
+    routing::{get, patch, post},
+    Router,
+};
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/send-otp",   post(handlers::send_otp))
+        .route("/send-otp", post(handlers::send_otp))
         .route("/verify-otp", post(handlers::verify_otp))
-        .route("/profile",    patch(handlers::setup_profile))
-        .route("/refresh",    post(handlers::refresh_token))
-        .route("/me",         get(handlers::get_me))
+        .route("/firebase-exchange", post(handlers::firebase_exchange))
+        .route("/profile", patch(handlers::setup_profile))
+        .route("/refresh", post(handlers::refresh_token))
+        .route("/me", get(handlers::get_me))
+        .route("/sessions", get(handlers::get_sessions))
+        .route(
+            "/sessions/{hash}",
+            axum::routing::delete(handlers::revoke_session),
+        )
 }

@@ -11,10 +11,18 @@ import 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
 import 'package:guardian/features/auth/presentation/screens/welcome_screen.dart';
 import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:guardian/firebase_options.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Set the Bloc Observer to monitor all blocs
   Bloc.observer = AppBlocObserver();
+
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   // Initialize dependency injection
   await initDependencies();

@@ -5,6 +5,7 @@ import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
 import 'package:guardian/features/journey/presentation/bloc/journey_bloc.dart';
 import 'package:guardian/core/security/token_manager.dart';
+import 'package:guardian/core/services/firebase_auth_service.dart';
 
 final locator = GetIt.instance;
 
@@ -24,7 +25,10 @@ Future<void> initDependencies() async {
   final hasJwt = token != null && token.isNotEmpty;
   final initialStep = (onboardingCompleted && hasJwt) ? AuthStep.completed : AuthStep.welcome;
 
-  // 2. Blocs
+  // 2. Services
+  locator.registerLazySingleton<FirebaseAuthService>(() => FirebaseAuthService());
+
+  // 3. Blocs
   locator.registerLazySingleton<AuthBloc>(() => AuthBloc(initialStep: initialStep));
   locator.registerLazySingleton<JourneyBloc>(() => JourneyBloc());
 }

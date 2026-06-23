@@ -27,6 +27,7 @@ class AuthState extends Equatable {
   final String? errorMessage;
   final String username;
   final bool isJoiningCircle;
+  final String? verificationId;
 
   const AuthState({
     required this.countryCode,
@@ -37,6 +38,7 @@ class AuthState extends Equatable {
     this.errorMessage,
     required this.username,
     required this.isJoiningCircle,
+    this.verificationId,
   });
 
   factory AuthState.initial({AuthStep step = AuthStep.welcome}) {
@@ -60,6 +62,7 @@ class AuthState extends Equatable {
     String? errorMessage,
     String? username,
     bool? isJoiningCircle,
+    String? verificationId,
   }) {
     return AuthState(
       countryCode: countryCode ?? this.countryCode,
@@ -70,6 +73,7 @@ class AuthState extends Equatable {
       errorMessage: errorMessage,
       username: username ?? this.username,
       isJoiningCircle: isJoiningCircle ?? this.isJoiningCircle,
+      verificationId: verificationId ?? this.verificationId,
     );
   }
 
@@ -83,5 +87,6 @@ class AuthState extends Equatable {
         errorMessage,
         username,
         isJoiningCircle,
+        verificationId,
       ];
 }

@@ -42,7 +42,7 @@ class OtpBottomSheetSubtitle extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          "We sent a 4-digit code to $maskedPhone. ",
+          "We sent a 6-digit code to $maskedPhone. ",
           style: TextStyle(fontFamily: 'Inter', 
             fontSize: AdaptiveLayout.sp(context, 13),
             color: AppColors.greyText,

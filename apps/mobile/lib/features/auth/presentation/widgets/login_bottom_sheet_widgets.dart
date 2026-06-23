@@ -14,13 +14,8 @@ class LoginBottomSheetHeader extends StatelessWidget {
     final closeBg = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFF2F2F7);
     final closeIconColor = isDark ? Colors.white70 : Colors.black54;
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: isDark ? const Color(0xFF2A1F4C) : const Color(0xFFF2EFFE), shape: BoxShape.circle),
-          child: const Icon(Icons.auto_awesome, color: Color(0xFF8860FF), size: 18),
-        ),
         GestureDetector(
           onTap: () => locator<AuthBloc>().add(const NavigateBack()),
           child: Container(
@@ -43,14 +38,32 @@ class LoginBottomSheetTerms extends StatelessWidget {
       TextSpan(
         text: 'By continuing, you agree to our ',
         children: [
-          TextSpan(text: 'Terms of Service', style: TextStyle(fontFamily: 'Inter', color: AppColors.primary, fontWeight: FontWeight.w600)),
+          TextSpan(
+            text: 'Terms of Service',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const TextSpan(text: ' and '),
-          TextSpan(text: 'Privacy Policy', style: TextStyle(fontFamily: 'Inter', color: AppColors.primary, fontWeight: FontWeight.w600)),
+          TextSpan(
+            text: 'Privacy Policy',
+            style: TextStyle(
+              fontFamily: 'Inter',
+              color: AppColors.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           const TextSpan(text: '.'),
         ],
       ),
       textAlign: TextAlign.center,
-      style: TextStyle(fontFamily: 'Inter', fontSize: AdaptiveLayout.sp(context, 12), color: Colors.grey[500]),
+      style: TextStyle(
+        fontFamily: 'Inter',
+        fontSize: AdaptiveLayout.sp(context, 12),
+        color: Colors.grey[500],
+      ),
     );
   }
 }
@@ -60,22 +73,45 @@ class LoginContinueButton extends StatelessWidget {
   final bool enabled;
   final VoidCallback? onPressed;
 
-  const LoginContinueButton({super.key, required this.isLoading, required this.enabled, required this.onPressed});
+  const LoginContinueButton({
+    super.key,
+    required this.isLoading,
+    required this.enabled,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: double.infinity, height: AdaptiveLayout.h(context, 54),
+      width: double.infinity,
+      height: AdaptiveLayout.h(context, 54),
       child: ElevatedButton(
         onPressed: enabled && !isLoading ? onPressed : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 0,
         ),
         child: isLoading
-            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
-            : Text('Continue', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: AdaptiveLayout.sp(context, 16), fontWeight: FontWeight.w600)),
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Text(
+                'Continue',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  color: Colors.white,
+                  fontSize: AdaptiveLayout.sp(context, 16),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }

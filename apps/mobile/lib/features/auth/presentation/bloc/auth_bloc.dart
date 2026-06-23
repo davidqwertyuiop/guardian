@@ -8,9 +8,14 @@ import 'package:guardian/core/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:guardian/core/services/firebase_auth_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  AuthBloc({AuthStep initialStep = AuthStep.welcome}) : super(AuthState.initial(step: initialStep)) {
+  final FirebaseAuthService _firebaseAuthService =
+      locator<FirebaseAuthService>();
+
+  AuthBloc({AuthStep initialStep = AuthStep.welcome})
+    : super(AuthState.initial(step: initialStep)) {
     on<CountryChanged>(_onCountryChanged);
     on<PhoneNumberChanged>(_onPhoneNumberChanged);
     on<SubmitPhoneNumber>(_onSubmitPhoneNumber);
@@ -70,12 +75,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
+
+      // Start Firebase phone auth verification
+      final verificationId = await _firebaseAuthService.verifyPhoneNumber(
+        fullPhone,
+      );
+
+      // Now tell backend to do whatever prep it needs (e.g. rate limits)
       try {
         await ApiService.sendOtp(fullPhone);
       } catch (e) {
-        log('Backend fallback: sendOtp failed ($e). Continuing with mock.');
+        log(
+          'Backend sendOtp hook failed ($e). Continuing since Firebase succeeded.',
+        );
       }
-      emit(state.copyWith(status: AuthStatus.codeSent, step: AuthStep.otp));
+
+      emit(
+        state.copyWith(
+          status: AuthStatus.codeSent,
+          step: AuthStep.otp,
+          verificationId: verificationId,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
@@ -87,27 +108,54 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     SubmitVerificationCode event,
     Emitter<AuthState> emit,
   ) async {
+    if (state.verificationId == null) {
+      emit(
+        state.copyWith(
+          status: AuthStatus.failure,
+          errorMessage: 'Session expired. Please try again.',
+        ),
+      );
+      return;
+    }
+
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
+
+      // 1. Verify with Firebase and get ID Token
+      final idToken = await _firebaseAuthService.verifyOtpAndGetIdToken(
+        verificationId: state.verificationId!,
+        smsCode: event.code,
+      );
+
+      // 2. Send Firebase ID Token to our backend
       Map<String, dynamic> responseData = {
         'access_token': 'mock_jwt_token',
         'refresh_token': 'mock_jwt_token',
         'is_profile_complete': false,
       };
       try {
-        responseData = await ApiService.verifyOtp(fullPhone, event.code);
+        // We temporarily pass the idToken as the 'code' to the backend until we build the new endpoint
+        responseData = await ApiService.verifyOtp(fullPhone, idToken);
       } catch (e) {
-        log('Backend fallback: verifyOtp failed ($e). Continuing with mock.');
-        await TokenManager().saveTokens(accessToken: 'mock_jwt_token', refreshToken: 'mock_jwt_token');
+        log('Backend fallback: verifyOtp failed ($e).');
+        await TokenManager().saveTokens(
+          accessToken: 'mock_jwt_token',
+          refreshToken: 'mock_jwt_token',
+        );
       }
 
-      final isProfileComplete = responseData['is_profile_complete'] as bool? ?? false;
+      final isProfileComplete =
+          responseData['is_profile_complete'] as bool? ?? false;
 
       if (isProfileComplete) {
-        emit(state.copyWith(status: AuthStatus.success, step: AuthStep.completed));
+        emit(
+          state.copyWith(status: AuthStatus.success, step: AuthStep.completed),
+        );
       } else {
-        emit(state.copyWith(status: AuthStatus.success, step: AuthStep.profile));
+        emit(
+          state.copyWith(status: AuthStatus.success, step: AuthStep.profile),
+        );
       }
     } catch (e) {
       emit(
@@ -368,6 +416,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         break;
       case AuthStep.enterInviteCode:
         if (state.isJoiningCircle) {
+          // Reached from welcome screen's "I have an invite link" button.
           emit(
             state.copyWith(
               step: AuthStep.welcome,
@@ -376,6 +425,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             ),
           );
         } else {
+          // Reached from almostIn via "Join circle" button.
           emit(
             state.copyWith(step: AuthStep.almostIn, status: AuthStatus.initial),
           );
