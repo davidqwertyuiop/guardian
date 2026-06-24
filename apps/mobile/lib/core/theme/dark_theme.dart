@@ -61,8 +61,6 @@ ThemeData getDarkTheme() {
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: FadePageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
         TargetPlatform.windows: FadePageTransitionsBuilder(),
         TargetPlatform.linux: FadePageTransitionsBuilder(),
       },
