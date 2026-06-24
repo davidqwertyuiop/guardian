@@ -10,7 +10,7 @@ import 'package:guardian/core/security/token_manager.dart';
 class ApiService {
   // ── Base URL ──────────────────────────────────────────────────────────────
   // After running `shuttle deploy`, replace this with your .shuttleapp.com URL.
-  static const String _baseUrl = 'https://guardian-backend-qp3j.onrender.com';
+  static const String _baseUrl = 'https://guardian-2vex.onrender.com';
 
   static String get baseUrl => _baseUrl;
 
