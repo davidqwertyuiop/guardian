@@ -28,7 +28,13 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
     _authBloc = locator<AuthBloc>();
     _phoneController = TextEditingController(text: _authBloc.state.phoneNumber);
     _phoneController.addListener(() {
-      _authBloc.add(PhoneNumberChanged(_phoneController.text));
+      final text = _phoneController.text;
+      _authBloc.add(PhoneNumberChanged(text));
+      
+      final maxDigits = PhoneNumberUtils.getMaxDigits(_authBloc.state.dialCode);
+      if (text.length == maxDigits && FocusScope.of(context).hasFocus) {
+        FocusScope.of(context).unfocus();
+      }
     });
   }
 

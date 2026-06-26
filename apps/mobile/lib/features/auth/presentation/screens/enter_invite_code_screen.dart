@@ -101,12 +101,8 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
         }
       },
       child: PopScope(
-        // canPop: false — let the BLoC be the single source of truth for
-        // navigation. WelcomeScreen's listener calls Navigator.pop() exactly
-        // once when the step changes, preventing the double-pop black screen.
-        canPop: false,
+        canPop: true,
         onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return; // already handled
           locator<AuthBloc>().add(const NavigateBack());
         },
         child: Scaffold(

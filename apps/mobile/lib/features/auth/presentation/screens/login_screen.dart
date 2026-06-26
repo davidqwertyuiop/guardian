@@ -24,9 +24,8 @@ class _LoginScreenState extends State<LoginScreen> {
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
         locator<AuthBloc>().add(const NavigateBack());
       },
       child: BlocListener<AuthBloc, AuthState>(
@@ -72,55 +71,58 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
         },
-        child: Scaffold(
-          backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
-          resizeToAvoidBottomInset: true,
-          body: SafeArea(
-            top: false, // Extend layout under status bar
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Stack(
-                        children: [
-                          _buildBackgroundEllipses(context),
-                          Column(
-                            children: [
-                              SizedBox(height: statusBarHeight),
-                              const Spacer(flex: 2),
-                              const AvatarCluster(),
-                              SizedBox(height: AdaptiveLayout.h(context, 24)),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24.0,
-                                ),
-                                child: Text(
-                                  "Let's get you\nsigned in",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: 'Inter',
-                                    fontSize: AdaptiveLayout.sp(context, 32),
-                                    fontWeight: FontWeight.w800,
-                                    color: isDark ? Colors.white : Colors.black,
-                                    height: 1.1,
+        child: GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
+            resizeToAvoidBottomInset: true,
+            body: SafeArea(
+              top: false, // Extend layout under status bar
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Stack(
+                          children: [
+                            _buildBackgroundEllipses(context),
+                            Column(
+                              children: [
+                                SizedBox(height: statusBarHeight),
+                                const Spacer(flex: 2),
+                                const AvatarCluster(),
+                                SizedBox(height: AdaptiveLayout.h(context, 24)),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24.0,
+                                  ),
+                                  child: Text(
+                                    "Let's get you\nsigned in",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontFamily: 'Inter',
+                                      fontSize: AdaptiveLayout.sp(context, 32),
+                                      fontWeight: FontWeight.w800,
+                                      color: isDark ? Colors.white : Colors.black,
+                                      height: 1.1,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const Spacer(flex: 3),
-                              const LoginBottomSheet(),
-                            ],
-                          ),
-                        ],
+                                const Spacer(flex: 3),
+                                const LoginBottomSheet(),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),

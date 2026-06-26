@@ -113,6 +113,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     }
 
     if (isBackTransition(oldStep, newStep)) {
+      if (ModalRoute.of(context)?.isCurrent ?? false) {
+        // Native back-swipe/pop already occurred, just sync state
+        return;
+      }
       Navigator.of(context).pop();
     } else {
       Navigator.of(context).push(SmoothPageRoute(child: getScreen(newStep)));

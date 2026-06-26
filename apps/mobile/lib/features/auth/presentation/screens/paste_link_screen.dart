@@ -39,9 +39,8 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
     final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
         locator<AuthBloc>().add(const NavigateBack());
       },
       child: Scaffold(

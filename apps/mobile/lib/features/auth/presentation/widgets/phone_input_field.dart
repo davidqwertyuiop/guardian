@@ -80,6 +80,8 @@ class PhoneInputField extends StatelessWidget {
                     child: TextField(
                       controller: controller,
                       keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => FocusScope.of(context).unfocus(),
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(maxDigits),
