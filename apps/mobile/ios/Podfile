@@ -28,8 +28,7 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 flutter_ios_podfile_setup
 
 target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
+  use_frameworks! :linkage => :static
   
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 end
@@ -42,5 +41,14 @@ post_install do |installer|
       # Allow non-modular includes in framework modules to support hybrid SPM/CocoaPods setups
       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
     end
+  end
+  
+  installer.aggregate_targets.each do |target|
+    target.user_project.targets.each do |user_target|
+      user_target.build_configurations.each do |config|
+        config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      end
+    end
+    target.user_project.save
   end
 end

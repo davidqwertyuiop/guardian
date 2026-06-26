@@ -70,5 +70,16 @@
 		<string>Guardian needs access to your location in the background so your circle knows you are safe even when the app is closed.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>app-1-733213004282-ios-387167d26e901d6286d443</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>
