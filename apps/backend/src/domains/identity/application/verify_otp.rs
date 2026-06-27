@@ -33,32 +33,29 @@ impl VerifyOtpUseCase {
             return Err(AppError::InvalidInput("Phone and code are required".to_string()));
         }
 
-        // Dev bypass code — remove before going public
-        if code != "8823" {
-            let entry = self
-                .otp_repo
-                .get(phone)
-                .await?
-                .ok_or_else(|| AppError::Unauthorized("No pending verification. Request a new code.".to_string()))?;
+        let entry = self
+            .otp_repo
+            .get(phone)
+            .await?
+            .ok_or_else(|| AppError::Unauthorized("No pending verification. Request a new code.".to_string()))?;
 
-            // Check expiry
-            let now = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs();
-            let elapsed = now.saturating_sub(entry.created_at_secs);
-            if elapsed > self.config.otp_ttl_seconds {
-                self.otp_repo.delete(phone).await?;
-                return Err(AppError::Unauthorized("Verification code has expired. Request a new one.".to_string()));
-            }
-
-            if entry.code.trim() != code {
-                return Err(AppError::Unauthorized("Invalid verification code.".to_string()));
-            }
-
-            // Consume the OTP
+        // Check expiry
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+        let elapsed = now.saturating_sub(entry.created_at_secs);
+        if elapsed > self.config.otp_ttl_seconds {
             self.otp_repo.delete(phone).await?;
+            return Err(AppError::Unauthorized("Verification code has expired. Request a new one.".to_string()));
         }
+
+        if entry.code.trim() != code {
+            return Err(AppError::Unauthorized("Invalid verification code.".to_string()));
+        }
+
+        // Consume the OTP
+        self.otp_repo.delete(phone).await?;
 
         // Fetch or create user
         let user = match self.user_repo.find_by_phone(phone).await? {

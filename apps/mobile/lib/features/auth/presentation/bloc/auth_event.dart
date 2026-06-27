@@ -61,7 +61,11 @@ class NavigateToWelcome extends AuthEvent {
 }
 
 class NavigateBack extends AuthEvent {
-  const NavigateBack();
+  final bool isNativePop;
+  const NavigateBack({this.isNativePop = false});
+
+  @override
+  List<Object?> get props => [isNativePop];
 }
 
 class AppStarted extends AuthEvent {

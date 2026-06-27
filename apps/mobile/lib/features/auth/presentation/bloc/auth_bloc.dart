@@ -8,7 +8,6 @@ import 'package:guardian/core/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:guardian/core/services/firebase_auth_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
@@ -389,6 +388,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               step: AuthStep.welcome,
               status: AuthStatus.initial,
               isJoiningCircle: false,
+              triggerNavigation: !event.isNativePop,
             ),
           );
         } else {
@@ -408,6 +408,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           state.copyWith(
             step: AuthStep.enterInviteCode,
             status: AuthStatus.initial,
+            triggerNavigation: !event.isNativePop,
           ),
         );
         break;

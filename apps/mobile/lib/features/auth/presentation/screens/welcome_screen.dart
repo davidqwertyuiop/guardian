@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_colors.dart';
@@ -37,10 +38,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     _currentStep = locator<AuthBloc>().state.step;
   }
 
-  void _handleStepTransition(AuthStep newStep) {
+  void _handleStepTransition(AuthState state) {
+    final newStep = state.step;
+    final oldStep = _currentStep;
     if (newStep == _currentStep) return;
 
-    final oldStep = _currentStep;
     setState(() {
       _currentStep = newStep;
     });
@@ -112,6 +114,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       return false;
     }
 
+    if (!state.triggerNavigation) return;
+
     if (isBackTransition(oldStep, newStep)) {
       if (ModalRoute.of(context)?.isCurrent ?? false) {
         // Native back-swipe/pop already occurred, just sync state
@@ -119,7 +123,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       }
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).push(SmoothPageRoute(child: getScreen(newStep)));
+      Route route;
+      if (newStep == AuthStep.enterInviteCode || newStep == AuthStep.pasteLink) {
+        route = CupertinoPageRoute(builder: (_) => getScreen(newStep));
+      } else {
+        route = SmoothPageRoute(child: getScreen(newStep));
+      }
+      Navigator.of(context).push(route);
     }
   }
 
@@ -127,8 +137,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       bloc: locator<AuthBloc>(),
-      listenWhen: (previous, current) => previous.step != current.step,
-      listener: (context, state) => _handleStepTransition(state.step),
+      listener: (context, state) => _handleStepTransition(state),
       child: const WelcomeStepView(),
     );
   }

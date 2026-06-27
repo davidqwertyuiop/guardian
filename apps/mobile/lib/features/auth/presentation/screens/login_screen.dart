@@ -24,8 +24,9 @@ class _LoginScreenState extends State<LoginScreen> {
     final statusBarHeight = MediaQuery.paddingOf(context).top;
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
         locator<AuthBloc>().add(const NavigateBack());
       },
       child: BlocListener<AuthBloc, AuthState>(
@@ -34,8 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
             previous.status != current.status &&
             current.status == AuthStatus.failure,
         listener: (context, state) {
-          if (state.errorMessage != null) {
-            // Trim the raw error string — Firebase/internal prefixes are noisy
+          if (state.errorMessage != null && (ModalRoute.of(context)?.isCurrent ?? false)) {
             final rawMsg = state.errorMessage!;
             final msg = rawMsg.contains(':')
                 ? rawMsg.substring(rawMsg.lastIndexOf(':') + 1).trim()

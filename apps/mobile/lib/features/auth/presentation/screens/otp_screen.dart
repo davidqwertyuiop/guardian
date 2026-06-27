@@ -33,7 +33,7 @@ class _OtpScreenState extends State<OtpScreen> {
             previous.status != current.status &&
             current.status == AuthStatus.failure,
         listener: (context, state) {
-          if (state.errorMessage != null) {
+          if (state.errorMessage != null && (ModalRoute.of(context)?.isCurrent ?? false)) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage!),

@@ -10,7 +10,6 @@ use crate::domains::identity::infrastructure::{
     postgres_user_repo::PostgresUserRepository,
     postgres_session_repo::PostgresSessionRepository,
     in_memory_otp_repo::InMemoryOtpRepository,
-    sms_gateway::MockSmsGateway,
 };
 use crate::domains::circles::infrastructure::{
     postgres_circle_repo::PostgresCircleRepository,
@@ -23,10 +22,13 @@ pub async fn build_router(pool: PgPool, config: AppConfig) -> Router {
     let user_repo = Arc::new(PostgresUserRepository { pool: pool.clone() });
     let session_repo = Arc::new(PostgresSessionRepository { pool: pool.clone() });
     let otp_repo  = Arc::new(InMemoryOtpRepository::new());
-    let sms_gw    = Arc::new(MockSmsGateway);
-    
     let circle_repo = Arc::new(PostgresCircleRepository { pool: pool.clone() });
     let invite_repo = Arc::new(PostgresInviteRepository { pool: pool.clone() });
+
+    // Load AWS config from env vars
+    let aws_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
+    let aws_client = aws_sdk_sns::Client::new(&aws_config);
+    let sms_gw    = Arc::new(crate::domains::identity::infrastructure::sms_gateway::AwsSmsGateway::new(aws_client));
 
     let state = AppState {
         config,

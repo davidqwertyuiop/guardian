@@ -41,7 +41,9 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
-        locator<AuthBloc>().add(const NavigateBack());
+        if (didPop) {
+          locator<AuthBloc>().add(const NavigateBack(isNativePop: true));
+        }
       },
       child: Scaffold(
         backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
@@ -215,8 +217,12 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                     // Enter code instead
                     Center(
                       child: GestureDetector(
-                        onTap: () =>
-                            locator<AuthBloc>().add(const NavigateBack()),
+                        onTap: () {
+                          // Let the PopScope handle the bloc state sync to avoid double pop
+                          if (Navigator.of(context).canPop()) {
+                            Navigator.of(context).pop();
+                          }
+                        },
                         child: Text(
                           "Enter a code instead",
                           style: TextStyle(

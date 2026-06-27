@@ -38,28 +38,31 @@ class OtpBottomSheetSubtitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          "We sent a 6-digit code to $maskedPhone. ",
-          style: TextStyle(fontFamily: 'Inter', 
-            fontSize: AdaptiveLayout.sp(context, 13),
-            color: AppColors.greyText,
-          ),
+    return Text.rich(
+      textAlign: TextAlign.center,
+      TextSpan(
+        text: "We sent a 6-digit code to $maskedPhone. ",
+        style: TextStyle(fontFamily: 'Inter', 
+          fontSize: AdaptiveLayout.sp(context, 13),
+          color: AppColors.greyText,
         ),
-        GestureDetector(
-          onTap: () => locator<AuthBloc>().add(const NavigateBack()),
-          child: Text(
-            "Edit",
-            style: TextStyle(fontFamily: 'Inter', 
-              fontSize: AdaptiveLayout.sp(context, 13),
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
+        children: [
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: GestureDetector(
+              onTap: () => locator<AuthBloc>().add(const NavigateBack()),
+              child: Text(
+                "Edit",
+                style: TextStyle(fontFamily: 'Inter', 
+                  fontSize: AdaptiveLayout.sp(context, 13),
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

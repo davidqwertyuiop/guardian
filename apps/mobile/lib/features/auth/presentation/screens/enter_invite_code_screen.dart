@@ -103,7 +103,9 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
       child: PopScope(
         canPop: true,
         onPopInvokedWithResult: (didPop, result) {
-          locator<AuthBloc>().add(const NavigateBack());
+          if (didPop) {
+            locator<AuthBloc>().add(const NavigateBack(isNativePop: true));
+          }
         },
         child: Scaffold(
           backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
