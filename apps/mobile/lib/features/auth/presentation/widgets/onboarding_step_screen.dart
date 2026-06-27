@@ -4,6 +4,7 @@ import 'package:guardian/core/utils/adaptive_layout.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
+import 'package:guardian/features/auth/presentation/widgets/shared/auth_shared.dart';
 
 class OnboardingStepScreen extends StatelessWidget {
   final String title;
@@ -82,61 +83,11 @@ class OnboardingStepScreen extends StatelessWidget {
                               ] else ...[
                                 SizedBox(height: AdaptiveLayout.h(context, 10)),
                               ],
-                              Text(
-                                title,
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: AdaptiveLayout.sp(context, 32),
-                                  fontWeight: FontWeight.w800,
-                                  color: isDark ? Colors.white : Colors.black,
-                                  height: 1.15,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
+                              AuthTitle(text: title),
                               SizedBox(height: AdaptiveLayout.h(context, 16)),
-                              Text(
-                                subtitle,
-                                style: TextStyle(
-                                  fontFamily: 'Inter',
-                                  fontSize: AdaptiveLayout.sp(context, 16),
-                                  fontWeight: FontWeight.w400,
-                                  color: isDark ? Colors.white70 : Colors.black87,
-                                  height: 1.4,
-                                ),
-                              ),
+                              AuthSubtitle(text: subtitle),
                               SizedBox(height: AdaptiveLayout.h(context, 24)),
-                              // Bullet points
-                              ...bulletPoints.map((point) => Padding(
-                                    padding: EdgeInsets.only(
-                                      bottom: AdaptiveLayout.h(context, 12),
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '→ ',
-                                          style: TextStyle(
-                                            fontFamily: 'Inter',
-                                            fontSize: AdaptiveLayout.sp(context, 16),
-                                            fontWeight: FontWeight.w600,
-                                            color: isDark ? Colors.white38 : Colors.black38,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            point,
-                                            style: TextStyle(
-                                              fontFamily: 'Inter',
-                                              fontSize: AdaptiveLayout.sp(context, 16),
-                                              fontWeight: FontWeight.w400,
-                                              color: isDark ? Colors.white70 : Colors.black87,
-                                              height: 1.4,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )),
+                              AuthBulletList(bulletPoints: bulletPoints),
                               if (middleWidget != null) ...[
                                 SizedBox(height: AdaptiveLayout.h(context, 20)),
                                 middleWidget!,
@@ -150,53 +101,14 @@ class OnboardingStepScreen extends StatelessWidget {
                             ),
                             child: Column(
                               children: [
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: AdaptiveLayout.h(context, 54),
-                                  child: ElevatedButton(
-                                    onPressed: onPrimaryPressed,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: isDark ? Colors.white : Colors.black,
-                                      foregroundColor: isDark ? Colors.black : Colors.white,
-                                      elevation: 0,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      primaryButtonText,
-                                      style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontSize: AdaptiveLayout.sp(context, 16),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
+                                AuthPrimaryButton(
+                                  text: primaryButtonText,
+                                  onPressed: onPrimaryPressed,
                                 ),
                                 SizedBox(height: AdaptiveLayout.h(context, 12)),
-                                SizedBox(
-                                  width: double.infinity,
-                                  height: AdaptiveLayout.h(context, 54),
-                                  child: TextButton(
-                                    onPressed: onSecondaryPressed,
-                                    style: TextButton.styleFrom(
-                                      backgroundColor: isDark
-                                          ? const Color(0xFF1E1E22)
-                                          : const Color(0xFFF3F3F6),
-                                      foregroundColor: isDark ? Colors.white : Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      secondaryButtonText,
-                                      style: TextStyle(
-                                        fontFamily: 'Inter',
-                                        fontSize: AdaptiveLayout.sp(context, 16),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
+                                AuthSecondaryButton(
+                                  text: secondaryButtonText,
+                                  onPressed: onSecondaryPressed,
                                 ),
                               ],
                             ),

@@ -7,6 +7,8 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import '../widgets/otp_bottom_sheet.dart';
+import 'package:toastification/toastification.dart';
+import 'package:guardian/features/auth/presentation/widgets/shared/auth_shared.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
@@ -34,17 +36,46 @@ class _OtpScreenState extends State<OtpScreen> {
             current.status == AuthStatus.failure,
         listener: (context, state) {
           if (state.errorMessage != null && (ModalRoute.of(context)?.isCurrent ?? false)) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: Colors.redAccent,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            if (Theme.of(context).platform == TargetPlatform.iOS) {
+              toastification.show(
+                context: context,
+                style: ToastificationStyle.minimal,
+                title: const Text(
+                  'Something went wrong',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
                 ),
-                margin: const EdgeInsets.all(16),
-              ),
-            );
+                description: Text(
+                  state.errorMessage!,
+                  softWrap: true,
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
+                alignment: Alignment.topCenter,
+                autoCloseDuration: const Duration(seconds: 4),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage!),
+                  backgroundColor: Colors.redAccent,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.all(16),
+                ),
+              );
+            }
           }
         },
         child: Scaffold(
@@ -54,7 +85,7 @@ class _OtpScreenState extends State<OtpScreen> {
           child: Stack(
             children: [
               // 1. Background Ellipses (hidden on keyboard)
-              _buildBackgroundEllipses(context, isKeyboardOpen),
+              AuthBackgroundEllipses(isKeyboardOpen: isKeyboardOpen),
 
               // 2. Main Content
               Column(
@@ -63,19 +94,7 @@ class _OtpScreenState extends State<OtpScreen> {
                   SizedBox(height: isKeyboardOpen ? 20 : 70),
 
                   // Title text
-                  Text(
-                    "Let's get you\nverified",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontFamily: 'Inter',
-                      color: isDark ? Colors.white : Colors.black,
-                      fontSize: AdaptiveLayout.sp(context, 34),
-                      fontWeight: FontWeight.w700,
-                      height: 1.1,
-                    ),
-                  ),
-
-                  SizedBox(height: isKeyboardOpen ? 10 : 15),
+                  const AuthTitle(text: "Let's get you\nverified"),
 
                   // Expanded area for the zoomed woman background (hidden on keyboard to prevent overflow)
                   Expanded(
@@ -106,50 +125,6 @@ class _OtpScreenState extends State<OtpScreen> {
         ),
       ),
       ),
-    );
-  }
-
-  Widget _buildBackgroundEllipses(BuildContext context, bool isKeyboardOpen) {
-    if (isKeyboardOpen) return const SizedBox();
-    return Stack(
-      children: [
-        Positioned(
-          top: AdaptiveLayout.h(context, 20),
-          left: AdaptiveLayout.w(context, 20),
-          child: Image.asset(
-            AppAssets.ellipse1,
-            width: 40,
-            opacity: const AlwaysStoppedAnimation(0.6),
-          ),
-        ),
-        Positioned(
-          top: AdaptiveLayout.h(context, 100),
-          right: AdaptiveLayout.w(context, 30),
-          child: Image.asset(
-            AppAssets.ellipse2,
-            width: 30,
-            opacity: const AlwaysStoppedAnimation(0.5),
-          ),
-        ),
-        Positioned(
-          top: AdaptiveLayout.h(context, 250),
-          left: AdaptiveLayout.w(context, 10),
-          child: Image.asset(
-            AppAssets.ellipse3,
-            width: 50,
-            opacity: const AlwaysStoppedAnimation(0.4),
-          ),
-        ),
-        Positioned(
-          top: AdaptiveLayout.h(context, 350),
-          right: AdaptiveLayout.w(context, 15),
-          child: Image.asset(
-            AppAssets.ellipse4,
-            width: 45,
-            opacity: const AlwaysStoppedAnimation(0.6),
-          ),
-        ),
-      ],
     );
   }
 }

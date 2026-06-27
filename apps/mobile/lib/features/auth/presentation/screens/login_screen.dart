@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -9,6 +8,7 @@ import '../bloc/auth_state.dart';
 import '../widgets/avatar_cluster.dart';
 import '../widgets/login_bottom_sheet.dart';
 import 'package:toastification/toastification.dart';
+import 'package:guardian/features/auth/presentation/widgets/shared/auth_shared.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
+    final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return PopScope(
       canPop: false,
@@ -41,34 +42,46 @@ class _LoginScreenState extends State<LoginScreen> {
                 ? rawMsg.substring(rawMsg.lastIndexOf(':') + 1).trim()
                 : rawMsg;
 
-            toastification.show(
-              context: context,
-              style: ToastificationStyle.minimal,
-              title: const Text(
-                'Something went wrong',
-                style: TextStyle(
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 14,
+            if (Theme.of(context).platform == TargetPlatform.iOS) {
+              toastification.show(
+                context: context,
+                style: ToastificationStyle.minimal,
+                title: const Text(
+                  'Something went wrong',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-              description: Text(
-                msg,
-                softWrap: true,
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontFamily: 'Inter',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
+                description: Text(
+                  msg,
+                  softWrap: true,
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
-              ),
-              alignment: Alignment.topCenter,
-              autoCloseDuration: const Duration(seconds: 5),
-              showProgressBar: false,
-              borderRadius: BorderRadius.circular(14),
-              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            );
+                alignment: Alignment.topCenter,
+                autoCloseDuration: const Duration(seconds: 4),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              );
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(msg),
+                  backgroundColor: Colors.redAccent,
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.all(16),
+                ),
+              );
+            }
           }
         },
         child: GestureDetector(
@@ -89,28 +102,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: IntrinsicHeight(
                         child: Stack(
                           children: [
-                            _buildBackgroundEllipses(context),
+                            AuthBackgroundEllipses(isKeyboardOpen: isKeyboardOpen),
                             Column(
                               children: [
                                 SizedBox(height: statusBarHeight),
                                 const Spacer(flex: 2),
                                 const AvatarCluster(),
                                 SizedBox(height: AdaptiveLayout.h(context, 24)),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(
                                     horizontal: 24.0,
                                   ),
-                                  child: Text(
-                                    "Let's get you\nsigned in",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontFamily: 'Inter',
-                                      fontSize: AdaptiveLayout.sp(context, 32),
-                                      fontWeight: FontWeight.w800,
-                                      color: isDark ? Colors.white : Colors.black,
-                                      height: 1.1,
-                                    ),
-                                  ),
+                                  child: AuthTitle(text: "Let's get you\nsigned in"),
                                 ),
                                 const Spacer(flex: 3),
                                 const LoginBottomSheet(),
@@ -127,50 +130,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBackgroundEllipses(BuildContext context) {
-    final statusBarHeight = MediaQuery.paddingOf(context).top;
-    return Stack(
-      children: [
-        Positioned(
-          top: statusBarHeight + AdaptiveLayout.h(context, 20),
-          left: AdaptiveLayout.w(context, 20),
-          child: Image.asset(
-            AppAssets.ellipse1,
-            width: 40,
-            opacity: const AlwaysStoppedAnimation(0.6),
-          ),
-        ),
-        Positioned(
-          top: statusBarHeight + AdaptiveLayout.h(context, 100),
-          right: AdaptiveLayout.w(context, 30),
-          child: Image.asset(
-            AppAssets.ellipse2,
-            width: 30,
-            opacity: const AlwaysStoppedAnimation(0.5),
-          ),
-        ),
-        Positioned(
-          top: statusBarHeight + AdaptiveLayout.h(context, 250),
-          left: AdaptiveLayout.w(context, 10),
-          child: Image.asset(
-            AppAssets.ellipse3,
-            width: 50,
-            opacity: const AlwaysStoppedAnimation(0.4),
-          ),
-        ),
-        Positioned(
-          top: statusBarHeight + AdaptiveLayout.h(context, 350),
-          right: AdaptiveLayout.w(context, 15),
-          child: Image.asset(
-            AppAssets.ellipse4,
-            width: 45,
-            opacity: const AlwaysStoppedAnimation(0.6),
-          ),
-        ),
-      ],
     );
   }
 }
