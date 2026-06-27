@@ -11,8 +11,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:guardian/core/services/firebase_auth_service.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final FirebaseAuthService _firebaseAuthService =
-      locator<FirebaseAuthService>();
 
   AuthBloc({AuthStep initialStep = AuthStep.welcome})
     : super(AuthState.initial(step: initialStep)) {
@@ -76,25 +74,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
 
-      // Start Firebase phone auth verification
-      final verificationId = await _firebaseAuthService.verifyPhoneNumber(
-        fullPhone,
-      );
-
-      // Now tell backend to do whatever prep it needs (e.g. rate limits)
-      try {
-        await ApiService.sendOtp(fullPhone);
-      } catch (e) {
-        log(
-          'Backend sendOtp hook failed ($e). Continuing since Firebase succeeded.',
-        );
-      }
+      // Send OTP via our backend (which now uses AWS SNS)
+      await ApiService.sendOtp(fullPhone);
 
       emit(
         state.copyWith(
           status: AuthStatus.codeSent,
           step: AuthStep.otp,
-          verificationId: verificationId,
+          verificationId: 'aws_sns_session', // Dummy value since backend handles verification
         ),
       );
     } catch (e) {
@@ -122,28 +109,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
 
-      // 1. Verify with Firebase and get ID Token
-      final idToken = await _firebaseAuthService.verifyOtpAndGetIdToken(
-        verificationId: state.verificationId!,
-        smsCode: event.code,
-      );
-
-      // 2. Send Firebase ID Token to our backend
-      Map<String, dynamic> responseData = {
-        'access_token': 'mock_jwt_token',
-        'refresh_token': 'mock_jwt_token',
-        'is_profile_complete': false,
-      };
-      try {
-        // We temporarily pass the idToken as the 'code' to the backend until we build the new endpoint
-        responseData = await ApiService.verifyOtp(fullPhone, idToken);
-      } catch (e) {
-        log('Backend fallback: verifyOtp failed ($e).');
-        await TokenManager().saveTokens(
-          accessToken: 'mock_jwt_token',
-          refreshToken: 'mock_jwt_token',
-        );
-      }
+      // Verify OTP directly with our backend
+      final responseData = await ApiService.verifyOtp(fullPhone, event.code);
 
       final isProfileComplete =
           responseData['is_profile_complete'] as bool? ?? false;
