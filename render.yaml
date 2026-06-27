@@ -25,6 +25,12 @@ services:
         value: "info"
       - key: FIREBASE_PROJECT_ID
         value: "guardian-821b6"
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        sync: false
 
 databases:
   - name: guardian-db
