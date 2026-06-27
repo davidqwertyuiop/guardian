@@ -26,6 +26,24 @@ pub async fn build_router(pool: PgPool, config: AppConfig) -> Router {
     let invite_repo = Arc::new(PostgresInviteRepository { pool: pool.clone() });
 
     // Load AWS config from env vars
+    let aws_key_id = std::env::var("AWS_ACCESS_KEY_ID").ok();
+    let aws_secret = std::env::var("AWS_SECRET_ACCESS_KEY").ok();
+    let aws_region = std::env::var("AWS_REGION").ok();
+
+    match (&aws_key_id, &aws_secret, &aws_region) {
+        (Some(key), Some(_), Some(region)) => {
+            let masked = if key.len() > 4 { &key[key.len() - 4..] } else { "..." };
+            tracing::info!("🔑 AWS Environment Configured: Key ID ending in ...{}, Region: {}", masked, region);
+        }
+        (Some(key), Some(_), None) => {
+            let masked = if key.len() > 4 { &key[key.len() - 4..] } else { "..." };
+            tracing::warn!("⚠️ AWS Config: Credentials found (Key ID ...{}) but AWS_REGION is missing!", masked);
+        }
+        _ => {
+            tracing::error!("❌ AWS Config: Missing AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY in environment variables!");
+        }
+    }
+
     let aws_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
     let aws_client = aws_sdk_sns::Client::new(&aws_config);
     let sms_gw    = Arc::new(crate::domains::identity::infrastructure::sms_gateway::AwsSmsGateway::new(aws_client));
