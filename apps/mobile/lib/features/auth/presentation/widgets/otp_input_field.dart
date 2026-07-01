@@ -1,10 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
+import 'package:smart_auth/smart_auth.dart';
+
+class SmsRetrieverImpl implements SmsRetriever {
+  const SmsRetrieverImpl(this.smartAuth);
+
+  final SmartAuth smartAuth;
+
+  @override
+  Future<void> dispose() {
+    return smartAuth.removeSmsRetrieverApiListener();
+  }
+
+  @override
+  Future<String?> getSmsCode() async {
+    final res = await smartAuth.getSmsWithRetrieverApi();
+    if (res.hasData && res.data?.code != null) {
+      return res.data!.code;
+    }
+    return null;
+  }
+
+  @override
+  bool get listenForMultipleSms => false;
+}
 
 class OtpInputField extends StatelessWidget {
   /// A single [TextEditingController] that Pinput owns.
   final TextEditingController controller;
   final FocusNode focusNode;
+  final SmsRetriever? smsRetriever;
 
   /// Called with the joined 6-digit string when all digits are entered.
   final ValueChanged<String>? onCompleted;
@@ -13,6 +38,7 @@ class OtpInputField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.focusNode,
+    this.smsRetriever,
     this.onCompleted,
   });
 
@@ -63,6 +89,7 @@ class OtpInputField extends StatelessWidget {
       length: 6,
       controller: controller,
       focusNode: focusNode,
+      smsRetriever: smsRetriever,
       keyboardType: TextInputType.number,
       defaultPinTheme: defaultTheme,
       focusedPinTheme: focusedTheme,
@@ -89,6 +116,7 @@ class OtpInputField extends StatelessWidget {
       closeKeyboardWhenCompleted: true,
       onCompleted: onCompleted,
       hapticFeedbackType: HapticFeedbackType.lightImpact,
+      autofillHints: const [AutofillHints.oneTimeCode],
     );
   }
 }

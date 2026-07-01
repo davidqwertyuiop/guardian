@@ -43,6 +43,7 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
       context: context,
       isDismissible: false,
       enableDrag: false,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => const CircleReadySheet(),
     );
@@ -59,7 +60,8 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
       listenWhen: (previous, current) =>
           previous.status != current.status || previous.step != current.step,
       listener: (context, state) {
-        if (state.step == AuthStep.nameCircle && state.status == AuthStatus.success) {
+        if (state.step == AuthStep.nameCircle &&
+            state.status == AuthStatus.success) {
           _showCircleReadySheet();
         }
       },
@@ -133,7 +135,9 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
                       // Input Field
                       Container(
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1E1E22) : const Color(0xFFF3F3F6),
+                          color: isDark
+                              ? const Color(0xFF1E1E22)
+                              : const Color(0xFFF3F3F6),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -150,7 +154,9 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
                                 ),
                                 decoration: const InputDecoration(
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 18),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: 18,
+                                  ),
                                 ),
                               ),
                             ),
@@ -183,8 +189,12 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
                                     }
                                   : null,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isDark ? Colors.white : Colors.black,
-                                foregroundColor: isDark ? Colors.black : Colors.white,
+                                backgroundColor: isDark
+                                    ? Colors.white
+                                    : Colors.black,
+                                foregroundColor: isDark
+                                    ? Colors.black
+                                    : Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -195,7 +205,9 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
                                       width: 24,
                                       height: 24,
                                       child: CircularProgressIndicator(
-                                        color: isDark ? Colors.black : Colors.white,
+                                        color: isDark
+                                            ? Colors.black
+                                            : Colors.white,
                                         strokeWidth: 2,
                                       ),
                                     )

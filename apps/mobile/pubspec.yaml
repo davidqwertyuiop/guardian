@@ -53,6 +53,7 @@ dependencies:
   firebase_auth: ^5.2.0
   toastification: ^3.2.0
   image: ^4.9.1
+  smart_auth: ^3.2.0
 
 dev_dependencies:
   flutter_test:
@@ -139,3 +140,5 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/app_icon_1024.png"
   min_sdk_android: 21
+  adaptive_icon_background: "#E5DEFF"
+  adaptive_icon_foreground: "assets/images/app_icon_foreground.png"

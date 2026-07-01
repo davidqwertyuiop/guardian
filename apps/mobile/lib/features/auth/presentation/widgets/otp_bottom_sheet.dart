@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:smart_auth/smart_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/constants/app_colors.dart';
@@ -23,11 +24,13 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
   int _seconds = 30;
   Timer? _timer;
   late final AuthBloc _authBloc;
+  late final SmsRetrieverImpl _smsRetriever;
 
   @override
   void initState() {
     super.initState();
     _authBloc = locator<AuthBloc>();
+    _smsRetriever = SmsRetrieverImpl(SmartAuth.instance);
     _startTimer();
   }
 
@@ -48,6 +51,7 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
     _timer?.cancel();
     _pinController.dispose();
     _pinFocusNode.dispose();
+    _smsRetriever.dispose();
     super.dispose();
   }
 
@@ -98,6 +102,7 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
               OtpInputField(
                 controller: _pinController,
                 focusNode: _pinFocusNode,
+                smsRetriever: _smsRetriever,
                 onCompleted: (pin) =>
                     _authBloc.add(SubmitVerificationCode(pin)),
               ),

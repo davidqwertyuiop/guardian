@@ -174,6 +174,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final granted = status.isGranted || status.isLimited;
       final prefs = locator<SharedPreferences>();
       await prefs.setBool('location_enabled', granted);
+      await _syncPreferencesToBackend();
     } catch (e) {
       log('Permission request failed: $e');
     }
@@ -186,6 +187,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     final prefs = locator<SharedPreferences>();
     await prefs.setBool('location_enabled', false);
+    await _syncPreferencesToBackend();
     emit(state.copyWith(step: AuthStep.notifications));
   }
 
@@ -198,6 +200,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final granted = status.isGranted;
       final prefs = locator<SharedPreferences>();
       await prefs.setBool('notifications_enabled', granted);
+      await _syncPreferencesToBackend();
     } catch (e) {
       log('Permission request failed: $e');
     }
@@ -214,10 +217,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     final prefs = locator<SharedPreferences>();
     await prefs.setBool('notifications_enabled', false);
+    await _syncPreferencesToBackend();
     if (state.isJoiningCircle) {
       emit(state.copyWith(step: AuthStep.completed));
     } else {
       emit(state.copyWith(step: AuthStep.almostIn));
+    }
+  }
+
+  Future<void> _syncPreferencesToBackend() async {
+    try {
+      final prefs = locator<SharedPreferences>();
+      final location = prefs.getBool('location_enabled') ?? false;
+      final notifications = prefs.getBool('notifications_enabled') ?? false;
+      await ApiService.updatePreferences(location, notifications);
+    } catch (e) {
+      log('Failed to sync preferences to backend: $e');
     }
   }
 
@@ -246,14 +261,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final prefs = locator<SharedPreferences>();
       await prefs.setString('circle_name', event.circleName);
 
+      String? inviteCode;
+      String? inviteLink;
+
       try {
-        final fullPhone = '${state.dialCode}${state.phoneNumber}';
-        await ApiService.createCircle(fullPhone, event.circleName);
+        final res = await ApiService.createCircle(event.circleName);
+        final invite = res['invite'] as Map<String, dynamic>?;
+        if (invite != null) {
+          inviteCode = invite['code'] as String?;
+          inviteLink = invite['invite_link'] as String?;
+          
+          if (inviteCode != null) {
+            await prefs.setString('invite_code', inviteCode);
+          }
+          if (inviteLink != null) {
+            await prefs.setString('invite_link', inviteLink);
+          }
+        }
       } catch (e) {
         log('Backend fallback: createCircle failed ($e)');
       }
 
-      emit(state.copyWith(status: AuthStatus.success));
+      emit(state.copyWith(
+        status: AuthStatus.success,
+        inviteCode: inviteCode,
+        inviteLink: inviteLink,
+      ));
     } catch (e) {
       emit(
         state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
@@ -286,8 +319,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // 2. Circle has members → attempt to join
       try {
-        final fullPhone = '${state.dialCode}${state.phoneNumber}';
-        await ApiService.joinCircle(fullPhone, event.code);
+        await ApiService.joinCircle(event.code);
       } catch (e) {
         log('Backend fallback: joinCircle failed ($e)');
       }
@@ -461,8 +493,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // 2. Circle has members → attempt to join
       try {
-        final fullPhone = '${state.dialCode}${state.phoneNumber}';
-        await ApiService.joinCircle(fullPhone, link);
+        await ApiService.joinCircle(link);
       } catch (e) {
         log('Backend fallback: joinCircle via link failed ($e)');
       }

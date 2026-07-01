@@ -98,6 +98,35 @@ class ApiService {
     }
   }
 
+  /// PATCH /api/v1/auth/preferences  (requires Bearer token)
+  static Future<bool> updatePreferences(bool locationEnabled, bool notificationsEnabled) async {
+    final tokenMgr = TokenManager();
+    final token = await tokenMgr.getAccessToken();
+
+    final url = Uri.parse('$baseUrl/api/v1/auth/preferences');
+    try {
+      final response = await http.patch(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'location_enabled': locationEnabled,
+          'notifications_enabled': notificationsEnabled,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(_extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      _rethrowNetworkError(e);
+    }
+  }
+
   /// POST /api/v1/auth/refresh
   static Future<String> refreshToken(String refreshToken) async {
     final url = Uri.parse('$baseUrl/api/v1/auth/refresh');
@@ -142,18 +171,97 @@ class ApiService {
     }
   }
 
-  // ── Circles (to be implemented in circles domain) ─────────────────────────
-
-  static Future<bool> createCircle(String phone, String circleName) async {
-    throw UnimplementedError('circles domain not yet implemented');
+  /// GET /api/v1/auth/sessions  (requires Bearer token)
+  static Future<List<dynamic>> getSessions() async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/auth/sessions');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as List<dynamic>;
+      } else {
+        throw Exception(_extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      _rethrowNetworkError(e);
+    }
   }
 
-  static Future<bool> joinCircle(String phone, String inviteCode) async {
-    throw UnimplementedError('circles domain not yet implemented');
+  // ── Circles ────────────────────────────────────────────────────────────────
+
+  /// POST /api/v1/circles (requires Bearer token)
+  static Future<Map<String, dynamic>> createCircle(String name) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/circles');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'name': name}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception(_extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      _rethrowNetworkError(e);
+    }
   }
 
-  static Future<bool> checkCircleHasMembers(String inviteCode) async {
-    // Default to true (don't block user) until circles domain is built
+  /// POST /api/v1/circles/join/code or /join/link depending on the format (requires Bearer token)
+  static Future<bool> joinCircle(String inviteCodeOrLink) async {
+    final token = await TokenManager().getAccessToken();
+    
+    String cleanParam = inviteCodeOrLink.trim();
+    bool isLink = false;
+
+    if (cleanParam.startsWith('http://') || cleanParam.startsWith('https://')) {
+      isLink = true;
+      final uri = Uri.parse(cleanParam);
+      cleanParam = uri.pathSegments.last;
+    } else if (cleanParam.contains('/')) {
+      isLink = true;
+      cleanParam = cleanParam.split('/').last;
+    } else if (cleanParam.length > 8) {
+      isLink = true;
+    }
+
+    final endpoint = isLink ? 'join/link' : 'join/code';
+    final key = isLink ? 'token' : 'code';
+
+    final url = Uri.parse('$baseUrl/api/v1/circles/$endpoint');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({key: cleanParam}),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(_extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      _rethrowNetworkError(e);
+    }
+  }
+
+  static Future<bool> checkCircleHasMembers(String inviteCodeOrLink) async {
+    // For now we always attempt the join directly. If joining fails or succeeds,
+    // we route appropriately. To avoid duplicating check logic we return true.
     return true;
   }
 
