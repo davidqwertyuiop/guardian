@@ -1,12 +1,8 @@
 import 'package:guardian/core/services/api_service.dart';
 
 class AuthRemoteDataSource {
-  Future<void> sendOtp(String phone) async {
-    await ApiService.sendOtp(phone);
-  }
-
-  Future<String> verifyOtp(String phone, String code) async {
-    final response = await ApiService.verifyOtp(phone, code);
+  Future<String> firebaseExchange(String phone, String idToken) async {
+    final response = await ApiService.firebaseExchange(phone, idToken);
     return response['access_token'] as String;
   }
 }

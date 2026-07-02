@@ -4,53 +4,14 @@ use crate::domains::identity::{
     api::dto::*,
     application::{
         firebase_exchange::FirebaseExchangeUseCase, get_profile::GetProfileUseCase,
-        refresh_token::RefreshTokenUseCase, send_otp::SendOtpUseCase,
-        setup_profile::SetupProfileUseCase, update_preferences::UpdatePreferencesUseCase,
-        verify_otp::VerifyOtpUseCase,
+        refresh_token::RefreshTokenUseCase, setup_profile::SetupProfileUseCase, 
+        update_preferences::UpdatePreferencesUseCase,
     },
 };
 use crate::routes::AppState;
 use crate::shared::{errors::AppError, middleware::auth::AuthUser};
 
-// ── POST /api/v1/auth/send-otp ──────────────────────────────────────────────
 
-pub async fn send_otp(
-    State(state): State<AppState>,
-    Json(body): Json<SendOtpRequest>,
-) -> Result<Json<SendOtpResponse>, AppError> {
-    let use_case = SendOtpUseCase {
-        otp_repo: state.otp_repo.clone(),
-        user_repo: state.user_repo.clone(),
-        sms_gateway: state.sms_gateway.clone(),
-        config: state.config.clone(),
-    };
-    use_case.execute(&body.phone).await?;
-    Ok(Json(SendOtpResponse {
-        message: "Verification code sent".to_string(),
-    }))
-}
-
-// ── POST /api/v1/auth/verify-otp ───────────────────────────────────────────
-
-pub async fn verify_otp(
-    State(state): State<AppState>,
-    Json(body): Json<VerifyOtpRequest>,
-) -> Result<Json<AuthResponse>, AppError> {
-    let use_case = VerifyOtpUseCase {
-        otp_repo: state.otp_repo.clone(),
-        user_repo: state.user_repo.clone(),
-        config: state.config.clone(),
-        sms_gateway: todo!(),
-    };
-    let output = use_case.execute(&body.phone, &body.code).await?;
-    Ok(Json(AuthResponse {
-        access_token: output.access_token,
-        refresh_token: output.refresh_token,
-        user_id: output.user_id,
-        phone: output.phone,
-        is_profile_complete: output.is_profile_complete,
-    }))
-}
 
 // ── PATCH /api/v1/auth/profile ─────────────────────────────────────────────
 
@@ -224,7 +185,6 @@ pub async fn firebase_exchange(
 
     // Use token's phone_number if present, otherwise trust the client body (for test numbers)
     let phone = token_data.phone_number.unwrap_or(body.phone);
-    let device_name = "Guardian App"; // Future enhancement: pass this via header or body
 
     let use_case = FirebaseExchangeUseCase {
         user_repo: state.user_repo.clone(),
@@ -232,7 +192,7 @@ pub async fn firebase_exchange(
         config: state.config.clone(),
     };
 
-    let output = use_case.execute(&phone, device_name).await?;
+    let output = use_case.execute(&phone, &body.device_name, body.device_model, &body.platform).await?;
 
     Ok(Json(AuthResponse {
         access_token: output.access_token,

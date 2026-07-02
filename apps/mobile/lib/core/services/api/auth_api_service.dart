@@ -2,37 +2,40 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/core/security/token_manager.dart';
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'api_base.dart';
 
 abstract class AuthApiService {
   static String get baseUrl => ApiBase.baseUrl;
 
-  /// POST /api/v1/auth/send-otp
-  static Future<bool> sendOtp(String phone) async {
-    final url = Uri.parse('$baseUrl/api/v1/auth/send-otp');
+  /// POST /api/v1/auth/firebase-exchange
+  static Future<Map<String, dynamic>> firebaseExchange(String phone, String idToken) async {
     try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone}),
-      );
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        throw Exception(ApiBase.extractErrorMessage(response.body));
+      String? deviceModel;
+      try {
+        final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+        if (Platform.isAndroid) {
+          final androidInfo = await deviceInfo.androidInfo;
+          deviceModel = androidInfo.model;
+        } else if (Platform.isIOS) {
+          final iosInfo = await deviceInfo.iosInfo;
+          deviceModel = iosInfo.utsname.machine;
+        }
+      } catch (e) {
+        // Ignore device info errors
       }
-    } catch (e) {
-      ApiBase.rethrowNetworkError(e);
-    }
-  }
 
-  /// POST /api/v1/auth/verify-otp
-  static Future<Map<String, dynamic>> verifyOtp(String phone, String code) async {
-    try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/v1/auth/verify-otp'),
+        Uri.parse('$baseUrl/api/v1/auth/firebase-exchange'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': phone, 'code': code}),
+        body: jsonEncode({
+          'phone': phone, 
+          'id_token': idToken,
+          'platform': Platform.isIOS ? 'ios' : 'android',
+          'device_model': deviceModel,
+          'device_name': 'Guardian App',
+        }),
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body) as Map<String, dynamic>;

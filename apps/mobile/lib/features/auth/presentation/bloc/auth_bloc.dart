@@ -8,6 +8,8 @@ import 'package:guardian/core/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
@@ -72,15 +74,37 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(state.copyWith(status: AuthStatus.loading));
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
+      final completer = Completer<String>();
 
-      // Send OTP via our backend (which now uses Infobip)
-      await ApiService.sendOtp(fullPhone);
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: fullPhone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // Auto-resolution (Android)
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          if (!completer.isCompleted) {
+            completer.completeError(e);
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) {
+          if (!completer.isCompleted) {
+            completer.complete(verificationId);
+          }
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          if (!completer.isCompleted) {
+            completer.complete(verificationId);
+          }
+        },
+      );
+
+      final verificationId = await completer.future;
 
       emit(
         state.copyWith(
           status: AuthStatus.codeSent,
           step: AuthStep.otp,
-          verificationId: 'infobip_session', // Dummy value since backend handles verification
+          verificationId: verificationId,
         ),
       );
     } catch (e) {
@@ -108,11 +132,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
 
-      // Verify OTP directly with our backend
-      final responseData = await ApiService.verifyOtp(fullPhone, event.code);
+      // Verify with Firebase
+      final credential = PhoneAuthProvider.credential(
+        verificationId: state.verificationId!,
+        smsCode: event.code,
+      );
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final idToken = await userCredential.user?.getIdToken();
 
-      final isProfileComplete =
-          responseData['is_profile_complete'] as bool? ?? false;
+      if (idToken == null) {
+        throw Exception("Failed to retrieve Firebase ID token.");
+      }
+
+      // Exchange for Guardian JWTs
+      final responseData = await ApiService.firebaseExchange(fullPhone, idToken);
+
+      final isProfileComplete = responseData['is_profile_complete'] as bool? ?? false;
 
       if (isProfileComplete) {
         emit(

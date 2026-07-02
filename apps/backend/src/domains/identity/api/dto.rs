@@ -3,16 +3,7 @@ use chrono::{DateTime, Utc};
 
 // ── Requests ────────────────────────────────────────────────────────────────
 
-#[derive(Debug, Deserialize)]
-pub struct SendOtpRequest {
-    pub phone: String,
-}
 
-#[derive(Debug, Deserialize)]
-pub struct VerifyOtpRequest {
-    pub phone: String,
-    pub code: String,
-}
 
 #[derive(Debug, Deserialize)]
 pub struct SetupProfileRequest {
@@ -34,14 +25,14 @@ pub struct RefreshTokenRequest {
 pub struct FirebaseExchangeRequest {
     pub phone: String,
     pub id_token: String,
+    pub platform: String,
+    pub device_name: String,
+    pub device_model: Option<String>,
 }
 
-// ── Responses ───────────────────────────────────────────────────────────────
+// Responses 
 
-#[derive(Debug, Serialize)]
-pub struct SendOtpResponse {
-    pub message: String,
-}
+
 
 #[derive(Debug, Serialize)]
 pub struct AuthResponse {

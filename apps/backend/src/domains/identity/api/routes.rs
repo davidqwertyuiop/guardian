@@ -7,8 +7,6 @@ use axum::{
 
 pub fn router() -> Router<AppState> {
     Router::new()
-        .route("/send-otp", post(handlers::send_otp))
-        .route("/verify-otp", post(handlers::verify_otp))
         .route("/firebase-exchange", post(handlers::firebase_exchange))
         .route("/profile", patch(handlers::setup_profile))
         .route("/preferences", patch(handlers::update_preferences))

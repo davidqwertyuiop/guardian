@@ -25,7 +25,7 @@ pub struct FirebaseExchangeOutput {
 }
 
 impl FirebaseExchangeUseCase {
-    pub async fn execute(&self, phone: &str, device_name: &str) -> Result<FirebaseExchangeOutput, AppError> {
+    pub async fn execute(&self, phone: &str, device_name: &str, device_model: Option<String>, platform: &str) -> Result<FirebaseExchangeOutput, AppError> {
         let phone = phone.to_string(); 
         
         let user = match self.user_repo.find_by_phone(&phone).await? {
@@ -43,8 +43,8 @@ impl FirebaseExchangeUseCase {
             id: Uuid::new_v4(),
             user_id: user.id,
             device_name: device_name.to_string(),
-            device_model: None,
-            platform: "unknown".to_string(),
+            device_model,
+            platform: platform.to_lowercase(),
             refresh_token_hash,
             expires_at: Utc::now() + Duration::days(30),
             last_active_at: Utc::now(),

@@ -54,6 +54,7 @@ dependencies:
   toastification: ^3.2.0
   image: ^4.9.1
   smart_auth: ^3.2.0
+  device_info_plus: ^10.1.2
 
 dev_dependencies:
   flutter_test:

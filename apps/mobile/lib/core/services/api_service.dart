@@ -8,8 +8,7 @@ class ApiService {
   static String get baseUrl => ApiBase.baseUrl;
 
   // ── Auth Endpoints ──────────────────────────────────────────────────────────
-  static Future<bool> sendOtp(String phone) => AuthApiService.sendOtp(phone);
-  static Future<Map<String, dynamic>> verifyOtp(String phone, String code) => AuthApiService.verifyOtp(phone, code);
+  static Future<Map<String, dynamic>> firebaseExchange(String phone, String idToken) => AuthApiService.firebaseExchange(phone, idToken);
   static Future<bool> updateProfile(String name) => AuthApiService.updateProfile(name);
   static Future<bool> updatePreferences(bool location, bool notifications) => AuthApiService.updatePreferences(location, notifications);
   static Future<String> refreshToken(String token) => AuthApiService.refreshToken(token);
