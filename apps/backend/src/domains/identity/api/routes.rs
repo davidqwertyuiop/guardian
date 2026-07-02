@@ -11,6 +11,7 @@ pub fn router() -> Router<AppState> {
         .route("/verify-otp", post(handlers::verify_otp))
         .route("/firebase-exchange", post(handlers::firebase_exchange))
         .route("/profile", patch(handlers::setup_profile))
+        .route("/preferences", patch(handlers::update_preferences))
         .route("/refresh", post(handlers::refresh_token))
         .route("/me", get(handlers::get_me))
         .route("/sessions", get(handlers::get_sessions))

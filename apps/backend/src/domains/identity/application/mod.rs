@@ -4,3 +4,4 @@ pub mod setup_profile;
 pub mod refresh_token;
 pub mod get_profile;
 pub mod firebase_exchange;
+pub mod update_preferences;

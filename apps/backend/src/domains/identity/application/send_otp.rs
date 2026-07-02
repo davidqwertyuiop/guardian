@@ -1,6 +1,5 @@
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
-use rand::Rng;
 use crate::config::AppConfig;
 use crate::shared::errors::AppError;
 use crate::domains::identity::domain::{
@@ -10,10 +9,10 @@ use crate::domains::identity::domain::{
 use crate::domains::identity::infrastructure::sms_gateway::SmsGateway;
 
 pub struct SendOtpUseCase {
-    pub otp_repo: Arc<dyn OtpRepository>,
-    pub user_repo: Arc<dyn UserRepository>,
+    pub otp_repo:    Arc<dyn OtpRepository>,
+    pub user_repo:   Arc<dyn UserRepository>,
     pub sms_gateway: Arc<dyn SmsGateway>,
-    pub config: AppConfig,
+    pub config:      AppConfig,
 }
 
 impl SendOtpUseCase {
@@ -21,7 +20,7 @@ impl SendOtpUseCase {
         // 1. Validate phone format
         let phone = PhoneNumber::parse(raw_phone)?;
 
-        // 2. Rate limiting — check if there's a recent OTP
+        // 2. Rate limiting — check if there's a recent OTP session
         if let Some(existing) = self.otp_repo.get(phone.as_str()).await? {
             let now = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -34,19 +33,16 @@ impl SendOtpUseCase {
             }
         }
 
-        // 3. Generate a 6-digit code
-        let code = format!("{:06}", rand::thread_rng().gen_range(100000..=999999));
-
-        // 4. Store the OTP
-        self.otp_repo.store(phone.as_str(), &code).await?;
-
-        // 5. Upsert user so they exist in the DB before verification
+        // 3. Upsert user so they exist in the DB before verification
         if self.user_repo.find_by_phone(phone.as_str()).await?.is_none() {
             self.user_repo.create(phone.as_str()).await?;
         }
 
-        // 6. Send (mock logs it; Twilio plugs in here later)
-        self.sms_gateway.send(phone.as_str(), &code).await?;
+        // 4. Send OTP via gateway — returns a session token (Infobip pinId or mock code)
+        let session_token = self.sms_gateway.send_otp(phone.as_str()).await?;
+
+        // 5. Store session token keyed by phone
+        self.otp_repo.store(phone.as_str(), &session_token).await?;
 
         Ok(())
     }

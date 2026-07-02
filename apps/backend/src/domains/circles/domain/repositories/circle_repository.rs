@@ -10,6 +10,7 @@ use crate::domains::circles::domain::entities::{
 pub trait CircleRepository: Send + Sync {
     async fn create(&self, name: &str, owner_id: Uuid) -> Result<Circle, AppError>;
     async fn find_by_id(&self, id: Uuid) -> Result<Option<Circle>, AppError>;
+    async fn find_by_owner_and_name(&self, owner_id: Uuid, name: &str) -> Result<Option<Circle>, AppError>;
     async fn list_for_user(&self, user_id: Uuid) -> Result<Vec<Circle>, AppError>;
 
     async fn add_member(&self, circle_id: Uuid, user_id: Uuid, role: &str) -> Result<Membership, AppError>;

@@ -36,6 +36,19 @@ impl CircleRepository for PostgresCircleRepository {
         .map_err(|e| AppError::Internal(format!("DB find circle: {e}")))
     }
 
+    async fn find_by_owner_and_name(&self, owner_id: Uuid, name: &str) -> Result<Option<Circle>, AppError> {
+        sqlx::query_as::<_, Circle>(
+            "SELECT id, name, owner_id, created_at, updated_at 
+             FROM circles 
+             WHERE owner_id = $1 AND LOWER(name) = LOWER($2)",
+        )
+        .bind(owner_id)
+        .bind(name)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AppError::Internal(format!("DB find circle by owner/name: {e}")))
+    }
+
     async fn list_for_user(&self, user_id: Uuid) -> Result<Vec<Circle>, AppError> {
         sqlx::query_as::<_, Circle>(
             "SELECT c.id, c.name, c.owner_id, c.created_at, c.updated_at

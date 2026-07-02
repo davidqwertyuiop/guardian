@@ -5,7 +5,8 @@ use crate::domains::identity::{
     application::{
         firebase_exchange::FirebaseExchangeUseCase, get_profile::GetProfileUseCase,
         refresh_token::RefreshTokenUseCase, send_otp::SendOtpUseCase,
-        setup_profile::SetupProfileUseCase, verify_otp::VerifyOtpUseCase,
+        setup_profile::SetupProfileUseCase, update_preferences::UpdatePreferencesUseCase,
+        verify_otp::VerifyOtpUseCase,
     },
 };
 use crate::routes::AppState;
@@ -39,6 +40,7 @@ pub async fn verify_otp(
         otp_repo: state.otp_repo.clone(),
         user_repo: state.user_repo.clone(),
         config: state.config.clone(),
+        sms_gateway: todo!(),
     };
     let output = use_case.execute(&body.phone, &body.code).await?;
     Ok(Json(AuthResponse {
@@ -67,6 +69,37 @@ pub async fn setup_profile(
         name: user.name,
         avatar_url: user.avatar_url,
         is_profile_complete: user.is_profile_complete,
+        location_enabled: user.location_enabled,
+        notifications_enabled: user.notifications_enabled,
+        created_at: user.created_at,
+    }))
+}
+
+// ── PATCH /api/v1/auth/preferences ─────────────────────────────────────────
+
+pub async fn update_preferences(
+    State(state): State<AppState>,
+    AuthUser(claims): AuthUser,
+    Json(body): Json<UpdatePreferencesRequest>,
+) -> Result<Json<ProfileResponse>, AppError> {
+    let use_case = UpdatePreferencesUseCase {
+        user_repo: state.user_repo.clone(),
+    };
+    let user = use_case
+        .execute(
+            &claims.sub,
+            body.location_enabled,
+            body.notifications_enabled,
+        )
+        .await?;
+    Ok(Json(ProfileResponse {
+        user_id: user.id.to_string(),
+        phone: user.phone,
+        name: user.name,
+        avatar_url: user.avatar_url,
+        is_profile_complete: user.is_profile_complete,
+        location_enabled: user.location_enabled,
+        notifications_enabled: user.notifications_enabled,
         created_at: user.created_at,
     }))
 }
@@ -103,6 +136,8 @@ pub async fn get_me(
         name: user.name,
         avatar_url: user.avatar_url,
         is_profile_complete: user.is_profile_complete,
+        location_enabled: user.location_enabled,
+        notifications_enabled: user.notifications_enabled,
         created_at: user.created_at,
     }))
 }
@@ -170,34 +205,35 @@ pub async fn firebase_exchange(
         pub sub: String,
         pub phone_number: Option<String>,
     }
-    
+
     // Parse JWT payload without verification for dev prototyping
     let parts: Vec<&str> = body.id_token.split('.').collect();
     if parts.len() != 3 {
         return Err(AppError::Unauthorized("Invalid token format".into()));
     }
-    
+
     let payload_b64 = parts[1].replace('-', "+").replace('_', "/");
     let payload_bytes = base64::Engine::decode(
-        &base64::engine::general_purpose::STANDARD_NO_PAD, 
-        pad_base64(&payload_b64)
-    ).map_err(|_| AppError::Unauthorized("Invalid token payload".into()))?;
-    
+        &base64::engine::general_purpose::STANDARD_NO_PAD,
+        pad_base64(&payload_b64),
+    )
+    .map_err(|_| AppError::Unauthorized("Invalid token payload".into()))?;
+
     let token_data: FirebaseClaims = serde_json::from_slice(&payload_bytes)
         .map_err(|_| AppError::Unauthorized("Invalid token claims".into()))?;
 
     // Use token's phone_number if present, otherwise trust the client body (for test numbers)
     let phone = token_data.phone_number.unwrap_or(body.phone);
     let device_name = "Guardian App"; // Future enhancement: pass this via header or body
-    
+
     let use_case = FirebaseExchangeUseCase {
         user_repo: state.user_repo.clone(),
         session_repo: state.session_repo.clone(),
         config: state.config.clone(),
     };
-    
+
     let output = use_case.execute(&phone, device_name).await?;
-    
+
     Ok(Json(AuthResponse {
         access_token: output.access_token,
         refresh_token: output.refresh_token,

@@ -4,8 +4,9 @@ use super::super::entities::otp_entry::OtpEntry;
 
 #[async_trait]
 pub trait OtpRepository: Send + Sync {
-    /// Store an OTP for a phone number (overwrites any existing one).
-    async fn store(&self, phone: &str, code: &str) -> Result<(), AppError>;
+    /// Store an OTP session for a phone number (overwrites any existing one).
+    /// `session_token` is the Infobip pinId (or raw code for MockSmsGateway).
+    async fn store(&self, phone: &str, session_token: &str) -> Result<(), AppError>;
 
     /// Retrieve the OTP entry for a phone number.
     async fn get(&self, phone: &str) -> Result<Option<OtpEntry>, AppError>;

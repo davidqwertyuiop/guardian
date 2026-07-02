@@ -12,7 +12,7 @@ use crate::domains::circles::{
 };
 
 /// Base URL for invite deep links — update to your production domain.
-const INVITE_BASE_URL: &str = "https://guardian.app/invite";
+const INVITE_BASE_URL: &str = "https://www.shadowchat.xyz/invite";
 
 // ── POST /api/v1/circles ────────────────────────────────────────────────────
 
@@ -136,4 +136,163 @@ pub async fn join_by_link(
         circle_id: circle_id.to_string(),
         message: "Successfully joined the circle via invite link".into(),
     }))
+}
+
+// ── GET /invite/{token} ─────────────────────────────────────────────────────
+
+pub async fn invite_landing_page(
+    Path(token): Path<String>,
+) -> axum::response::Html<String> {
+    let app_store_link = "https://apps.apple.com/app/guardian"; 
+    let play_store_link = "https://play.google.com/store/apps/details?id=com.sijibomi.guardian"; 
+
+    let html = format!(r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Circle | Guardian</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {{
+            margin: 0;
+            padding: 0;
+            background-color: #0E0E12;
+            color: #FFFFFF;
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            box-sizing: border-box;
+        }}
+        .container {{
+            max-width: 480px;
+            width: 90%;
+            padding: 40px 24px;
+            background: linear-gradient(135deg, #161622 0%, #111119 100%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }}
+        .logo {{
+            width: 80px;
+            height: 80px;
+            background-color: #8069FF;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(128, 105, 255, 0.3);
+        }}
+        .logo-icon {{
+            font-size: 40px;
+        }}
+        h1 {{
+            font-size: 28px;
+            font-weight: 800;
+            margin: 0 0 12px 0;
+            background: linear-gradient(120deg, #FFFFFF 0%, #E5DEFF 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }}
+        p {{
+            font-size: 16px;
+            color: #A0A0B0;
+            line-height: 1.6;
+            margin: 0 0 35px 0;
+        }}
+        .btn {{
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+            margin-bottom: 12px;
+        }}
+        .btn-primary {{
+            background-color: #8069FF;
+            color: #FFFFFF;
+            box-shadow: 0 6px 20px rgba(128, 105, 255, 0.2);
+        }}
+        .btn-primary:hover {{
+            background-color: #6C55EB;
+            transform: translateY(-2px);
+        }}
+        .btn-secondary {{
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #FFFFFF;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }}
+        .btn-secondary:hover {{
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }}
+    </style>
+    <script>
+        window.onload = function() {{
+            var token = "{token}";
+            var appUrl = "guardian://invite/" + token;
+            var appStoreLink = "{app_store_link}";
+            var playStoreLink = "{play_store_link}";
+            
+            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            var isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+            var isAndroid = /android/i.test(userAgent);
+            
+            if (isIOS || isAndroid) {{
+                window.location = appUrl;
+                
+                setTimeout(function() {{
+                    if (document.hasFocus()) {{
+                        window.location = isIOS ? appStoreLink : playStoreLink;
+                    }}
+                }}, 1500);
+            }}
+        }}
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <span class="logo-icon">📍</span>
+        </div>
+        <h1>You've been invited!</h1>
+        <p>Join a secure circle on Guardian to stay connected and keep each other safe.</p>
+        
+        <a href="guardian://invite/{token}" class="btn btn-primary">Open Guardian App</a>
+        
+        <script>
+            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            var isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+            var isAndroid = /android/i.test(userAgent);
+            var storeLink = isIOS ? "{app_store_link}" : "{play_store_link}";
+            var storeText = isIOS ? "Download on App Store" : "Get it on Google Play";
+            
+            if (isIOS || isAndroid) {{
+                document.write('<a href="' + storeLink + '" class="btn btn-secondary">' + storeText + '</a>');
+            }} else {{
+                document.write('<a href="{play_store_link}" class="btn btn-secondary" style="margin-bottom: 8px;">Google Play</a>');
+                document.write('<a href="{app_store_link}" class="btn btn-secondary">Apple App Store</a>');
+            }}
+        </script>
+    </div>
+</body>
+</html>"#, token = token, app_store_link = app_store_link, play_store_link = play_store_link);
+
+    axum::response::Html(html)
 }

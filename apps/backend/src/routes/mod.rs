@@ -32,6 +32,7 @@ pub struct AppState {
 pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(|| async { "Guardian API v2 — OK" }))
+        .route("/invite/{token}", get(crate::domains::circles::api::handlers::invite_landing_page))
         .nest("/api/v1/auth", crate::domains::identity::api::routes::router())
         .nest("/api/v1/circles", crate::domains::circles::api::routes::router())
         // Future domains nested here as they are implemented:

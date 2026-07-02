@@ -29,6 +29,11 @@ impl CreateCircleUseCase {
             return Err(AppError::InvalidInput("Circle name cannot be empty".into()));
         }
 
+        // Check if the owner already has a circle with this name
+        if let Some(_) = self.circle_repo.find_by_owner_and_name(owner_id, name).await? {
+            return Err(AppError::InvalidInput("A circle with this name already exists".into()));
+        }
+
         // 1. Create the circle
         let circle = self.circle_repo.create(name, owner_id).await?;
 
@@ -37,9 +42,9 @@ impl CreateCircleUseCase {
             .add_member(circle.id, owner_id, "owner")
             .await?;
 
-        // 3. Generate a 4-char alphanumeric code and a 32-byte URL-safe token
+        // 3. Generate a 4-char alphanumeric code and a 6-byte URL-safe token
         let code  = generate_code(4);
-        let token = generate_token(32);
+        let token = generate_token(6);
 
         let now = Utc::now();
         let invite = self.invite_repo

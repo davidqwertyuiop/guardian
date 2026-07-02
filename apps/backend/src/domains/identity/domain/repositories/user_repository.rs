@@ -16,4 +16,7 @@ pub trait UserRepository: Send + Sync {
 
     /// Update name and mark profile as complete.
     async fn update_profile(&self, id: Uuid, name: &str) -> Result<User, AppError>;
+
+    /// Update user preferences for location and notifications.
+    async fn update_preferences(&self, id: Uuid, location_enabled: bool, notifications_enabled: bool) -> Result<User, AppError>;
 }

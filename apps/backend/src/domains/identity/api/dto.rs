@@ -20,6 +20,12 @@ pub struct SetupProfileRequest {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct UpdatePreferencesRequest {
+    pub location_enabled: bool,
+    pub notifications_enabled: bool,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct RefreshTokenRequest {
     pub refresh_token: String,
 }
@@ -53,6 +59,8 @@ pub struct ProfileResponse {
     pub name: Option<String>,
     pub avatar_url: Option<String>,
     pub is_profile_complete: bool,
+    pub location_enabled: bool,
+    pub notifications_enabled: bool,
     pub created_at: DateTime<Utc>,
 }
 

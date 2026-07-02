@@ -1,52 +1,53 @@
-use std::sync::Arc;
 use axum::Router;
 use sqlx::PgPool;
+use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::trace::TraceLayer;
 
 use crate::config::AppConfig;
-use crate::routes::{AppState, create_router};
-use crate::domains::identity::infrastructure::{
-    postgres_user_repo::PostgresUserRepository,
-    postgres_session_repo::PostgresSessionRepository,
-    in_memory_otp_repo::InMemoryOtpRepository,
-};
 use crate::domains::circles::infrastructure::{
-    postgres_circle_repo::PostgresCircleRepository,
-    postgres_invite_repo::PostgresInviteRepository,
+    postgres_circle_repo::PostgresCircleRepository, postgres_invite_repo::PostgresInviteRepository,
 };
+use crate::domains::identity::infrastructure::{
+    in_memory_otp_repo::InMemoryOtpRepository,
+    postgres_session_repo::PostgresSessionRepository,
+    postgres_user_repo::PostgresUserRepository,
+    sms_gateway::{InfobipSmsGateway, MockSmsGateway, SmsGateway},
+};
+use crate::routes::{create_router, AppState};
 
 /// Wires together the application: config, repos, gateways → Router.
-/// Called once during app startup in main.rs.
 pub async fn build_router(pool: PgPool, config: AppConfig) -> Router {
     let user_repo = Arc::new(PostgresUserRepository { pool: pool.clone() });
     let session_repo = Arc::new(PostgresSessionRepository { pool: pool.clone() });
-    let otp_repo  = Arc::new(InMemoryOtpRepository::new());
+    let otp_repo = Arc::new(InMemoryOtpRepository::new());
     let circle_repo = Arc::new(PostgresCircleRepository { pool: pool.clone() });
     let invite_repo = Arc::new(PostgresInviteRepository { pool: pool.clone() });
 
-    // Load AWS config from env vars
-    let aws_key_id = std::env::var("AWS_ACCESS_KEY_ID").ok();
-    let aws_secret = std::env::var("AWS_SECRET_ACCESS_KEY").ok();
-    let aws_region = std::env::var("AWS_REGION").ok();
+    // ── SMS Gateway ────────────────────────────────────────────────────────────
+    // When all five INFOBIP_* env vars are present → use Infobip 2FA gateway.
+    // Otherwise fall back to MockSmsGateway (OTP is logged to the server console).
+    let sms_gw: Arc<dyn SmsGateway> = {
+        let api_key = std::env::var("INFOBIP_API_KEY").ok();
+        let base_url = std::env::var("INFOBIP_BASE_URL").ok();
+        let application_id = std::env::var("INFOBIP_APPLICATION_ID").ok();
+        let message_id = std::env::var("INFOBIP_MESSAGE_ID").ok();
+        let sender = std::env::var("INFOBIP_SENDER").ok();
 
-    match (&aws_key_id, &aws_secret, &aws_region) {
-        (Some(key), Some(_), Some(region)) => {
-            let masked = if key.len() > 4 { &key[key.len() - 4..] } else { "..." };
-            tracing::info!("🔑 AWS Environment Configured: Key ID ending in ...{}, Region: {}", masked, region);
+        match (api_key, base_url, application_id, message_id, sender) {
+            (Some(key), Some(url), Some(app_id), Some(msg_id), Some(sndr)) => {
+                tracing::info!("📱 SMS: Infobip 2FA gateway active (base: {})", url);
+                Arc::new(InfobipSmsGateway::new(key, url, app_id, msg_id, sndr))
+            }
+            _ => {
+                tracing::warn!(
+                    "⚠️  SMS: INFOBIP_* env vars not fully set — using MockSmsGateway (OTP logged to console)"
+                );
+                Arc::new(MockSmsGateway)
+            }
         }
-        (Some(key), Some(_), None) => {
-            let masked = if key.len() > 4 { &key[key.len() - 4..] } else { "..." };
-            tracing::warn!("⚠️ AWS Config: Credentials found (Key ID ...{}) but AWS_REGION is missing!", masked);
-        }
-        _ => {
-            tracing::error!("❌ AWS Config: Missing AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY in environment variables!");
-        }
-    }
-
-    let aws_config = aws_config::load_defaults(aws_config::BehaviorVersion::latest()).await;
-    let aws_client = aws_sdk_sns::Client::new(&aws_config);
-    let sms_gw    = Arc::new(crate::domains::identity::infrastructure::sms_gateway::AwsSmsGateway::new(aws_client));
+    };
+    // ──────────────────────────────────────────────────────────────────────────
 
     let state = AppState {
         config,

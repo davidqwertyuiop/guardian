@@ -16,31 +16,27 @@ pub struct InMemoryOtpRepository {
 
 impl InMemoryOtpRepository {
     pub fn new() -> Self {
-        Self {
-            store: Mutex::new(HashMap::new()),
-        }
+        Self { store: Mutex::new(HashMap::new()) }
     }
 }
 
 impl Default for InMemoryOtpRepository {
-    fn default() -> Self {
-        Self::new()
-    }
+    fn default() -> Self { Self::new() }
 }
 
 #[async_trait]
 impl OtpRepository for InMemoryOtpRepository {
-    async fn store(&self, phone: &str, code: &str) -> Result<(), AppError> {
+    async fn store(&self, phone: &str, session_token: &str) -> Result<(), AppError> {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs();
 
         let entry = OtpEntry {
-            phone: phone.to_string(),
-            code: code.to_string(),
+            phone:           phone.to_string(),
+            session_token:   session_token.to_string(),
             created_at_secs: now,
-            attempts: 0,
+            attempts:        0,
         };
 
         self.store
