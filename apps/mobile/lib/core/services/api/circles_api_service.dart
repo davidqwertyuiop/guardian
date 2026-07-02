@@ -32,7 +32,7 @@ abstract class CirclesApiService {
   /// POST /api/v1/circles/join/code or /join/link depending on the format (requires Bearer token)
   static Future<bool> joinCircle(String inviteCodeOrLink) async {
     final token = await TokenManager().getAccessToken();
-    
+
     String cleanParam = inviteCodeOrLink.trim();
     bool isLink = false;
 

@@ -17,7 +17,8 @@ abstract class ApiBase {
   static Never rethrowNetworkError(Object e) {
     if (e is http.ClientException || e is SocketException) {
       throw Exception(
-          'Cannot connect to Guardian servers. Please check your connection.');
+        'Cannot connect to Guardian servers. Please check your connection.',
+      );
     }
     throw e;
   }

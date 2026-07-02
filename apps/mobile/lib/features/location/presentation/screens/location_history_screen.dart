@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class LocationHistoryScreen extends StatelessWidget {
   const LocationHistoryScreen({super.key});
 
@@ -6,7 +7,9 @@ class LocationHistoryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: Text('Location History', style: TextStyle(fontFamily: 'Outfit', ))),
+      appBar: AppBar(
+        title: Text('Location History', style: TextStyle(fontFamily: 'Outfit')),
+      ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 5,
@@ -23,7 +26,10 @@ class LocationHistoryScreen extends StatelessWidget {
               ),
               title: Text(
                 'Location Stop ${index + 1}',
-                style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               subtitle: Text(
                 'Arrived at 1$index:30 PM • Stayed 20m',

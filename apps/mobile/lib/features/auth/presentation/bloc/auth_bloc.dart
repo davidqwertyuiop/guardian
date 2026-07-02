@@ -12,7 +12,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-
   AuthBloc({AuthStep initialStep = AuthStep.welcome})
     : super(AuthState.initial(step: initialStep)) {
     on<CountryChanged>(_onCountryChanged);
@@ -137,7 +136,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         verificationId: state.verificationId!,
         smsCode: event.code,
       );
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
+      );
       final idToken = await userCredential.user?.getIdToken();
 
       if (idToken == null) {
@@ -145,14 +146,33 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
 
       // Exchange for Guardian JWTs
-      final responseData = await ApiService.firebaseExchange(fullPhone, idToken);
+      final responseData = await ApiService.firebaseExchange(
+        fullPhone,
+        idToken,
+      );
 
-      final isProfileComplete = responseData['is_profile_complete'] as bool? ?? false;
+      final isProfileComplete =
+          responseData['is_profile_complete'] as bool? ?? false;
+
+      if (state.isJoiningCircle && state.inviteCode != null) {
+        try {
+          await ApiService.joinCircle(state.inviteCode!);
+        } catch (e) {
+          log('Failed to join circle after OTP: $e');
+        }
+      }
 
       if (isProfileComplete) {
-        emit(
-          state.copyWith(status: AuthStatus.success, step: AuthStep.completed),
-        );
+        if (state.isJoiningCircle) {
+          emit(state.copyWith(status: AuthStatus.success, step: AuthStep.otp));
+        } else {
+          emit(
+            state.copyWith(
+              status: AuthStatus.success,
+              step: AuthStep.completed,
+            ),
+          );
+        }
       } else {
         emit(
           state.copyWith(status: AuthStatus.success, step: AuthStep.profile),
@@ -240,7 +260,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       log('Permission request failed: $e');
     }
     if (state.isJoiningCircle) {
-      emit(state.copyWith(step: AuthStep.completed));
+      emit(
+        state.copyWith(
+          step: AuthStep.notifications,
+          status: AuthStatus.success,
+        ),
+      );
     } else {
       emit(state.copyWith(step: AuthStep.almostIn));
     }
@@ -254,7 +279,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await prefs.setBool('notifications_enabled', false);
     await _syncPreferencesToBackend();
     if (state.isJoiningCircle) {
-      emit(state.copyWith(step: AuthStep.completed));
+      emit(
+        state.copyWith(
+          step: AuthStep.notifications,
+          status: AuthStatus.success,
+        ),
+      );
     } else {
       emit(state.copyWith(step: AuthStep.almostIn));
     }
@@ -305,7 +335,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         if (invite != null) {
           inviteCode = invite['code'] as String?;
           inviteLink = invite['invite_link'] as String?;
-          
+
           if (inviteCode != null) {
             await prefs.setString('invite_code', inviteCode);
           }
@@ -317,11 +347,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         log('Backend fallback: createCircle failed ($e)');
       }
 
-      emit(state.copyWith(
-        status: AuthStatus.success,
-        inviteCode: inviteCode,
-        inviteLink: inviteLink,
-      ));
+      emit(
+        state.copyWith(
+          status: AuthStatus.success,
+          inviteCode: inviteCode,
+          inviteLink: inviteLink,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(status: AuthStatus.failure, errorMessage: e.toString()),
@@ -338,33 +370,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final prefs = locator<SharedPreferences>();
       await prefs.setString('invite_code', event.code);
 
-      // 1. Verify with backend if the circle has members
-      final hasMembers = await ApiService.checkCircleHasMembers(event.code);
-
-      if (!hasMembers) {
-        // Circle is empty → show CircleEmptyScreen
-        emit(
-          state.copyWith(
-            status: AuthStatus.initial,
-            step: AuthStep.circleEmpty,
-          ),
-        );
-        return;
-      }
-
-      // 2. Circle has members → attempt to join
-      try {
-        await ApiService.joinCircle(event.code);
-      } catch (e) {
-        log('Backend fallback: joinCircle failed ($e)');
-      }
-
-      // 3. Go to profile setup; isJoiningCircle=true skips almostIn after notifications
+      // Immediately go to login to authenticate first
       emit(
         state.copyWith(
-          status: AuthStatus.success,
-          step: AuthStep.profile,
+          status: AuthStatus.initial,
+          step: AuthStep.login,
           isJoiningCircle: true,
+          inviteCode: event.code,
         ),
       );
     } catch (e) {
@@ -401,13 +413,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       case AuthStep.welcome:
         break;
       case AuthStep.login:
-        emit(
-          state.copyWith(
-            step: AuthStep.welcome,
-            status: AuthStatus.initial,
-            isJoiningCircle: false,
-          ),
-        );
+        if (state.isJoiningCircle) {
+          emit(
+            state.copyWith(
+              step: AuthStep.enterInviteCode,
+              status: AuthStatus.initial,
+            ),
+          );
+        } else {
+          emit(
+            state.copyWith(
+              step: AuthStep.welcome,
+              status: AuthStatus.initial,
+              isJoiningCircle: false,
+            ),
+          );
+        }
         break;
       case AuthStep.otp:
         emit(state.copyWith(step: AuthStep.login, status: AuthStatus.initial));
@@ -470,6 +491,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           state.copyWith(step: AuthStep.nameCircle, status: AuthStatus.initial),
         );
         break;
+
       case AuthStep.pasteLink:
         emit(
           state.copyWith(
@@ -481,6 +503,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         break;
       case AuthStep.completed:
         break;
+      case AuthStep.youAreIn:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 

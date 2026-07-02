@@ -40,10 +40,7 @@ class FadePageTransitionsBuilder extends PageTransitionsBuilder {
     // Combine entry slide and exit slide
     return SlideTransition(
       position: slideOut,
-      child: SlideTransition(
-        position: slideIn,
-        child: child,
-      ),
+      child: SlideTransition(position: slideIn, child: child),
     );
   }
 }

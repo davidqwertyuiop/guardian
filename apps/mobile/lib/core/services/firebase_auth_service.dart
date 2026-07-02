@@ -22,7 +22,9 @@ class FirebaseAuthService {
       verificationFailed: (FirebaseAuthException e) {
         log('PhoneAuth failed: ${e.message}');
         if (!completer.isCompleted) {
-          completer.completeError(Exception(e.message ?? 'Verification failed'));
+          completer.completeError(
+            Exception(e.message ?? 'Verification failed'),
+          );
         }
       },
       codeSent: (String verificationId, int? resendToken) {

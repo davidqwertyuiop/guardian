@@ -49,11 +49,11 @@ class OtpInputField extends StatelessWidget {
     final availableWidth = MediaQuery.sizeOf(context).width - 80;
     final boxSize = (availableWidth / 6).clamp(42.0, 54.0);
 
-    final fillColor =
-        isDark ? const Color(0xFF1E1E24) : const Color(0xFFF3F3F6);
+    final fillColor = isDark
+        ? const Color(0xFF1E1E24)
+        : const Color(0xFFF3F3F6);
     final textColor = isDark ? Colors.white : Colors.black;
-    final focusBorderColor =
-        isDark ? Colors.white38 : const Color(0xFF1A73E8);
+    final focusBorderColor = isDark ? Colors.white38 : const Color(0xFF1A73E8);
 
     final defaultTheme = PinTheme(
       width: boxSize,

@@ -16,18 +16,13 @@ class FullMapScreen extends StatelessWidget {
           Positioned.fill(
             child: Container(
               color: isDark ? const Color(0xFF111116) : const Color(0xFFF0EFFF),
-              child: Image.asset(
-                AppAssets.mapAddress,
-                fit: BoxFit.cover,
-              ),
+              child: Image.asset(AppAssets.mapAddress, fit: BoxFit.cover),
             ),
           ),
 
           // 2. Map road grids painter for added details
           Positioned.fill(
-            child: CustomPaint(
-              painter: MapGridPainter(isDark: isDark),
-            ),
+            child: CustomPaint(painter: MapGridPainter(isDark: isDark)),
           ),
 
           // 3. Top Floating Address overlay and Back trigger
@@ -50,7 +45,10 @@ class FullMapScreen extends StatelessWidget {
                       ],
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.arrow_back_rounded, color: isDark ? Colors.white : Colors.black),
+                      icon: Icon(
+                        Icons.arrow_back_rounded,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
@@ -58,7 +56,10 @@ class FullMapScreen extends StatelessWidget {
                   // Address Pill
                   Expanded(
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: isDark
                             ? const Color(0xFF1E1E24).withValues(alpha: 0.95)
@@ -74,7 +75,11 @@ class FullMapScreen extends StatelessWidget {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.gps_fixed_rounded, color: AppColors.primary, size: 18),
+                          const Icon(
+                            Icons.gps_fixed_rounded,
+                            color: AppColors.primary,
+                            size: 18,
+                          ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(

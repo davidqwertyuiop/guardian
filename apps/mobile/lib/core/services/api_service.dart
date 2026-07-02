@@ -8,18 +8,30 @@ class ApiService {
   static String get baseUrl => ApiBase.baseUrl;
 
   // ── Auth Endpoints ──────────────────────────────────────────────────────────
-  static Future<Map<String, dynamic>> firebaseExchange(String phone, String idToken) => AuthApiService.firebaseExchange(phone, idToken);
-  static Future<bool> updateProfile(String name) => AuthApiService.updateProfile(name);
-  static Future<bool> updatePreferences(bool location, bool notifications) => AuthApiService.updatePreferences(location, notifications);
-  static Future<String> refreshToken(String token) => AuthApiService.refreshToken(token);
+  static Future<Map<String, dynamic>> firebaseExchange(
+    String phone,
+    String idToken,
+  ) => AuthApiService.firebaseExchange(phone, idToken);
+  static Future<bool> updateProfile(String name) =>
+      AuthApiService.updateProfile(name);
+  static Future<bool> updatePreferences(bool location, bool notifications) =>
+      AuthApiService.updatePreferences(location, notifications);
+  static Future<String> refreshToken(String token) =>
+      AuthApiService.refreshToken(token);
   static Future<Map<String, dynamic>> getMe() => AuthApiService.getMe();
   static Future<List<dynamic>> getSessions() => AuthApiService.getSessions();
-  static Future<bool> revokeSession(String hash) => AuthApiService.revokeSession(hash);
+  static Future<bool> revokeSession(String hash) =>
+      AuthApiService.revokeSession(hash);
 
   // ── Circles Endpoints ───────────────────────────────────────────────────────
-  static Future<Map<String, dynamic>> createCircle(String name) => CirclesApiService.createCircle(name);
-  static Future<bool> joinCircle(String codeOrLink) => CirclesApiService.joinCircle(codeOrLink);
-  static Future<List<dynamic>> getCircles() async => CirclesApiService.getCircles();
-  static Future<List<dynamic>> getCircleMembers(String circleId) => CirclesApiService.getCircleMembers(circleId);
-  static Future<bool> checkCircleHasMembers(String code) => CirclesApiService.checkCircleHasMembers(code);
+  static Future<Map<String, dynamic>> createCircle(String name) =>
+      CirclesApiService.createCircle(name);
+  static Future<bool> joinCircle(String codeOrLink) =>
+      CirclesApiService.joinCircle(codeOrLink);
+  static Future<List<dynamic>> getCircles() async =>
+      CirclesApiService.getCircles();
+  static Future<List<dynamic>> getCircleMembers(String circleId) =>
+      CirclesApiService.getCircleMembers(circleId);
+  static Future<bool> checkCircleHasMembers(String code) =>
+      CirclesApiService.checkCircleHasMembers(code);
 }

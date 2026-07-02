@@ -23,7 +23,9 @@ class PhoneInputField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final fieldColor = isDark ? const Color(0xFF1E1E22) : const Color(0xFFF3F3F6);
+    final fieldColor = isDark
+        ? const Color(0xFF1E1E22)
+        : const Color(0xFFF3F3F6);
     final textColor = isDark ? Colors.white : Colors.black;
 
     return ValueListenableBuilder<TextEditingValue>(
@@ -112,13 +114,17 @@ class PhoneInputField extends StatelessWidget {
                         ? Container(
                             key: const ValueKey('counter'),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: typedCount == maxDigits
-                                  ? const Color(0xFF1A73E8).withValues(alpha: 0.12)
+                                  ? const Color(
+                                      0xFF1A73E8,
+                                    ).withValues(alpha: 0.12)
                                   : (isDark
-                                      ? Colors.white10
-                                      : Colors.black.withValues(alpha: 0.06)),
+                                        ? Colors.white10
+                                        : Colors.black.withValues(alpha: 0.06)),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -130,8 +136,8 @@ class PhoneInputField extends StatelessWidget {
                                 color: typedCount == maxDigits
                                     ? const Color(0xFF1A73E8)
                                     : (isDark
-                                        ? Colors.white54
-                                        : Colors.black38),
+                                          ? Colors.white54
+                                          : Colors.black38),
                               ),
                             ),
                           )

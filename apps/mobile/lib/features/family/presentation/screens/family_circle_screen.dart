@@ -8,13 +8,22 @@ class FamilyCircleScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: Text('My Circle', style: TextStyle(fontFamily: 'Outfit', ))),
+      appBar: AppBar(
+        title: Text('My Circle', style: TextStyle(fontFamily: 'Outfit')),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Family Members', style: TextStyle(fontFamily: 'Outfit', fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              'Family Members',
+              style: TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 12),
             Expanded(
               child: ListView(
@@ -31,10 +40,19 @@ class FamilyCircleScreen extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.person_add_alt_1, color: Colors.white),
-                label: Text('Invite Member', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontWeight: FontWeight.bold)),
+                label: Text(
+                  'Invite Member',
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
@@ -44,13 +62,26 @@ class FamilyCircleScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMemberTile(String name, String status, {required bool isOnline}) {
+  Widget _buildMemberTile(
+    String name,
+    String status, {
+    required bool isOnline,
+  }) {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: const Color(0xFFECEBFF),
-        child: Text(name[0], style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+        child: Text(
+          name[0],
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-      title: Text(name, style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold)),
+      title: Text(
+        name,
+        style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold),
+      ),
       subtitle: Text(status),
       trailing: Container(
         width: 12,

@@ -7,7 +7,10 @@ class CountryPickerBottomSheet extends StatefulWidget {
 
   const CountryPickerBottomSheet({super.key, required this.onCountrySelected});
 
-  static void show(BuildContext context, ValueChanged<IntlCountryData> onCountrySelected) {
+  static void show(
+    BuildContext context,
+    ValueChanged<IntlCountryData> onCountrySelected,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     showModalBottomSheet(
       context: context,
@@ -23,7 +26,8 @@ class CountryPickerBottomSheet extends StatefulWidget {
   }
 
   @override
-  State<CountryPickerBottomSheet> createState() => _CountryPickerBottomSheetState();
+  State<CountryPickerBottomSheet> createState() =>
+      _CountryPickerBottomSheetState();
 }
 
 class _CountryPickerBottomSheetState extends State<CountryPickerBottomSheet> {
@@ -46,19 +50,23 @@ class _CountryPickerBottomSheetState extends State<CountryPickerBottomSheet> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final allCountries = IntlCountryData.all();
-    
+
     // Filter countries based on search query
     final filteredCountries = allCountries.where((country) {
       final query = _searchQuery.toLowerCase();
       final name = country.name.toLowerCase();
       final code = country.codeAlpha2.toLowerCase();
       final phoneCode = country.telephoneCode.toString().toLowerCase();
-      return name.contains(query) || code.contains(query) || phoneCode.contains(query);
+      return name.contains(query) ||
+          code.contains(query) ||
+          phoneCode.contains(query);
     }).toList();
 
     return Padding(
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom, // Avoid keyboard overlap
+        bottom: MediaQuery.of(
+          context,
+        ).viewInsets.bottom, // Avoid keyboard overlap
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -168,7 +176,9 @@ class _CountryPickerBottomSheetState extends State<CountryPickerBottomSheet> {
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontWeight: FontWeight.w600,
-                              color: isDark ? Colors.grey[400] : AppColors.greyText,
+                              color: isDark
+                                  ? Colors.grey[400]
+                                  : AppColors.greyText,
                             ),
                           ),
                           onTap: () {

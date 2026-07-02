@@ -35,7 +35,11 @@ class AvatarItem extends StatelessWidget {
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) => Container(
             color: AppColors.primary.withValues(alpha: 0.2),
-            child: Icon(Icons.person_outline, size: size * 0.5, color: Colors.white70),
+            child: Icon(
+              Icons.person_outline,
+              size: size * 0.5,
+              color: Colors.white70,
+            ),
           ),
         ),
       ),

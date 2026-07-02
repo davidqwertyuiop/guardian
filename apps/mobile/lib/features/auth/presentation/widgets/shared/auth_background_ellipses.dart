@@ -5,15 +5,12 @@ import 'package:guardian/core/utils/adaptive_layout.dart';
 class AuthBackgroundEllipses extends StatelessWidget {
   final bool isKeyboardOpen;
 
-  const AuthBackgroundEllipses({
-    super.key,
-    this.isKeyboardOpen = false,
-  });
+  const AuthBackgroundEllipses({super.key, this.isKeyboardOpen = false});
 
   @override
   Widget build(BuildContext context) {
     if (isKeyboardOpen) return const SizedBox.shrink();
-    
+
     final statusBarHeight = MediaQuery.paddingOf(context).top;
     return Stack(
       children: [

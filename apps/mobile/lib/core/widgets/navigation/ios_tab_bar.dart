@@ -93,8 +93,13 @@ class _IosTabItem extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         height: 50, // Spec: height 50
-        width: isActive ? 103 : 50, // Spec: width 103 for active, circular 50 for inactive
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13), // Spec: padding
+        width: isActive
+            ? 103
+            : 50, // Spec: width 103 for active, circular 50 for inactive
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 13,
+        ), // Spec: padding
         decoration: BoxDecoration(
           gradient: isActive
               ? const LinearGradient(
@@ -106,7 +111,10 @@ class _IosTabItem extends StatelessWidget {
           color: isActive ? null : const Color(0xFF444446),
           borderRadius: BorderRadius.circular(40), // Spec: border-radius 40
           border: !isActive
-              ? Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1)
+              ? Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1,
+                )
               : null,
         ),
         child: SingleChildScrollView(
@@ -164,8 +172,13 @@ class _IosProfileTab extends StatelessWidget {
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
         height: 50, // Spec: height 50
-        width: isActive ? 103 : 50, // Spec: width 103 for active, circular 50 for inactive
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13), // Spec: padding
+        width: isActive
+            ? 103
+            : 50, // Spec: width 103 for active, circular 50 for inactive
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 13,
+        ), // Spec: padding
         decoration: BoxDecoration(
           gradient: isActive
               ? const LinearGradient(
@@ -177,7 +190,10 @@ class _IosProfileTab extends StatelessWidget {
           color: isActive ? null : const Color(0xFF444446),
           borderRadius: BorderRadius.circular(40), // Spec: border-radius 40
           border: !isActive
-              ? Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1)
+              ? Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1,
+                )
               : null,
         ),
         child: SingleChildScrollView(

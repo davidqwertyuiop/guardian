@@ -98,7 +98,9 @@ class AlmostInScreen extends StatelessWidget {
                       context: context,
                       title: "Join a circle",
                       subtitle: "Enter a code from someone who invited you",
-                      backgroundColor: isDark ? const Color(0xFF1E1E22) : Colors.black,
+                      backgroundColor: isDark
+                          ? const Color(0xFF1E1E22)
+                          : Colors.black,
                       onTap: () {
                         locator<AuthBloc>().add(const SelectJoinCircle());
                       },
@@ -152,11 +154,7 @@ class AlmostInScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: AdaptiveLayout.h(context, 20)),
-            const Icon(
-              Icons.arrow_forward,
-              color: Colors.white,
-              size: 20,
-            ),
+            const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
           ],
         ),
       ),

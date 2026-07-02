@@ -13,7 +13,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(state.copyWith(currentIndex: event.index));
   }
 
-  Future<void> _onLoadHomeData(LoadHomeData event, Emitter<HomeState> emit) async {
+  Future<void> _onLoadHomeData(
+    LoadHomeData event,
+    Emitter<HomeState> emit,
+  ) async {
     emit(state.copyWith(status: HomeStatus.loading));
     try {
       // 1. Fetch current profile details
@@ -23,7 +26,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       // 2. Fetch circles list
       final circles = await ApiService.getCircles();
-      
+
       String activeCircleName = '';
       String activeCircleId = '';
       List<dynamic> circleMembers = [];
@@ -39,19 +42,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         }
       }
 
-      emit(state.copyWith(
-        userName: name,
-        avatarUrl: avatar,
-        circleName: activeCircleName,
-        circleId: activeCircleId,
-        members: circleMembers,
-        status: HomeStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          userName: name,
+          avatarUrl: avatar,
+          circleName: activeCircleName,
+          circleId: activeCircleId,
+          members: circleMembers,
+          status: HomeStatus.success,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: HomeStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 }

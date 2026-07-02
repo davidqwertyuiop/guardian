@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use axum::{routing::get, Router};
+use axum::{extract::State, routing::get, Router};
 use sqlx::PgPool;
 use crate::config::AppConfig;
 use crate::domains::identity::domain::repositories::{
@@ -29,10 +29,43 @@ pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(|| async { "Guardian API v2 — OK" }))
         .route("/invite/{token}", get(crate::domains::circles::api::handlers::invite_landing_page))
+        .route("/.well-known/apple-app-site-association", get(apple_app_site_association))
+        .route("/.well-known/assetlinks.json", get(assetlinks_json))
         .nest("/api/v1/auth", crate::domains::identity::api::routes::router())
         .nest("/api/v1/circles", crate::domains::circles::api::routes::router())
-        // Future domains nested here as they are implemented:
         // .nest("/api/v1/location",  crate::domains::location::api::routes::router())
         // .nest("/api/v1/sos",       crate::domains::sos::api::routes::router())
         .with_state(state)
+}
+
+// ── Universal Links Endpoints ───────────────────────────────────────────────
+
+async fn apple_app_site_association(State(state): State<AppState>) -> axum::Json<serde_json::Value> {
+    let app_id = format!("{}.com.sijibomi.guardian", state.config.apple_team_id);
+    axum::Json(serde_json::json!({
+        "applinks": {
+            "apps": [],
+            "details": [
+                {
+                    "appID": app_id,
+                    "paths": ["/invite/*"]
+                }
+            ]
+        }
+    }))
+}
+
+async fn assetlinks_json(State(state): State<AppState>) -> axum::Json<serde_json::Value> {
+    axum::Json(serde_json::json!([
+        {
+            "relation": ["delegate_permission/common.handle_all_urls"],
+            "target": {
+                "namespace": "android_app",
+                "package_name": "com.sijibomi.guardian",
+                "sha256_cert_fingerprints": [
+                    state.config.android_sha256_cert_fingerprint
+                ]
+            }
+        }
+    ]))
 }

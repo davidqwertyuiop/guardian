@@ -20,9 +20,7 @@ void main() async {
   Bloc.observer = AppBlocObserver();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize dependency injection
   await initDependencies();
@@ -48,10 +46,12 @@ class GuardianApp extends StatelessWidget {
     final brightness = PlatformDispatcher.instance.platformBrightness;
     final isDark = brightness == Brightness.dark;
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-    ));
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      ),
+    );
 
     final initialStep = locator<AuthBloc>().state.step;
     final Widget homeScreen = (initialStep == AuthStep.completed)

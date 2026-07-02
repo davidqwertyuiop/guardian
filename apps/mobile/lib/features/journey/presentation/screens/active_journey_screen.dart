@@ -12,7 +12,9 @@ class ActiveJourneyScreen extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0F15) : const Color(0xFFFAF9FF),
+      backgroundColor: isDark
+          ? const Color(0xFF0F0F15)
+          : const Color(0xFFFAF9FF),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -20,24 +22,58 @@ class ActiveJourneyScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              Text('Active Journey', style: TextStyle(fontFamily: 'Outfit', fontSize: 28, fontWeight: FontWeight.bold)),
+              Text(
+                'Active Journey',
+                style: TextStyle(
+                  fontFamily: 'Outfit',
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 8),
-              Text('Sharing location live to destination: $destination', style: TextStyle(fontFamily: 'Inter', color: Colors.grey)),
+              Text(
+                'Sharing location live to destination: $destination',
+                style: TextStyle(fontFamily: 'Inter', color: Colors.grey),
+              ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF1C1C28) : Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    Text('ETA', style: TextStyle(fontFamily: 'Inter', fontSize: 14, color: Colors.grey)),
+                    Text(
+                      'ETA',
+                      style: TextStyle(
+                        fontFamily: 'Inter',
+                        fontSize: 14,
+                        color: Colors.grey,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    Text('15 Mins', style: TextStyle(fontFamily: 'Outfit', fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                    Text(
+                      '15 Mins',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primary,
+                      ),
+                    ),
                     const SizedBox(height: 16),
-                    const LinearProgressIndicator(value: 0.45, backgroundColor: Color(0xFFECEBFF), color: AppColors.primary),
+                    const LinearProgressIndicator(
+                      value: 0.45,
+                      backgroundColor: Color(0xFFECEBFF),
+                      color: AppColors.primary,
+                    ),
                   ],
                 ),
               ),
@@ -51,23 +87,42 @@ class ActiveJourneyScreen extends StatelessWidget {
                         foregroundColor: Colors.redAccent,
                         side: const BorderSide(color: Colors.redAccent),
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: Text('Trigger SOS', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold)),
+                      child: Text(
+                        'Trigger SOS',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(FadeRoute(page: const CompletedJourneyScreen()));
+                        Navigator.of(context).pushReplacement(
+                          FadeRoute(page: const CompletedJourneyScreen()),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: Text('Arrived Safely', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        'Arrived Safely',
+                        style: TextStyle(
+                          fontFamily: 'Inter',
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],

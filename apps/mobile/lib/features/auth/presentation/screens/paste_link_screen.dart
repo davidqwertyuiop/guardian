@@ -132,7 +132,9 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                                   fontFamily: 'Inter',
                                   color: Colors.grey.shade400,
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 18,
+                                ),
                               ),
                             ),
                           ),
@@ -183,8 +185,12 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                                     );
                                   },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark ? Colors.white : Colors.black,
-                              foregroundColor: isDark ? Colors.black : Colors.white,
+                              backgroundColor: isDark
+                                  ? Colors.white
+                                  : Colors.black,
+                              foregroundColor: isDark
+                                  ? Colors.black
+                                  : Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -196,7 +202,9 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                                     height: 22,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2.5,
-                                      color: isDark ? Colors.black : Colors.white,
+                                      color: isDark
+                                          ? Colors.black
+                                          : Colors.white,
                                     ),
                                   )
                                 : const Text(

@@ -5,7 +5,12 @@ import 'journey_state.dart';
 class JourneyBloc extends Bloc<JourneyEvent, JourneyState> {
   JourneyBloc() : super(const JourneyState(status: JourneyStatus.idle)) {
     on<StartJourney>((event, emit) {
-      emit(JourneyState(status: JourneyStatus.active, destination: event.destination));
+      emit(
+        JourneyState(
+          status: JourneyStatus.active,
+          destination: event.destination,
+        ),
+      );
     });
     on<EndJourney>((event, emit) {
       emit(const JourneyState(status: JourneyStatus.completed));

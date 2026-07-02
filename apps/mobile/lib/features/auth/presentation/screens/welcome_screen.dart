@@ -86,6 +86,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     bool isBackTransition(AuthStep oldS, AuthStep newS) {
       if (oldS == AuthStep.login && newS == AuthStep.welcome) return true;
+      if (oldS == AuthStep.login && newS == AuthStep.enterInviteCode)
+        return true;
       if (oldS == AuthStep.otp && newS == AuthStep.login) return true;
       if (oldS == AuthStep.profile && newS == AuthStep.otp) return true;
       if (oldS == AuthStep.profile && newS == AuthStep.enterInviteCode) {
@@ -124,7 +126,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       Navigator.of(context).pop();
     } else {
       Route route;
-      if (newStep == AuthStep.enterInviteCode || newStep == AuthStep.pasteLink) {
+      if (newStep == AuthStep.enterInviteCode ||
+          newStep == AuthStep.pasteLink) {
         route = CupertinoPageRoute(builder: (_) => getScreen(newStep));
       } else {
         route = SmoothPageRoute(child: getScreen(newStep));

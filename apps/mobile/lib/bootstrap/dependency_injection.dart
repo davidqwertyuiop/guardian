@@ -25,13 +25,19 @@ Future<void> initDependencies() async {
   final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
   final token = await TokenManager().getAccessToken();
   final hasJwt = token != null && token.isNotEmpty;
-  final initialStep = (onboardingCompleted && hasJwt) ? AuthStep.completed : AuthStep.welcome;
+  final initialStep = (onboardingCompleted && hasJwt)
+      ? AuthStep.completed
+      : AuthStep.welcome;
 
   // 2. Services
-  locator.registerLazySingleton<FirebaseAuthService>(() => FirebaseAuthService());
+  locator.registerLazySingleton<FirebaseAuthService>(
+    () => FirebaseAuthService(),
+  );
 
   // 3. Blocs
-  locator.registerLazySingleton<AuthBloc>(() => AuthBloc(initialStep: initialStep));
+  locator.registerLazySingleton<AuthBloc>(
+    () => AuthBloc(initialStep: initialStep),
+  );
   locator.registerLazySingleton<JourneyBloc>(() => JourneyBloc());
   locator.registerLazySingleton<HomeBloc>(() => HomeBloc());
   locator.registerLazySingleton<SettingsBloc>(() => SettingsBloc());

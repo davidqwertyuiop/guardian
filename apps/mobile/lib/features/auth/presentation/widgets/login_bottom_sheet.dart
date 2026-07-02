@@ -30,7 +30,7 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
     _phoneController.addListener(() {
       final text = _phoneController.text;
       _authBloc.add(PhoneNumberChanged(text));
-      
+
       final maxDigits = PhoneNumberUtils.getMaxDigits(_authBloc.state.dialCode);
       if (text.length == maxDigits && FocusScope.of(context).hasFocus) {
         FocusScope.of(context).unfocus();
@@ -81,7 +81,8 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
               SizedBox(height: AdaptiveLayout.h(context, 1)),
               Text(
                 "Enter your number",
-                style: TextStyle(fontFamily: 'Inter', 
+                style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: AdaptiveLayout.sp(context, 20),
                   fontWeight: FontWeight.bold,
                   color: isDark ? Colors.white : Colors.black,
@@ -90,7 +91,8 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
               const SizedBox(height: 4),
               Text(
                 "We'll send you a verification code.",
-                style: TextStyle(fontFamily: 'Inter', 
+                style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: AdaptiveLayout.sp(context, 14),
                   color: AppColors.greyText,
                 ),
@@ -117,8 +119,7 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
               LoginContinueButton(
                 isLoading: state.status == AuthStatus.loading,
                 enabled: isComplete,
-                onPressed: () =>
-                    _authBloc.add(const SubmitPhoneNumber()),
+                onPressed: () => _authBloc.add(const SubmitPhoneNumber()),
               ),
               SizedBox(height: AdaptiveLayout.h(context, 16)),
               const LoginBottomSheetTerms(),

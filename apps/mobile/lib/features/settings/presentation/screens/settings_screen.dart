@@ -35,9 +35,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0E0E12) : const Color(0xFFFFFFFF),
+      backgroundColor: isDark
+          ? const Color(0xFF0E0E12)
+          : const Color(0xFFFFFFFF),
       appBar: AppBar(
-        title: const Text('Profile', style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         foregroundColor: isDark ? Colors.white : Colors.black,
@@ -60,7 +65,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         height: 100,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: AppColors.primary, width: 3),
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 3,
+                          ),
                           image: homeState.avatarUrl.isNotEmpty
                               ? DecorationImage(
                                   image: NetworkImage(homeState.avatarUrl),
@@ -74,7 +82,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        homeState.userName.isNotEmpty ? homeState.userName : 'User',
+                        homeState.userName.isNotEmpty
+                            ? homeState.userName
+                            : 'User',
                         style: TextStyle(
                           fontFamily: 'Outfit',
                           fontSize: AdaptiveLayout.sp(context, 22),
@@ -110,11 +120,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 BlocBuilder<SettingsBloc, SettingsState>(
                   bloc: _settingsBloc,
                   builder: (context, state) {
-                    if (state.status == SettingsStatus.loading && state.sessions.isEmpty) {
+                    if (state.status == SettingsStatus.loading &&
+                        state.sessions.isEmpty) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 20),
-                          child: CircularProgressIndicator(color: AppColors.primary),
+                          child: CircularProgressIndicator(
+                            color: AppColors.primary,
+                          ),
                         ),
                       );
                     }
@@ -124,7 +137,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 20),
                         width: double.infinity,
                         alignment: Alignment.center,
-                        child: Text('No active device sessions found.', style: TextStyle(color: Colors.grey)),
+                        child: Text(
+                          'No active device sessions found.',
+                          style: TextStyle(color: Colors.grey),
+                        ),
                       );
                     }
 
@@ -132,24 +148,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: state.sessions.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
                       itemBuilder: (context, index) {
-                        final session = state.sessions[index] as Map<String, dynamic>;
-                        final deviceName = session['device_name'] as String? ?? 'Device';
-                        final deviceModel = session['device_model'] as String? ?? 'Generic Model';
-                        final platform = session['platform'] as String? ?? 'ios';
-                        final tokenHash = session['refresh_token_hash'] as String? ?? '';
+                        final session =
+                            state.sessions[index] as Map<String, dynamic>;
+                        final deviceName =
+                            session['device_name'] as String? ?? 'Device';
+                        final deviceModel =
+                            session['device_model'] as String? ??
+                            'Generic Model';
+                        final platform =
+                            session['platform'] as String? ?? 'ios';
+                        final tokenHash =
+                            session['refresh_token_hash'] as String? ?? '';
 
                         return Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: isDark ? const Color(0xFF1E1E24) : const Color(0xFFF7F7FA),
+                            color: isDark
+                                ? const Color(0xFF1E1E24)
+                                : const Color(0xFFF7F7FA),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Row(
                             children: [
                               Icon(
-                                platform.toLowerCase() == 'ios' ? Icons.phone_iphone_rounded : Icons.phone_android_rounded,
+                                platform.toLowerCase() == 'ios'
+                                    ? Icons.phone_iphone_rounded
+                                    : Icons.phone_android_rounded,
                                 color: AppColors.primary,
                                 size: 28,
                               ),
@@ -164,7 +191,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         fontFamily: 'Outfit',
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.white : Colors.black,
+                                        color: isDark
+                                            ? Colors.white
+                                            : Colors.black,
                                       ),
                                     ),
                                     const SizedBox(height: 2),
@@ -180,7 +209,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                                icon: const Icon(
+                                  Icons.logout_rounded,
+                                  color: Colors.redAccent,
+                                  size: 20,
+                                ),
                                 onPressed: () {
                                   if (tokenHash.isNotEmpty) {
                                     _settingsBloc.add(RevokeSession(tokenHash));
@@ -199,26 +232,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // 3. Settings List Options
                 ListTile(
                   leading: const Icon(Icons.person_outline),
-                  title: const Text('Edit Profile', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w500)),
+                  title: const Text(
+                    'Edit Profile',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {},
                 ),
                 ListTile(
                   leading: const Icon(Icons.notifications_none),
-                  title: const Text('Notifications', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w500)),
+                  title: const Text(
+                    'Notifications',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {},
                 ),
                 ListTile(
                   leading: const Icon(Icons.security),
-                  title: const Text('Security & Privacy', style: TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.w500)),
+                  title: const Text(
+                    'Security & Privacy',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {},
                 ),
                 const Divider(),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.redAccent),
-                  title: const Text('Logout', style: TextStyle(fontFamily: 'Inter', color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                  title: const Text(
+                    'Logout',
+                    style: TextStyle(
+                      fontFamily: 'Inter',
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   onTap: () async {
                     await TokenManager().clearTokens();
                     if (context.mounted) {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
+
 class AppBlocObserver extends BlocObserver {
   @override
   void onCreate(BlocBase bloc) {
@@ -16,7 +17,9 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onChange(BlocBase bloc, Change change) {
     super.onChange(bloc, change);
-    debugPrint('🔄 Bloc Change: ${bloc.runtimeType} -> currentState: ${change.currentState}, nextState: ${change.nextState}');
+    debugPrint(
+      '🔄 Bloc Change: ${bloc.runtimeType} -> currentState: ${change.currentState}, nextState: ${change.nextState}',
+    );
   }
 
   @override
@@ -37,4 +40,3 @@ class AppBlocObserver extends BlocObserver {
     debugPrint('🔴 Bloc Closed: ${bloc.runtimeType}');
   }
 }
-

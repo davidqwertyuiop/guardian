@@ -44,10 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _homeBloc.add(ChangeTab(index));
           },
           profileImageUrl: state.avatarUrl.isNotEmpty ? state.avatarUrl : null,
-          body: IndexedStack(
-            index: state.currentIndex,
-            children: pages,
-          ),
+          body: IndexedStack(index: state.currentIndex, children: pages),
         );
       },
     );

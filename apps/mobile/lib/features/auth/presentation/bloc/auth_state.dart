@@ -1,6 +1,13 @@
 import 'package:equatable/equatable.dart';
 
-enum AuthStatus { initial, loading, codeSent, success, profileCompleted, failure }
+enum AuthStatus {
+  initial,
+  loading,
+  codeSent,
+  success,
+  profileCompleted,
+  failure,
+}
 
 enum AuthStep {
   splash,
@@ -15,7 +22,8 @@ enum AuthStep {
   enterInviteCode,
   pasteLink,
   circleEmpty,
-  completed
+  completed,
+  youAreIn,
 }
 
 class AuthState extends Equatable {
@@ -94,17 +102,17 @@ class AuthState extends Equatable {
 
   @override
   List<Object?> get props => [
-        countryCode,
-        dialCode,
-        phoneNumber,
-        status,
-        step,
-        errorMessage,
-        username,
-        isJoiningCircle,
-        verificationId,
-        triggerNavigation,
-        inviteCode,
-        inviteLink,
-      ];
+    countryCode,
+    dialCode,
+    phoneNumber,
+    status,
+    step,
+    errorMessage,
+    username,
+    isJoiningCircle,
+    verificationId,
+    triggerNavigation,
+    inviteCode,
+    inviteLink,
+  ];
 }

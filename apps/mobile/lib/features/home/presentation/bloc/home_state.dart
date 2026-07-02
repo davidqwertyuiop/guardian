@@ -47,13 +47,13 @@ class HomeState extends Equatable {
 
   @override
   List<Object?> get props => [
-        currentIndex,
-        userName,
-        avatarUrl,
-        circleName,
-        circleId,
-        members,
-        status,
-        errorMessage,
-      ];
+    currentIndex,
+    userName,
+    avatarUrl,
+    circleName,
+    circleId,
+    members,
+    status,
+    errorMessage,
+  ];
 }

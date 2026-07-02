@@ -20,7 +20,9 @@ class AuthSecondaryButton extends StatelessWidget {
       child: TextButton(
         onPressed: onPressed,
         style: TextButton.styleFrom(
-          backgroundColor: isDark ? const Color(0xFF1E1E22) : const Color(0xFFF3F3F6),
+          backgroundColor: isDark
+              ? const Color(0xFF1E1E22)
+              : const Color(0xFFF3F3F6),
           foregroundColor: isDark ? Colors.white : Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

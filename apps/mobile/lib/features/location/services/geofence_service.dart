@@ -1,5 +1,10 @@
 class GeofenceService {
-  Future<void> addGeofence(String id, double lat, double lng, double radius) async {
+  Future<void> addGeofence(
+    String id,
+    double lat,
+    double lng,
+    double radius,
+  ) async {
     // Add geofence
   }
 

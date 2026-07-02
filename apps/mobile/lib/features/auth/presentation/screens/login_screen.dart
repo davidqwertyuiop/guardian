@@ -36,7 +36,8 @@ class _LoginScreenState extends State<LoginScreen> {
             previous.status != current.status &&
             current.status == AuthStatus.failure,
         listener: (context, state) {
-          if (state.errorMessage != null && (ModalRoute.of(context)?.isCurrent ?? false)) {
+          if (state.errorMessage != null &&
+              (ModalRoute.of(context)?.isCurrent ?? false)) {
             final rawMsg = state.errorMessage!;
             final msg = rawMsg.contains(':')
                 ? rawMsg.substring(rawMsg.lastIndexOf(':') + 1).trim()
@@ -102,7 +103,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: IntrinsicHeight(
                         child: Stack(
                           children: [
-                            AuthBackgroundEllipses(isKeyboardOpen: isKeyboardOpen),
+                            AuthBackgroundEllipses(
+                              isKeyboardOpen: isKeyboardOpen,
+                            ),
                             Column(
                               children: [
                                 SizedBox(height: statusBarHeight),
@@ -113,7 +116,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   padding: EdgeInsets.symmetric(
                                     horizontal: 24.0,
                                   ),
-                                  child: AuthTitle(text: "Let's get you\nsigned in"),
+                                  child: AuthTitle(
+                                    text: "Let's get you\nsigned in",
+                                  ),
                                 ),
                                 const Spacer(flex: 3),
                                 const LoginBottomSheet(),

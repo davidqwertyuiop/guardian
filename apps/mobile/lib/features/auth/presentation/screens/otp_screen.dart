@@ -9,6 +9,7 @@ import '../bloc/auth_state.dart';
 import '../widgets/otp_bottom_sheet.dart';
 import 'package:toastification/toastification.dart';
 import 'package:guardian/features/auth/presentation/widgets/shared/auth_shared.dart';
+import 'package:guardian/features/auth/presentation/widgets/you_are_in_sheet.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
@@ -18,6 +19,17 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
+  void _showYouAreInSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const YouAreInSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -32,10 +44,16 @@ class _OtpScreenState extends State<OtpScreen> {
       child: BlocListener<AuthBloc, AuthState>(
         bloc: locator<AuthBloc>(),
         listenWhen: (previous, current) =>
-            previous.status != current.status &&
-            current.status == AuthStatus.failure,
+            previous.status != current.status || previous.step != current.step,
         listener: (context, state) {
-          if (state.errorMessage != null && (ModalRoute.of(context)?.isCurrent ?? false)) {
+          if (state.status == AuthStatus.success &&
+              state.step == AuthStep.otp) {
+            _showYouAreInSheet(context);
+            return;
+          }
+          if (state.status == AuthStatus.failure &&
+              state.errorMessage != null &&
+              (ModalRoute.of(context)?.isCurrent ?? false)) {
             if (Theme.of(context).platform == TargetPlatform.iOS) {
               toastification.show(
                 context: context,
@@ -79,51 +97,54 @@ class _OtpScreenState extends State<OtpScreen> {
           }
         },
         child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
-        resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              // 1. Background Ellipses (hidden on keyboard)
-              AuthBackgroundEllipses(isKeyboardOpen: isKeyboardOpen),
+          backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
+          resizeToAvoidBottomInset: true,
+          body: SafeArea(
+            child: Stack(
+              children: [
+                // 1. Background Ellipses (hidden on keyboard)
+                AuthBackgroundEllipses(isKeyboardOpen: isKeyboardOpen),
 
-              // 2. Main Content
-              Column(
-                children: [
-                  // Spacer that adjusts based on keyboard to keep title visible
-                  SizedBox(height: isKeyboardOpen ? 20 : 70),
+                // 2. Main Content
+                Column(
+                  children: [
+                    // Spacer that adjusts based on keyboard to keep title visible
+                    SizedBox(height: isKeyboardOpen ? 20 : 70),
 
-                  // Title text
-                  const AuthTitle(text: "Let's get you\nverified"),
+                    // Title text
+                    const AuthTitle(text: "Let's get you\nverified"),
 
-                  // Expanded area for the zoomed woman background (hidden on keyboard to prevent overflow)
-                  Expanded(
-                    child: isKeyboardOpen
-                        ? const SizedBox()
-                        : Stack(
-                            alignment: Alignment.center,
-                            clipBehavior: Clip.none,
-                            children: [
-                              Positioned(
-                                top: 0, // Pushed up towards her head length
-                                child: Image.asset(
-                                  AppAssets.womanBackground,
-                                  height: AdaptiveLayout.h(context, 370), // Zoomed very well
-                                  fit: BoxFit.contain,
+                    // Expanded area for the zoomed woman background (hidden on keyboard to prevent overflow)
+                    Expanded(
+                      child: isKeyboardOpen
+                          ? const SizedBox()
+                          : Stack(
+                              alignment: Alignment.center,
+                              clipBehavior: Clip.none,
+                              children: [
+                                Positioned(
+                                  top: 0, // Pushed up towards her head length
+                                  child: Image.asset(
+                                    AppAssets.womanBackground,
+                                    height: AdaptiveLayout.h(
+                                      context,
+                                      370,
+                                    ), // Zoomed very well
+                                    fit: BoxFit.contain,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                  ),
+                              ],
+                            ),
+                    ),
 
-                  // Floating bottom card remains in the same place at the bottom of the Column
-                  const OtpBottomSheet(),
-                ],
-              ),
-            ],
+                    // Floating bottom card remains in the same place at the bottom of the Column
+                    const OtpBottomSheet(),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ),
       ),
     );
   }

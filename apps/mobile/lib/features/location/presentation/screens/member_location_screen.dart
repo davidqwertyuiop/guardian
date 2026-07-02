@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 class MemberLocationScreen extends StatelessWidget {
   final String memberName;
   const MemberLocationScreen({super.key, required this.memberName});
@@ -15,12 +16,19 @@ class MemberLocationScreen extends StatelessWidget {
             CircleAvatar(
               radius: 40,
               backgroundColor: const Color(0xFF7C60FF),
-              child: Text(memberName[0], style: const TextStyle(fontSize: 32, color: Colors.white)),
+              child: Text(
+                memberName[0],
+                style: const TextStyle(fontSize: 32, color: Colors.white),
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               memberName,
-              style: TextStyle(fontFamily: 'Outfit', fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontFamily: 'Outfit',
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 8),
             Text(

@@ -48,9 +48,8 @@ class AdaptiveLayout {
   /// Horizontal padding that increases on wider screens.
   static double responsiveHorizontalPadding(BuildContext context) {
     final w = screenWidth(context);
-    if (w >= 768) return (w - 480) / 2;   // iPad: centre the content column
-    if (w >= 600) return 40.0;             // Small tablet
-    return 0.0;                            // Phone: callers use their own padding
+    if (w >= 768) return (w - 480) / 2; // iPad: centre the content column
+    if (w >= 600) return 40.0; // Small tablet
+    return 0.0; // Phone: callers use their own padding
   }
 }
-

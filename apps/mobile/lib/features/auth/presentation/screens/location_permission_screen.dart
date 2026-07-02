@@ -11,7 +11,8 @@ class LocationPermissionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return OnboardingStepScreen(
       title: 'Guardian needs your location',
-      subtitle: 'So your circle knows you\'re safe — even when the app is closed.',
+      subtitle:
+          'So your circle knows you\'re safe — even when the app is closed.',
       bulletPoints: const [
         'Your circle sees where you are',
         'You always control who sees it',

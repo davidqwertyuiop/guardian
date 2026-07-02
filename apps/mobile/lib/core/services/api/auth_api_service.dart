@@ -10,7 +10,10 @@ abstract class AuthApiService {
   static String get baseUrl => ApiBase.baseUrl;
 
   /// POST /api/v1/auth/firebase-exchange
-  static Future<Map<String, dynamic>> firebaseExchange(String phone, String idToken) async {
+  static Future<Map<String, dynamic>> firebaseExchange(
+    String phone,
+    String idToken,
+  ) async {
     try {
       String? deviceModel;
       try {
@@ -30,7 +33,7 @@ abstract class AuthApiService {
         Uri.parse('$baseUrl/api/v1/auth/firebase-exchange'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'phone': phone, 
+          'phone': phone,
           'id_token': idToken,
           'platform': Platform.isIOS ? 'ios' : 'android',
           'device_model': deviceModel,
@@ -92,7 +95,10 @@ abstract class AuthApiService {
   }
 
   /// PATCH /api/v1/auth/preferences  (requires Bearer token)
-  static Future<bool> updatePreferences(bool locationEnabled, bool notificationsEnabled) async {
+  static Future<bool> updatePreferences(
+    bool locationEnabled,
+    bool notificationsEnabled,
+  ) async {
     final tokenMgr = TokenManager();
     final token = await tokenMgr.getAccessToken();
 

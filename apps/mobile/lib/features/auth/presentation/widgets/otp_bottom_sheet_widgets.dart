@@ -42,7 +42,8 @@ class OtpBottomSheetSubtitle extends StatelessWidget {
       textAlign: TextAlign.center,
       TextSpan(
         text: "We sent a 6-digit code to $maskedPhone. ",
-        style: TextStyle(fontFamily: 'Inter', 
+        style: TextStyle(
+          fontFamily: 'Inter',
           fontSize: AdaptiveLayout.sp(context, 13),
           color: AppColors.greyText,
         ),
@@ -53,7 +54,8 @@ class OtpBottomSheetSubtitle extends StatelessWidget {
               onTap: () => locator<AuthBloc>().add(const NavigateBack()),
               child: Text(
                 "Edit",
-                style: TextStyle(fontFamily: 'Inter', 
+                style: TextStyle(
+                  fontFamily: 'Inter',
                   fontSize: AdaptiveLayout.sp(context, 13),
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -78,8 +80,11 @@ class OtpTimerText extends StatelessWidget {
     return GestureDetector(
       onTap: seconds == 0 ? onResend : null,
       child: Text(
-        seconds > 0 ? "Resend code in 0:${seconds.toString().padLeft(2, '0')}" : "Resend code",
-        style: TextStyle(fontFamily: 'Inter', 
+        seconds > 0
+            ? "Resend code in 0:${seconds.toString().padLeft(2, '0')}"
+            : "Resend code",
+        style: TextStyle(
+          fontFamily: 'Inter',
           fontSize: AdaptiveLayout.sp(context, 14),
           color: seconds > 0 ? AppColors.greyText : AppColors.primary,
           fontWeight: seconds > 0 ? FontWeight.normal : FontWeight.bold,

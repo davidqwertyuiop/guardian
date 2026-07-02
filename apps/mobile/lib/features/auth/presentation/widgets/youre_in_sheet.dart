@@ -12,7 +12,7 @@ class YoureInSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF16161A) : Colors.white,
@@ -30,11 +30,7 @@ class YoureInSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(
-            AppAssets.icon1,
-            width: 60,
-            height: 60,
-          ),
+          Image.asset(AppAssets.icon1, width: 60, height: 60),
           const SizedBox(height: 20),
           Text(
             "You're in 🤝",

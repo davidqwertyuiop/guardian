@@ -11,8 +11,6 @@ use crate::domains::circles::{
     api::dto::*,
 };
 
-/// Base URL for invite deep links — update to your production domain.
-const INVITE_BASE_URL: &str = "https://www.shadowchat.xyz/invite";
 
 // ── POST /api/v1/circles ────────────────────────────────────────────────────
 
@@ -39,7 +37,7 @@ pub async fn create_circle(
         },
         invite: InviteResponse {
             code: output.invite.code.clone(),
-            invite_link: format!("{}/{}", INVITE_BASE_URL, output.invite.token),
+            invite_link: format!("{}/{}", state.config.invite_base_url, output.invite.token),
             code_expires_at: output.invite.code_expires_at,
             link_expires_at: output.invite.link_expires_at,
         },

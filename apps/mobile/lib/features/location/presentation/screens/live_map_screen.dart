@@ -34,9 +34,10 @@ class _LiveMapScreenState extends State<LiveMapScreen>
       vsync: this,
       duration: const Duration(milliseconds: 380),
     );
-    _mapHeight = Tween<double>(begin: 160, end: 340).animate(
-      CurvedAnimation(parent: _mapAnim, curve: Curves.easeInOut),
-    );
+    _mapHeight = Tween<double>(
+      begin: 160,
+      end: 340,
+    ).animate(CurvedAnimation(parent: _mapAnim, curve: Curves.easeInOut));
   }
 
   @override
@@ -172,8 +173,10 @@ class _TopBar extends StatelessWidget {
               GestureDetector(
                 onTap: onSosTap,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFECF4),
                     borderRadius: BorderRadius.circular(20),
@@ -280,8 +283,11 @@ class _MapCard extends StatelessWidget {
                         errorBuilder: (_, _, _) => Container(
                           color: const Color(0xFFE8EAF0),
                           child: const Center(
-                            child: Icon(Icons.map_outlined,
-                                size: 48, color: Color(0xFFAAABBB)),
+                            child: Icon(
+                              Icons.map_outlined,
+                              size: 48,
+                              color: Color(0xFFAAABBB),
+                            ),
                           ),
                         ),
                       ),
@@ -290,11 +296,7 @@ class _MapCard extends StatelessWidget {
                     // Compact state overlays
                     if (mapState == _MapState.compact) ...[
                       // Distance badge — top left
-                      Positioned(
-                        top: 14,
-                        left: 14,
-                        child: _MapDistanceBadge(),
-                      ),
+                      Positioned(top: 14, left: 14, child: _MapDistanceBadge()),
                       // Location pin — center bottom area
                       const Positioned(
                         bottom: 40,
@@ -334,13 +336,17 @@ class _MapCard extends StatelessWidget {
                         left: 80,
                         bottom: 120,
                         child: _AvatarPin(
-                            asset: AppAssets.avatarTop, label: 'Olympic Blvd'),
+                          asset: AppAssets.avatarTop,
+                          label: 'Olympic Blvd',
+                        ),
                       ),
                       const Positioned(
                         right: 60,
                         top: 120,
                         child: _AvatarPin(
-                            asset: AppAssets.avatarLeft, label: 'WILSHIRE PA'),
+                          asset: AppAssets.avatarLeft,
+                          label: 'WILSHIRE PA',
+                        ),
                       ),
                       // Open map button
                       Positioned(
@@ -352,7 +358,9 @@ class _MapCard extends StatelessWidget {
                             onTap: onOpenMap,
                             child: Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 11),
+                                horizontal: 20,
+                                vertical: 11,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFF8B97E8),
                                 borderRadius: BorderRadius.circular(24),
@@ -367,8 +375,11 @@ class _MapCard extends StatelessWidget {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.map_outlined,
-                                      size: 18, color: Colors.white),
+                                  const Icon(
+                                    Icons.map_outlined,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
                                   const SizedBox(width: 8),
                                   const Text(
                                     'Open map',
@@ -420,11 +431,8 @@ class _MapDistanceBadge extends StatelessWidget {
             AppAssets.worldMap,
             width: 13,
             height: 13,
-            errorBuilder: (_, _, _) => const Icon(
-              Icons.public,
-              size: 13,
-              color: AppColors.primary,
-            ),
+            errorBuilder: (_, _, _) =>
+                const Icon(Icons.public, size: 13, color: AppColors.primary),
           ),
           const SizedBox(width: 6),
           const Text(
@@ -504,15 +512,17 @@ class _ExpandedTopRow extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: const Center(
-            child: Icon(Icons.notifications_none_rounded,
-                size: 18, color: Color(0xFF444455)),
+            child: Icon(
+              Icons.notifications_none_rounded,
+              size: 18,
+              color: Color(0xFF444455),
+            ),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
               color: Colors.grey.shade700.withValues(alpha: 0.82),
               borderRadius: BorderRadius.circular(20),
@@ -534,8 +544,10 @@ class _ExpandedTopRow extends StatelessWidget {
           child: Container(
             width: 38,
             height: 38,
-            decoration:
-                const BoxDecoration(color: Colors.black, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+              color: Colors.black,
+              shape: BoxShape.circle,
+            ),
             child: const Center(
               child: Text(
                 'SOS',
@@ -692,10 +704,12 @@ class _MemberAvatarRow extends StatelessWidget {
               : (members[i] as Map<String, dynamic>)['avatar_url'] as String?;
 
           final bool hasUrl = url != null && url.isNotEmpty;
-          final String fallbackAsset =
-              i < _fallbackAssets.length ? _fallbackAssets[i] : _fallbackAssets[0];
-          final Color fallbackColor =
-              i < _fallbackColors.length ? _fallbackColors[i] : _fallbackColors[0];
+          final String fallbackAsset = i < _fallbackAssets.length
+              ? _fallbackAssets[i]
+              : _fallbackAssets[0];
+          final Color fallbackColor = i < _fallbackColors.length
+              ? _fallbackColors[i]
+              : _fallbackColors[0];
 
           return Positioned(
             left: i * (avatarSize - overlap),
@@ -741,20 +755,12 @@ class _AvatarGrid extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _slot(0),
-              const SizedBox(width: 6),
-              _slot(1),
-            ],
+            children: [_slot(0), const SizedBox(width: 6), _slot(1)],
           ),
           const SizedBox(height: 6),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _slot(2),
-              const SizedBox(width: 6),
-              _slot(3),
-            ],
+            children: [_slot(2), const SizedBox(width: 6), _slot(3)],
           ),
         ],
       ),
@@ -776,8 +782,9 @@ class _AvatarGrid extends StatelessWidget {
 
     final m = members[index] as Map<String, dynamic>;
     final url = m['avatar_url'] as String? ?? '';
-    final fallback =
-        index < _fallbackAssets.length ? _fallbackAssets[index] : _fallbackAssets[0];
+    final fallback = index < _fallbackAssets.length
+        ? _fallbackAssets[index]
+        : _fallbackAssets[0];
 
     return Container(
       width: 40,
@@ -823,7 +830,8 @@ class _HeadingOutButton extends StatelessWidget {
                 content: const Text('Journey request initiated!'),
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             );
           },

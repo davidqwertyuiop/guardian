@@ -17,7 +17,10 @@ class RegisterNameInput extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: controller,
-        style: TextStyle(fontFamily: 'Inter', color: isDark ? Colors.white : Colors.black),
+        style: TextStyle(
+          fontFamily: 'Inter',
+          color: isDark ? Colors.white : Colors.black,
+        ),
         decoration: InputDecoration(
           hintText: "e.g. non-olem",
           hintStyle: TextStyle(fontFamily: 'Inter', color: Colors.grey[400]),
@@ -93,7 +96,8 @@ class RegisterButtons extends StatelessWidget {
             ),
             child: Text(
               'Continue',
-              style: TextStyle(fontFamily: 'Inter', 
+              style: TextStyle(
+                fontFamily: 'Inter',
                 color: isDark ? Colors.black : Colors.white,
                 fontSize: AdaptiveLayout.sp(context, 16),
                 fontWeight: FontWeight.w600,
@@ -106,7 +110,8 @@ class RegisterButtons extends StatelessWidget {
           onPressed: onPressed,
           child: Text(
             'Skip for now',
-            style: TextStyle(fontFamily: 'Inter', 
+            style: TextStyle(
+              fontFamily: 'Inter',
               color: Colors.grey[500],
               fontSize: AdaptiveLayout.sp(context, 15),
               fontWeight: FontWeight.w600,

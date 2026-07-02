@@ -45,7 +45,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
       body: Center(
@@ -61,7 +61,8 @@ class _SplashScreenState extends State<SplashScreen> {
             SizedBox(height: AdaptiveLayout.h(context, 16)),
             Text(
               'guardian',
-              style: TextStyle(fontFamily: 'Inter', 
+              style: TextStyle(
+                fontFamily: 'Inter',
                 fontSize: AdaptiveLayout.sp(context, 32),
                 fontWeight: FontWeight.w800,
                 color: isDark ? Colors.white : Colors.black,

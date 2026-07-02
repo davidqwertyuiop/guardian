@@ -11,14 +11,14 @@ import '../widgets/onboarding_top_icon.dart';
 class CircleEmptyScreen extends StatelessWidget {
   const CircleEmptyScreen({super.key});
 
-  static const String _inviteLink = "wa.me/guardian/abc123";
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final statusBarHeight = MediaQuery.paddingOf(context).top;
     final bottomPad = MediaQuery.paddingOf(context).bottom;
     final screenWidth = MediaQuery.sizeOf(context).width;
+
+    final inviteLink = locator<AuthBloc>().state.inviteLink ?? "";
 
     return PopScope(
       canPop: false,
@@ -34,10 +34,7 @@ class CircleEmptyScreen extends StatelessWidget {
             Positioned.fill(
               child: Opacity(
                 opacity: isDark ? 0.15 : 0.6,
-                child: Image.asset(
-                  AppAssets.mapAddress,
-                  fit: BoxFit.cover,
-                ),
+                child: Image.asset(AppAssets.mapAddress, fit: BoxFit.cover),
               ),
             ),
 
@@ -101,7 +98,7 @@ class CircleEmptyScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(horizontal: 14),
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              _inviteLink,
+                              inviteLink,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 fontFamily: 'Inter',
@@ -125,7 +122,7 @@ class CircleEmptyScreen extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: () {
                               Clipboard.setData(
-                                const ClipboardData(text: _inviteLink),
+                                ClipboardData(text: inviteLink),
                               );
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
@@ -141,10 +138,12 @@ class CircleEmptyScreen extends StatelessWidget {
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  isDark ? Colors.white : Colors.black,
-                              foregroundColor:
-                                  isDark ? Colors.black : Colors.white,
+                              backgroundColor: isDark
+                                  ? Colors.white
+                                  : Colors.black,
+                              foregroundColor: isDark
+                                  ? Colors.black
+                                  : Colors.white,
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 14,
                                 vertical: 13,
@@ -179,7 +178,7 @@ class CircleEmptyScreen extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {
                           Share.share(
-                            'Join my Guardian circle: $_inviteLink',
+                            'Join my Guardian circle: $inviteLink',
                             subject: 'Guardian circle invite',
                           );
                         },
@@ -233,5 +232,4 @@ class CircleEmptyScreen extends StatelessWidget {
     final ratio = screenWidth / referenceWidth;
     return (referenceButtonWidth * ratio).clamp(70.0, 110.0);
   }
-
 }
