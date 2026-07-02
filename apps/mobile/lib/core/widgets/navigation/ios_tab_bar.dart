@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 
 /// iOS-specific floating pill tab bar.
-/// The active tab expands into a gradient purple pill with icon + label.
-/// Inactive tabs are circular dark buttons with an icon (or avatar for profile).
+/// Active tab expands dynamically into the gradient purple pill.
 class IosTabBar extends StatelessWidget {
   const IosTabBar({
     super.key,
@@ -14,43 +13,52 @@ class IosTabBar extends StatelessWidget {
 
   final int currentIndex;
   final ValueChanged<int> onTap;
-
-  /// Optional network/local avatar for the profile tab (index 2).
   final String? profileImageUrl;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 32),
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        bottom: MediaQuery.paddingOf(context).bottom > 0
+            ? MediaQuery.paddingOf(context).bottom
+            : 20,
+      ),
       child: Container(
-        height: 68,
+        height: 70,
         decoration: BoxDecoration(
-          color: const Color(0xFF1F1F21),
+          color: const Color(0xFF333333), // Dark grey bar as in design image
           borderRadius: BorderRadius.circular(40),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.40),
-              blurRadius: 28,
-              offset: const Offset(0, 10),
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Tab 0 — Home (active = gradient pill with label)
-            _IosHomeTab(
+            // Tab 0 — Home
+            _IosTabItem(
+              label: 'Home',
+              iconPath: 'assets/icons/android/home-icon.png',
               isActive: currentIndex == 0,
               onTap: () => onTap(0),
             ),
-            // Tab 1 — Family / Circle
-            _IosIconTab(
-              icon: Icons.people_rounded,
+            const SizedBox(width: 10), // Spec: gap 10px
+            // Tab 1 — Circle
+            _IosTabItem(
+              label: 'Circle',
+              iconPath: 'assets/icons/android/group-icon.png',
               isActive: currentIndex == 1,
               onTap: () => onTap(1),
             ),
-            // Tab 2 — Profile (avatar or icon)
+            const SizedBox(width: 10), // Spec: gap 10px
+            // Tab 2 — Profile
             _IosProfileTab(
               isActive: currentIndex == 2,
               onTap: () => onTap(2),
@@ -63,73 +71,16 @@ class IosTabBar extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Home tab — gradient pill with "Home" label when active
-// ---------------------------------------------------------------------------
-class _IosHomeTab extends StatelessWidget {
-  const _IosHomeTab({required this.isActive, required this.onTap});
-  final bool isActive;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(
-          horizontal: isActive ? 18 : 14,
-          vertical: 8,
-        ),
-        decoration: BoxDecoration(
-          gradient: isActive
-              ? const LinearGradient(
-                  colors: [Color(0xFFB06AFF), Color(0xFF7C60FF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-              : null,
-          color: isActive ? null : const Color(0xFF2E2E30),
-          borderRadius: BorderRadius.circular(32),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.favorite_rounded,
-              size: 20,
-              color: Colors.white.withValues(alpha: isActive ? 1.0 : 0.45),
-            ),
-            if (isActive) ...[
-              const SizedBox(width: 6),
-              const Text(
-                'Home',
-                style: TextStyle(
-                  fontFamily: 'Outfit',
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Generic icon tab for iOS
-// ---------------------------------------------------------------------------
-class _IosIconTab extends StatelessWidget {
-  const _IosIconTab({
-    required this.icon,
+class _IosTabItem extends StatelessWidget {
+  const _IosTabItem({
+    required this.label,
+    required this.iconPath,
     required this.isActive,
     required this.onTap,
   });
-  final IconData icon;
+
+  final String label;
+  final String iconPath;
   final bool isActive;
   final VoidCallback onTap;
 
@@ -137,35 +88,69 @@ class _IosIconTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 48,
-        height: 48,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        height: 50, // Spec: height 50
+        width: isActive ? 103 : 50, // Spec: width 103 for active, circular 50 for inactive
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13), // Spec: padding
         decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.primary.withValues(alpha: 0.20)
-              : const Color(0xFF2E2E30),
-          shape: BoxShape.circle,
+          gradient: isActive
+              ? const LinearGradient(
+                  colors: AppColors.navBarGradient,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                )
+              : null,
+          color: isActive ? null : const Color(0xFF444446),
+          borderRadius: BorderRadius.circular(40), // Spec: border-radius 40
+          border: !isActive
+              ? Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1)
+              : null,
         ),
-        child: Icon(
-          icon,
-          size: 22,
-          color: isActive ? AppColors.primary : Colors.white.withValues(alpha: 0.45),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          child: SizedBox(
+            width: isActive ? 71 : 18,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  iconPath,
+                  width: 22,
+                  height: 22,
+                  color: Colors.white,
+                ),
+                if (isActive) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// Profile tab — shows avatar image if available, else person icon
-// ---------------------------------------------------------------------------
 class _IosProfileTab extends StatelessWidget {
   const _IosProfileTab({
     required this.isActive,
     required this.onTap,
     this.imageUrl,
   });
+
   final bool isActive;
   final VoidCallback onTap;
   final String? imageUrl;
@@ -174,31 +159,71 @@ class _IosProfileTab extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: 48,
-        height: 48,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        height: 50, // Spec: height 50
+        width: isActive ? 103 : 50, // Spec: width 103 for active, circular 50 for inactive
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13), // Spec: padding
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: isActive
-              ? Border.all(color: AppColors.primary, width: 2)
-              : null,
-          color: const Color(0xFF2E2E30),
-          image: imageUrl != null
-              ? DecorationImage(
-                  image: NetworkImage(imageUrl!),
-                  fit: BoxFit.cover,
+          gradient: isActive
+              ? const LinearGradient(
+                  colors: AppColors.navBarGradient,
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                 )
               : null,
+          color: isActive ? null : const Color(0xFF444446),
+          borderRadius: BorderRadius.circular(40), // Spec: border-radius 40
+          border: !isActive
+              ? Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1)
+              : null,
         ),
-        child: imageUrl == null
-            ? Icon(
-                Icons.person_rounded,
-                size: 22,
-                color:
-                    isActive ? AppColors.primary : Colors.white.withValues(alpha: 0.45),
-              )
-            : null,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const NeverScrollableScrollPhysics(),
+          child: SizedBox(
+            width: isActive ? 71 : 18,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (imageUrl != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      imageUrl!,
+                      width: 22,
+                      height: 22,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.asset(
+                      'assets/icons/android/profile.png',
+                      width: 22,
+                      height: 22,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                if (isActive) ...[
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Profile',
+                    style: TextStyle(
+                      fontFamily: 'Outfit',
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

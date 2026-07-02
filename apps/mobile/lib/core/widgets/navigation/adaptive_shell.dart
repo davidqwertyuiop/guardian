@@ -56,6 +56,7 @@ class AdaptiveShell extends StatelessWidget {
           : AndroidNavBar(
               currentIndex: currentIndex,
               onTap: onTabChanged,
+              profileImageUrl: profileImageUrl,
             ),
     );
   }

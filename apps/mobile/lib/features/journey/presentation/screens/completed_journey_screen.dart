@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/fade_route.dart';
-import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
+import 'package:guardian/features/home/home.dart';
 
 class CompletedJourneyScreen extends StatelessWidget {
   const CompletedJourneyScreen({super.key});
@@ -34,7 +34,7 @@ class CompletedJourneyScreen extends StatelessWidget {
                 height: size.height * 0.065,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(FadeRoute(page: const LiveMapScreen()), (r) => false);
+                    Navigator.of(context).pushAndRemoveUntil(FadeRoute(page: const HomeScreen()), (r) => false);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,

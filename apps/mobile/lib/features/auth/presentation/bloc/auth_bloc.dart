@@ -73,14 +73,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final fullPhone = '${state.dialCode}${state.phoneNumber}';
 
-      // Send OTP via our backend (which now uses AWS SNS)
+      // Send OTP via our backend (which now uses Infobip)
       await ApiService.sendOtp(fullPhone);
 
       emit(
         state.copyWith(
           status: AuthStatus.codeSent,
           step: AuthStep.otp,
-          verificationId: 'aws_sns_session', // Dummy value since backend handles verification
+          verificationId: 'infobip_session', // Dummy value since backend handles verification
         ),
       );
     } catch (e) {

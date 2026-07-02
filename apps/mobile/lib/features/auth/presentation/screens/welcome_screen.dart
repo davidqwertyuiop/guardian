@@ -7,7 +7,7 @@ import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/utils/adaptive_layout.dart';
 import 'package:guardian/core/theme/smooth_page_route.dart';
 import 'package:guardian/features/auth/presentation/widgets/welcome_card.dart';
-import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
+import 'package:guardian/features/home/home.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -49,7 +49,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     if (newStep == AuthStep.completed) {
       Navigator.of(context).pushAndRemoveUntil(
-        SmoothPageRoute(child: const LiveMapScreen()),
+        SmoothPageRoute(child: const HomeScreen()),
         (route) => false,
       );
       return;

@@ -1,12 +1,15 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/widgets/navigation/adaptive_shell.dart';
+import 'package:guardian/features/home/presentation/bloc/home_bloc.dart';
+import 'package:guardian/features/home/presentation/bloc/home_event.dart';
+import 'package:guardian/features/home/presentation/bloc/home_state.dart';
 import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
 import 'package:guardian/features/family/presentation/screens/family_circle_screen.dart';
-import 'package:guardian/features/journey/presentation/screens/start_journey_screen.dart';
 import 'package:guardian/features/settings/presentation/screens/settings_screen.dart';
 
-/// The parent stateful screen that manages shell navigation across iOS/Android tabs.
+/// The parent screen managing unified iOS/Android tabs using HomeBloc.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -15,53 +18,38 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _currentIndex = 0;
+  late final HomeBloc _homeBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _homeBloc = locator<HomeBloc>();
+    _homeBloc.add(const LoadHomeData());
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isIos = Platform.isIOS;
+    final List<Widget> pages = [
+      const LiveMapScreen(),
+      const FamilyCircleScreen(),
+      const SettingsScreen(),
+    ];
 
-    final List<Widget> pages = isIos
-        ? [
-            const LiveMapScreen(),
-            const FamilyCircleScreen(),
-            const SettingsScreen(),
-          ]
-        : [
-            const LiveMapScreen(),
-            const StartJourneyScreen(),
-            const Scaffold(
-              backgroundColor: Color(0xFF141416),
-              body: Center(
-                child: Text(
-                  'Safety Center Stub',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ),
-            const Scaffold(
-              backgroundColor: Color(0xFF141416),
-              body: Center(
-                child: Text(
-                  'Night Watch Stub',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ),
-            const SettingsScreen(),
-          ];
-
-    return AdaptiveShell(
-      currentIndex: _currentIndex,
-      onTabChanged: (index) {
-        setState(() {
-          _currentIndex = index;
-        });
+    return BlocBuilder<HomeBloc, HomeState>(
+      bloc: _homeBloc,
+      builder: (context, state) {
+        return AdaptiveShell(
+          currentIndex: state.currentIndex,
+          onTabChanged: (index) {
+            _homeBloc.add(ChangeTab(index));
+          },
+          profileImageUrl: state.avatarUrl.isNotEmpty ? state.avatarUrl : null,
+          body: IndexedStack(
+            index: state.currentIndex,
+            children: pages,
+          ),
+        );
       },
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
     );
   }
 }

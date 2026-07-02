@@ -9,7 +9,7 @@ import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
 import 'package:guardian/features/auth/presentation/screens/welcome_screen.dart';
-import 'package:guardian/features/location/presentation/screens/live_map_screen.dart';
+import 'package:guardian/features/home/home.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:guardian/firebase_options.dart';
@@ -55,7 +55,7 @@ class GuardianApp extends StatelessWidget {
 
     final initialStep = locator<AuthBloc>().state.step;
     final Widget homeScreen = (initialStep == AuthStep.completed)
-        ? const LiveMapScreen()
+        ? const HomeScreen()
         : const WelcomeScreen();
 
     return MaterialApp(

@@ -24,4 +24,10 @@ class AppColors {
   static const Color blobGreen = Color(0xFFD4EBD6);
   static const Color blobCyan = Color(0xFFD3EDF4);
   static const Color blobPink = Color(0xFFFBCFCD);
+
+  // Nav bar selection gradient colors
+  static const List<Color> navBarGradient = [
+    Color(0xFFB469E3),
+    Color(0xFFFFAADE),
+  ];
 }

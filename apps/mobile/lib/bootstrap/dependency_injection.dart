@@ -4,6 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
 import 'package:guardian/features/journey/presentation/bloc/journey_bloc.dart';
+import 'package:guardian/features/home/presentation/bloc/home_bloc.dart';
+import 'package:guardian/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:guardian/core/security/token_manager.dart';
 import 'package:guardian/core/services/firebase_auth_service.dart';
 
@@ -31,4 +33,6 @@ Future<void> initDependencies() async {
   // 3. Blocs
   locator.registerLazySingleton<AuthBloc>(() => AuthBloc(initialStep: initialStep));
   locator.registerLazySingleton<JourneyBloc>(() => JourneyBloc());
+  locator.registerLazySingleton<HomeBloc>(() => HomeBloc());
+  locator.registerLazySingleton<SettingsBloc>(() => SettingsBloc());
 }
