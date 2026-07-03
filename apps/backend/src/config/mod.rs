@@ -24,7 +24,7 @@ impl AppConfig {
             .unwrap_or(60);
             
         let invite_base_url = std::env::var("INVITE_BASE_URL")
-            .unwrap_or_else(|_| "https://www.shadowchat.xyz/invite".to_string());
+            .unwrap_or_else(|_| "https://guardian.shadowchat.xyz/invite".to_string());
 
         let apple_team_id = std::env::var("APPLE_TEAM_ID")
             .unwrap_or_else(|_| "5NWP5R6G3P".to_string());
