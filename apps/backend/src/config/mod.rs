@@ -7,6 +7,8 @@ pub struct AppConfig {
     pub invite_base_url: String,
     pub apple_team_id: String,
     pub android_sha256_cert_fingerprint: String,
+    pub app_store_link: String,
+    pub play_store_link: String,
 }
 
 impl AppConfig {
@@ -24,13 +26,19 @@ impl AppConfig {
             .unwrap_or(60);
             
         let invite_base_url = std::env::var("INVITE_BASE_URL")
-            .unwrap_or_else(|_| "https://guardian.shadowchat.xyz/invite".to_string());
+            .expect("INVITE_BASE_URL must be set");
 
         let apple_team_id = std::env::var("APPLE_TEAM_ID")
-            .unwrap_or_else(|_| "5NWP5R6G3P".to_string());
+            .expect("APPLE_TEAM_ID must be set");
 
         let android_sha256_cert_fingerprint = std::env::var("ANDROID_SHA256_CERT_FINGERPRINT")
-            .unwrap_or_else(|_| "8c:38:8b:fa:70:43:87:5d:7b:7a:f6:85:8d:49:d8:41:09:7b:23:0b:b0:0f:94:26:fb:07:cb:5d:09:5f:d0:98".to_string());
+            .expect("ANDROID_SHA256_CERT_FINGERPRINT must be set");
+
+        let app_store_link = std::env::var("APP_STORE_LINK")
+            .expect("APP_STORE_LINK must be set");
+
+        let play_store_link = std::env::var("PLAY_STORE_LINK")
+            .expect("PLAY_STORE_LINK must be set");
 
         Self {
             jwt_secret,
@@ -39,6 +47,8 @@ impl AppConfig {
             invite_base_url,
             apple_team_id,
             android_sha256_cert_fingerprint,
+            app_store_link,
+            play_store_link,
         }
     }
 }

@@ -139,10 +139,11 @@ pub async fn join_by_link(
 // ── GET /invite/{token} ─────────────────────────────────────────────────────
 
 pub async fn invite_landing_page(
+    State(state): State<AppState>,
     Path(token): Path<String>,
 ) -> axum::response::Html<String> {
-    let app_store_link = "https://apps.apple.com/app/guardian"; 
-    let play_store_link = "https://play.google.com/store/apps/details?id=com.sijibomi.guardian"; 
+    let app_store_link = &state.config.app_store_link; 
+    let play_store_link = &state.config.play_store_link; 
 
     let html = format!(r#"<!DOCTYPE html>
 <html lang="en">
