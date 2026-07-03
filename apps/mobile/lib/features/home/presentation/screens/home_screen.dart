@@ -41,6 +41,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return AdaptiveShell(
           currentIndex: state.currentIndex,
           onTabChanged: (index) {
+            if (index == 0 && state.currentIndex == 0) {
+              _homeBloc.add(const ChangeMapState(MapDisplayState.compact));
+            } else if (index != 0) {
+              _homeBloc.add(const ChangeMapState(MapDisplayState.compact));
+            }
             _homeBloc.add(ChangeTab(index));
           },
           profileImageUrl: state.avatarUrl.isNotEmpty ? state.avatarUrl : null,

@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 
 enum HomeStatus { initial, loading, success, failure }
 
+enum MapDisplayState { compact, expanded, full }
+
 class HomeState extends Equatable {
   final int currentIndex;
   final String userName;
@@ -11,6 +13,10 @@ class HomeState extends Equatable {
   final List<dynamic> members;
   final HomeStatus status;
   final String errorMessage;
+  final String weatherGreeting;
+  final double userLatitude;
+  final double userLongitude;
+  final MapDisplayState mapDisplayState;
 
   const HomeState({
     this.currentIndex = 0,
@@ -21,6 +27,10 @@ class HomeState extends Equatable {
     this.members = const [],
     this.status = HomeStatus.initial,
     this.errorMessage = '',
+    this.weatherGreeting = "Lovely weather we're having today...",
+    this.userLatitude = 9.0578,
+    this.userLongitude = 7.4951,
+    this.mapDisplayState = MapDisplayState.compact,
   });
 
   HomeState copyWith({
@@ -32,6 +42,10 @@ class HomeState extends Equatable {
     List<dynamic>? members,
     HomeStatus? status,
     String? errorMessage,
+    String? weatherGreeting,
+    double? userLatitude,
+    double? userLongitude,
+    MapDisplayState? mapDisplayState,
   }) {
     return HomeState(
       currentIndex: currentIndex ?? this.currentIndex,
@@ -42,6 +56,10 @@ class HomeState extends Equatable {
       members: members ?? this.members,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
+      weatherGreeting: weatherGreeting ?? this.weatherGreeting,
+      userLatitude: userLatitude ?? this.userLatitude,
+      userLongitude: userLongitude ?? this.userLongitude,
+      mapDisplayState: mapDisplayState ?? this.mapDisplayState,
     );
   }
 
@@ -55,5 +73,9 @@ class HomeState extends Equatable {
     members,
     status,
     errorMessage,
+    weatherGreeting,
+    userLatitude,
+    userLongitude,
+    mapDisplayState,
   ];
 }

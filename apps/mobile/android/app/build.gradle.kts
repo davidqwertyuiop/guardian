@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -22,6 +24,16 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
+    // Load Google Maps API Key from the backend .env file dynamically
+    val envFile = rootProject.file("../../backend/.env")
+    val mapsApiKey = if (envFile.exists()) {
+        val envProperties = Properties()
+        envFile.inputStream().use { envProperties.load(it) }
+        envProperties.getProperty("MAPS_API_KEY_ANDROID") ?: ""
+    } else {
+        ""
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.sijibomi.guardian"
@@ -31,6 +43,7 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["mapsApiKey"] = mapsApiKey
     }
 
     buildTypes {

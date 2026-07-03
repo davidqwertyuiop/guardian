@@ -29,6 +29,7 @@ pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(|| async { "Guardian API v2 — OK" }))
         .route("/invite/{token}", get(crate::domains::circles::api::handlers::invite_landing_page))
+        .route("/api/v1/config/maps", get(maps_config))
         .route("/.well-known/apple-app-site-association", get(apple_app_site_association))
         .route("/.well-known/assetlinks.json", get(assetlinks_json))
         .nest("/api/v1/auth", crate::domains::identity::api::routes::router())
@@ -36,6 +37,13 @@ pub fn create_router(state: AppState) -> Router {
         // .nest("/api/v1/location",  crate::domains::location::api::routes::router())
         // .nest("/api/v1/sos",       crate::domains::sos::api::routes::router())
         .with_state(state)
+}
+
+async fn maps_config(State(state): State<AppState>) -> axum::Json<serde_json::Value> {
+    axum::Json(serde_json::json!({
+        "android_key": state.config.maps_api_key_android,
+        "ios_key": state.config.maps_api_key_ios
+    }))
 }
 
 // ── Universal Links Endpoints ───────────────────────────────────────────────

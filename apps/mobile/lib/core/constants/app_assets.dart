@@ -15,13 +15,15 @@ class AppAssets {
   static const String appIcon = 'assets/icons/App_icon.png';
   static const String icon1 = 'assets/icons/icon1.png';
   static const String icon2 = 'assets/icons/icon2.png';
-  static const String appHomeIcon = 'assets/icons/app-homeicon.png';
+  static const String appHomeIcon = 'assets/icons/ios/home-icon.png';
   static const String sosIcon = 'assets/icons/sos_icon.png';
   static const String worldMap = 'assets/icons/world-map.png';
   static const String invite = 'assets/icons/invite.png';
   static const String flyingRocket = 'assets/animations/flying_rocket.png';
   static const String sosBroadcastIcon = 'assets/icons/sosbroadcast_icon.png';
   static const String openMapIcon = 'assets/icons/openmapicon.png';
+  static const String appCirclesIcon = 'assets/icons/android/group-icon.png';
+  static const String appCenterHomeIcon = 'assets/icons/App_icon.png';
 
   // Local Avatars
   static const String avatarTop = 'assets/images/avatar1.png';

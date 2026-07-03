@@ -1,8 +1,10 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:guardian/core/constants/app_assets.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 
-/// Android-specific floating pill navigation bar.
-/// Matches the custom dark capsule design with 3 tabs and gradient highlights.
+/// Android navigation bar — floating glassmorphism capsule.
+/// Active tab expands to a gradient pill with label; inactive tabs show circular icon.
 class AndroidNavBar extends StatelessWidget {
   const AndroidNavBar({
     super.key,
@@ -17,62 +19,85 @@ class AndroidNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 24, right: 24, bottom: 28),
-      child: Container(
-        height: 68,
-        decoration: BoxDecoration(
-          color: const Color(0xFF333333), // Dark grey bar as in design image
-          borderRadius: BorderRadius.circular(40),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.35),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.only(
+          left: 24,
+          right: 24,
+          bottom: 16,
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // Tab 0 — Home
-            _AndroidTabItem(
-              label: 'Home',
-              iconPath: 'assets/icons/android/home-icon.png',
-              isActive: currentIndex == 0,
-              onTap: () => onTap(0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(34),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              height: 68,
+              decoration: BoxDecoration(
+                color: const Color(0x99000000), // #00000099
+                borderRadius: BorderRadius.circular(34),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 1,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x40000000), // #00000040
+                    blurRadius: 6.1,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // Tab 0 — Home
+                  _NavItem(
+                    label: 'Home',
+                    iconPath: AppAssets.appHomeIcon,
+                    fallbackIcon: Icons.home_rounded,
+                    isActive: currentIndex == 0,
+                    onTap: () => onTap(0),
+                  ),
+                  // Tab 1 — Circle
+                  _NavItem(
+                    label: 'Circle',
+                    iconPath: AppAssets.appCirclesIcon,
+                    fallbackIcon: Icons.people_rounded,
+                    isActive: currentIndex == 1,
+                    onTap: () => onTap(1),
+                  ),
+                  // Tab 2 — Profile
+                  _ProfileNavItem(
+                    isActive: currentIndex == 2,
+                    onTap: () => onTap(2),
+                    imageUrl: profileImageUrl,
+                  ),
+                ],
+              ),
             ),
-            // Tab 1 — Circle
-            _AndroidTabItem(
-              label: 'Circle',
-              iconPath: 'assets/icons/android/group-icon.png',
-              isActive: currentIndex == 1,
-              onTap: () => onTap(1),
-            ),
-            // Tab 2 — Profile
-            _AndroidProfileTab(
-              isActive: currentIndex == 2,
-              onTap: () => onTap(2),
-              imageUrl: profileImageUrl,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _AndroidTabItem extends StatelessWidget {
-  const _AndroidTabItem({
+// ─── Standard Nav Item ────────────────────────────────────────────────────────
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
     required this.label,
     required this.iconPath,
+    required this.fallbackIcon,
     required this.isActive,
     required this.onTap,
   });
 
   final String label;
   final String iconPath;
+  final IconData fallbackIcon;
   final bool isActive;
   final VoidCallback onTap;
 
@@ -84,14 +109,13 @@ class _AndroidTabItem extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
-        height: 50, // Spec: height 50
-        width: isActive
-            ? 103
-            : 50, // Spec: width 103 for active, circular 50 for inactive
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 13,
-        ), // Spec: padding
+        height: 48,
+        width: isActive ? 116 : 48,
+        clipBehavior: Clip.antiAlias,
+        padding: EdgeInsets.symmetric(
+          horizontal: isActive ? 14 : 0,
+          vertical: 0,
+        ),
         decoration: BoxDecoration(
           gradient: isActive
               ? const LinearGradient(
@@ -100,37 +124,42 @@ class _AndroidTabItem extends StatelessWidget {
                   end: Alignment.centerRight,
                 )
               : null,
-          color: isActive ? null : const Color(0xFF444446),
-          borderRadius: BorderRadius.circular(40), // Spec: border-radius 40
-          border: !isActive
-              ? Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
+          color: isActive ? null : const Color(0x22FFFFFF),
+          borderRadius: BorderRadius.circular(40),
+          border: isActive
+              ? null
+              : Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
                   width: 1,
-                )
-              : null,
+                ),
         ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const NeverScrollableScrollPhysics(),
-          child: SizedBox(
-            width: isActive ? 71 : 18,
+        child: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
                   iconPath,
                   width: 22,
                   height: 22,
                   color: Colors.white,
+                  errorBuilder: (_, _, _) => Icon(
+                    fallbackIcon,
+                    size: 22,
+                    color: Colors.white,
+                  ),
                 ),
                 if (isActive) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 7),
                   Text(
                     label,
                     style: const TextStyle(
                       fontFamily: 'Outfit',
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
                   ),
@@ -144,8 +173,10 @@ class _AndroidTabItem extends StatelessWidget {
   }
 }
 
-class _AndroidProfileTab extends StatelessWidget {
-  const _AndroidProfileTab({
+// ─── Profile Nav Item ─────────────────────────────────────────────────────────
+
+class _ProfileNavItem extends StatelessWidget {
+  const _ProfileNavItem({
     required this.isActive,
     required this.onTap,
     this.imageUrl,
@@ -163,14 +194,13 @@ class _AndroidProfileTab extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
         curve: Curves.easeInOut,
-        height: 50, // Spec: height 50
-        width: isActive
-            ? 103
-            : 50, // Spec: width 103 for active, circular 50 for inactive
-        padding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 13,
-        ), // Spec: padding
+        height: 48,
+        width: isActive ? 116 : 48,
+        clipBehavior: Clip.antiAlias,
+        padding: EdgeInsets.symmetric(
+          horizontal: isActive ? 14 : 0,
+          vertical: 0,
+        ),
         decoration: BoxDecoration(
           gradient: isActive
               ? const LinearGradient(
@@ -179,51 +209,32 @@ class _AndroidProfileTab extends StatelessWidget {
                   end: Alignment.centerRight,
                 )
               : null,
-          color: isActive ? null : const Color(0xFF444446),
-          borderRadius: BorderRadius.circular(40), // Spec: border-radius 40
-          border: !isActive
-              ? Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
+          color: isActive ? null : const Color(0x22FFFFFF),
+          borderRadius: BorderRadius.circular(40),
+          border: isActive
+              ? null
+              : Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
                   width: 1,
-                )
-              : null,
+                ),
         ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const NeverScrollableScrollPhysics(),
-          child: SizedBox(
-            width: isActive ? 71 : 18,
+        child: Center(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (imageUrl != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.network(
-                      imageUrl!,
-                      width: 22,
-                      height: 22,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                else
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      'assets/icons/android/profile.png',
-                      width: 22,
-                      height: 22,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                _AvatarCircle(imageUrl: imageUrl, isActive: isActive),
                 if (isActive) ...[
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 7),
                   const Text(
                     'Profile',
                     style: TextStyle(
                       fontFamily: 'Outfit',
                       fontSize: 14,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
                   ),
@@ -235,4 +246,39 @@ class _AndroidProfileTab extends StatelessWidget {
       ),
     );
   }
+}
+
+class _AvatarCircle extends StatelessWidget {
+  const _AvatarCircle({this.imageUrl, required this.isActive});
+  final String? imageUrl;
+  final bool isActive;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: isActive ? 0.9 : 0.4),
+          width: 2,
+        ),
+      ),
+      child: ClipOval(
+        child: imageUrl != null
+            ? Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => _defaultAvatar(),
+              )
+            : _defaultAvatar(),
+      ),
+    );
+  }
+
+  Widget _defaultAvatar() => Container(
+        color: AppColors.primary.withValues(alpha: 0.3),
+        child: const Icon(Icons.person, size: 16, color: Colors.white),
+      );
 }

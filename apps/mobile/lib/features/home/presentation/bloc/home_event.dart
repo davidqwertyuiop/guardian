@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'home_state.dart';
 
 abstract class HomeEvent extends Equatable {
   const HomeEvent();
@@ -17,4 +18,12 @@ class ChangeTab extends HomeEvent {
 
 class LoadHomeData extends HomeEvent {
   const LoadHomeData();
+}
+
+class ChangeMapState extends HomeEvent {
+  final MapDisplayState mapState;
+  const ChangeMapState(this.mapState);
+
+  @override
+  List<Object?> get props => [mapState];
 }

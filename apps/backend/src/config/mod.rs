@@ -9,6 +9,8 @@ pub struct AppConfig {
     pub android_sha256_cert_fingerprint: String,
     pub app_store_link: String,
     pub play_store_link: String,
+    pub maps_api_key_android: String,
+    pub maps_api_key_ios: String,
 }
 
 impl AppConfig {
@@ -40,6 +42,12 @@ impl AppConfig {
         let play_store_link = std::env::var("PLAY_STORE_LINK")
             .expect("PLAY_STORE_LINK must be set");
 
+        let maps_api_key_android = std::env::var("MAPS_API_KEY_ANDROID")
+            .unwrap_or_else(|_| "AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q".to_string());
+
+        let maps_api_key_ios = std::env::var("MAPS_API_KEY_IOS")
+            .unwrap_or_else(|_| "AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs".to_string());
+
         Self {
             jwt_secret,
             jwt_refresh_secret,
@@ -49,6 +57,8 @@ impl AppConfig {
             android_sha256_cert_fingerprint,
             app_store_link,
             play_store_link,
+            maps_api_key_android,
+            maps_api_key_ios,
         }
     }
 }

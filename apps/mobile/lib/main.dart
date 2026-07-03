@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/bloc/app_bloc_observer.dart';
 import 'package:guardian/core/theme/app_theme.dart';
@@ -53,18 +53,22 @@ class GuardianApp extends StatelessWidget {
       ),
     );
 
-    final initialStep = locator<AuthBloc>().state.step;
-    final Widget homeScreen = (initialStep == AuthStep.completed)
-        ? const HomeScreen()
-        : const WelcomeScreen();
+    return BlocBuilder<AuthBloc, AuthState>(
+      bloc: locator<AuthBloc>(),
+      builder: (context, state) {
+        final Widget homeScreen = (state.step == AuthStep.completed)
+            ? const HomeScreen()
+            : const WelcomeScreen();
 
-    return MaterialApp(
-      title: 'Guardian',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
-      debugShowCheckedModeBanner: false,
-      home: homeScreen,
+        return MaterialApp(
+          title: 'Guardian',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.system,
+          debugShowCheckedModeBanner: false,
+          home: homeScreen,
+        );
+      },
     );
   }
 }

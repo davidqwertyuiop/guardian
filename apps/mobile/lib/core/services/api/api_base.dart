@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 abstract class ApiBase {
-  static const String baseUrl = 'https://guardian-2vex.onrender.com';
+  static const String baseUrl = 'https://guardian.shadowchat.xyz';
 
   static String extractErrorMessage(String responseBody) {
     try {
