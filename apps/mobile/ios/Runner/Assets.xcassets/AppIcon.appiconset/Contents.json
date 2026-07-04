@@ -265,6 +265,20 @@
       ]
     },
     {
+      "size": "1024x1024",
+      "filename": "1024-tinted.png",
+      "expected-size": "1024",
+      "idiom": "ios-marketing",
+      "folder": "Assets.xcassets/AppIcon.appiconset/",
+      "scale": "1x",
+      "appearances": [
+        {
+          "appearance": "luminosity",
+          "value": "tinted"
+        }
+      ]
+    },
+    {
       "size": "40x40",
       "expected-size": "80",
       "filename": "80.png",

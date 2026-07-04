@@ -499,7 +499,7 @@ class _AddressTextState extends State<_AddressText> {
 
   Future<void> _fetchAddress() async {
     try {
-      final placemarks = await placemarkFromCoordinates(
+      final placemarks = await Geocoding().placemarkFromCoordinates(
         widget.latitude,
         widget.longitude,
       );

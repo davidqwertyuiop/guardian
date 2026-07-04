@@ -148,7 +148,7 @@ class _MapCardState extends State<MapCard> {
 
   Future<void> _fetchAddress() async {
     try {
-      final placemarks = await geocoding.placemarkFromCoordinates(
+      final placemarks = await geocoding.Geocoding().placemarkFromCoordinates(
         widget.userLatitude,
         widget.userLongitude,
       );
