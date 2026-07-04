@@ -9,7 +9,7 @@ class StartJourneyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Start Journey', style: TextStyle(fontFamily: 'Outfit')),

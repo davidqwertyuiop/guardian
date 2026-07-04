@@ -27,13 +27,39 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     final prefs = locator<SharedPreferences>();
+    final lastOpenedStr = prefs.getString('last_opened_timestamp');
+    bool hasExpired = false;
+    final now = DateTime.now();
+
+    if (lastOpenedStr != null) {
+      try {
+        final lastOpened = DateTime.parse(lastOpenedStr);
+        final difference = now.difference(lastOpened);
+        if (difference.inDays >= 3) {
+          hasExpired = true;
+        }
+      } catch (_) {
+        // Safe fallback
+      }
+    }
+
+    if (hasExpired) {
+      await TokenManager().clearTokens();
+      await prefs.setBool('onboarding_completed', false);
+      await prefs.remove('username');
+      await prefs.remove('user_id');
+    }
+
+    // Always update the last opened timestamp on startup
+    await prefs.setString('last_opened_timestamp', now.toIso8601String());
+
     final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
     final token = await TokenManager().getAccessToken();
     final hasJwt = token != null && token.isNotEmpty;
 
     if (mounted) {
       Widget nextPage;
-      if (onboardingCompleted && hasJwt) {
+      if (onboardingCompleted && hasJwt && !hasExpired) {
         nextPage = const HomeScreen();
       } else {
         nextPage = const WelcomeScreen();

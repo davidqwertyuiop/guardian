@@ -1,12 +1,8 @@
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../widgets/onboarding_top_icon.dart';
+import 'package:guardian/export.dart';
+
 
 class CircleEmptyScreen extends StatelessWidget {
   const CircleEmptyScreen({super.key});
@@ -18,13 +14,13 @@ class CircleEmptyScreen extends StatelessWidget {
     final bottomPad = MediaQuery.paddingOf(context).bottom;
     final screenWidth = MediaQuery.sizeOf(context).width;
 
-    final inviteLink = locator<AuthBloc>().state.inviteLink ?? "";
+    final inviteLink = context.read<AuthBloc>().state.inviteLink ?? "";
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        locator<AuthBloc>().add(const NavigateBack());
+        context.read<AuthBloc>().add(const NavigateBack());
       },
       child: Scaffold(
         backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
@@ -177,9 +173,11 @@ class CircleEmptyScreen extends StatelessWidget {
                       height: AdaptiveLayout.h(context, 54),
                       child: ElevatedButton(
                         onPressed: () {
-                          Share.share(
-                            'Join my Guardian circle: $inviteLink',
-                            subject: 'Guardian circle invite',
+                          SharePlus.instance.share(
+                            ShareParams(
+                              text: 'Join my Guardian circle: $inviteLink',
+                              subject: 'Guardian circle invite',
+                            ),
                           );
                         },
                         style: ElevatedButton.styleFrom(

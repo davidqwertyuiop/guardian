@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
-import '../widgets/avatar_cluster.dart';
-import '../widgets/login_bottom_sheet.dart';
-import 'package:toastification/toastification.dart';
-import 'package:guardian/features/auth/presentation/widgets/shared/auth_shared.dart';
+
+import 'package:guardian/export.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,10 +20,10 @@ class _LoginScreenState extends State<LoginScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        locator<AuthBloc>().add(const NavigateBack());
+        context.read<AuthBloc>().add(const NavigateBack());
       },
       child: BlocListener<AuthBloc, AuthState>(
-        bloc: locator<AuthBloc>(),
+        bloc: context.read<AuthBloc>(),
         listenWhen: (previous, current) =>
             previous.status != current.status &&
             current.status == AuthStatus.failure,

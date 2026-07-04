@@ -1,15 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
+import 'package:guardian/export.dart';
 import '../widgets/otp_bottom_sheet.dart';
-import 'package:toastification/toastification.dart';
-import 'package:guardian/features/auth/presentation/widgets/shared/auth_shared.dart';
-import 'package:guardian/features/auth/presentation/widgets/you_are_in_sheet.dart';
 
 class OtpScreen extends StatefulWidget {
   const OtpScreen({super.key});
@@ -39,10 +30,10 @@ class _OtpScreenState extends State<OtpScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        locator<AuthBloc>().add(const NavigateBack());
+        context.read<AuthBloc>().add(const NavigateBack());
       },
       child: BlocListener<AuthBloc, AuthState>(
-        bloc: locator<AuthBloc>(),
+        bloc: context.read<AuthBloc>(),
         listenWhen: (previous, current) =>
             previous.status != current.status || previous.step != current.step,
         listener: (context, state) {

@@ -22,59 +22,69 @@ class AndroidNavBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.only(
-          left: 24,
-          right: 24,
-          bottom: 16,
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(34),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              height: 68,
-              decoration: BoxDecoration(
-                color: const Color(0x99000000), // #00000099
-                borderRadius: BorderRadius.circular(34),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  width: 1,
+        padding: const EdgeInsets.only(left: 24, right: 24, bottom: 16),
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Container(
+            height: 68,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20), // Squared edges
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x40000000), // #00000040
+                  blurRadius: 6.1,
+                  offset: Offset(0, 0),
                 ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x40000000), // #00000040
-                    blurRadius: 6.1,
-                    offset: Offset(0, 0),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20), // Squared edges
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0x99000000), // #00000099
+                    borderRadius: BorderRadius.circular(20), // Squared edges
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      width: 1,
+                    ),
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  // Tab 0 — Home
-                  _NavItem(
-                    label: 'Home',
-                    iconPath: AppAssets.appHomeIcon,
-                    fallbackIcon: Icons.home_rounded,
-                    isActive: currentIndex == 0,
-                    onTap: () => onTap(0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 10,
                   ),
-                  // Tab 1 — Circle
-                  _NavItem(
-                    label: 'Circle',
-                    iconPath: AppAssets.appCirclesIcon,
-                    fallbackIcon: Icons.people_rounded,
-                    isActive: currentIndex == 1,
-                    onTap: () => onTap(1),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Tab 0 — Home
+                      _NavItem(
+                        label: 'Home',
+                        iconPath: AppAssets.appHomeIcon,
+                        fallbackIcon: Icons.home_rounded,
+                        isActive: currentIndex == 0,
+                        onTap: () => onTap(0),
+                      ),
+                      const SizedBox(width: 8),
+                      // Tab 1 — Circle
+                      _NavItem(
+                        label: 'Circle',
+                        iconPath: AppAssets.appCirclesIcon,
+                        fallbackIcon: Icons.people_rounded,
+                        isActive: currentIndex == 1,
+                        onTap: () => onTap(1),
+                      ),
+                      const SizedBox(width: 8),
+                      // Tab 2 — Profile
+                      _ProfileNavItem(
+                        isActive: currentIndex == 2,
+                        onTap: () => onTap(2),
+                        imageUrl: profileImageUrl,
+                      ),
+                    ],
                   ),
-                  // Tab 2 — Profile
-                  _ProfileNavItem(
-                    isActive: currentIndex == 2,
-                    onTap: () => onTap(2),
-                    imageUrl: profileImageUrl,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
@@ -146,11 +156,8 @@ class _NavItem extends StatelessWidget {
                   width: 22,
                   height: 22,
                   color: Colors.white,
-                  errorBuilder: (_, _, _) => Icon(
-                    fallbackIcon,
-                    size: 22,
-                    color: Colors.white,
-                  ),
+                  errorBuilder: (_, _, _) =>
+                      Icon(fallbackIcon, size: 22, color: Colors.white),
                 ),
                 if (isActive) ...[
                   const SizedBox(width: 7),
@@ -278,7 +285,7 @@ class _AvatarCircle extends StatelessWidget {
   }
 
   Widget _defaultAvatar() => Container(
-        color: AppColors.primary.withValues(alpha: 0.3),
-        child: const Icon(Icons.person, size: 16, color: Colors.white),
-      );
+    color: AppColors.primary.withValues(alpha: 0.3),
+    child: const Icon(Icons.person, size: 16, color: Colors.white),
+  );
 }

@@ -1,11 +1,7 @@
+
 import 'package:flutter/material.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../widgets/onboarding_top_icon.dart';
+import 'package:guardian/export.dart';
+
 
 class AlmostInScreen extends StatelessWidget {
   const AlmostInScreen({super.key});
@@ -19,7 +15,7 @@ class AlmostInScreen extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        locator<AuthBloc>().add(const NavigateBack());
+        context.read<AuthBloc>().add(const NavigateBack());
       },
       child: Scaffold(
         backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
@@ -87,7 +83,7 @@ class AlmostInScreen extends StatelessWidget {
                       subtitle: "Start a new circle and invite your people",
                       backgroundColor: AppColors.primary,
                       onTap: () {
-                        locator<AuthBloc>().add(const SelectCreateCircle());
+                        context.read<AuthBloc>().add(const SelectCreateCircle());
                       },
                     ),
 
@@ -102,7 +98,7 @@ class AlmostInScreen extends StatelessWidget {
                           ? const Color(0xFF1E1E22)
                           : Colors.black,
                       onTap: () {
-                        locator<AuthBloc>().add(const SelectJoinCircle());
+                        context.read<AuthBloc>().add(const SelectJoinCircle());
                       },
                     ),
                   ],

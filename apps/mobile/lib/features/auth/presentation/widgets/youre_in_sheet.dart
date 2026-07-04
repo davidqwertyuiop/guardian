@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
-
+import 'package:guardian/export.dart';
 class YoureInSheet extends StatelessWidget {
   const YoureInSheet({super.key});
 
@@ -58,7 +52,7 @@ class YoureInSheet extends StatelessWidget {
             child: ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                locator<AuthBloc>().add(const CompleteCircleOnboarding());
+                context.read<AuthBloc>().add(const CompleteCircleOnboarding());
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,

@@ -1,17 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/security/token_manager.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:guardian/core/utils/fade_route.dart';
-import 'package:guardian/features/auth/presentation/screens/login_screen.dart';
-import 'package:guardian/features/home/presentation/bloc/home_bloc.dart';
-import 'package:guardian/features/home/presentation/bloc/home_state.dart';
-import 'package:guardian/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:guardian/features/settings/presentation/bloc/settings_event.dart';
-import 'package:guardian/features/settings/presentation/bloc/settings_state.dart';
+
+import 'package:guardian/export.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -26,7 +15,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _settingsBloc = locator<SettingsBloc>();
+    _settingsBloc = context.read<SettingsBloc>();
     _settingsBloc.add(const LoadSessions());
   }
 
@@ -48,7 +37,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         foregroundColor: isDark ? Colors.white : Colors.black,
       ),
       body: BlocBuilder<HomeBloc, HomeState>(
-        bloc: locator<HomeBloc>(),
+        bloc: context.read<HomeBloc>(),
         builder: (context, homeState) {
           return SingleChildScrollView(
             padding: const EdgeInsets.only(left: 20, right: 20, bottom: 120),

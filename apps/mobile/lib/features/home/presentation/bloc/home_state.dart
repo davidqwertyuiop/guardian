@@ -11,6 +11,7 @@ class HomeState extends Equatable {
   final String circleName;
   final String circleId;
   final List<dynamic> members;
+  final List<dynamic> sosBroadcasts;
   final HomeStatus status;
   final String errorMessage;
   final String weatherGreeting;
@@ -25,6 +26,7 @@ class HomeState extends Equatable {
     this.circleName = '',
     this.circleId = '',
     this.members = const [],
+    this.sosBroadcasts = const [],
     this.status = HomeStatus.initial,
     this.errorMessage = '',
     this.weatherGreeting = "Lovely weather we're having today...",
@@ -40,6 +42,7 @@ class HomeState extends Equatable {
     String? circleName,
     String? circleId,
     List<dynamic>? members,
+    List<dynamic>? sosBroadcasts,
     HomeStatus? status,
     String? errorMessage,
     String? weatherGreeting,
@@ -54,6 +57,7 @@ class HomeState extends Equatable {
       circleName: circleName ?? this.circleName,
       circleId: circleId ?? this.circleId,
       members: members ?? this.members,
+      sosBroadcasts: sosBroadcasts ?? this.sosBroadcasts,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       weatherGreeting: weatherGreeting ?? this.weatherGreeting,
@@ -71,6 +75,7 @@ class HomeState extends Equatable {
     circleName,
     circleId,
     members,
+    sosBroadcasts,
     status,
     errorMessage,
     weatherGreeting,

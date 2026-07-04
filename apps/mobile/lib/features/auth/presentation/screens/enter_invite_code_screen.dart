@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pinput/pinput.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
-import '../widgets/onboarding_top_icon.dart';
-import '../widgets/youre_in_sheet.dart';
 
+import 'package:pinput/pinput.dart';
+
+import '../widgets/youre_in_sheet.dart';
+import 'package:guardian/export.dart';
 class EnterInviteCodeScreen extends StatefulWidget {
   const EnterInviteCodeScreen({super.key});
 
@@ -90,7 +84,7 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
     );
 
     return BlocListener<AuthBloc, AuthState>(
-      bloc: locator<AuthBloc>(),
+      bloc: context.read<AuthBloc>(),
       listenWhen: (previous, current) =>
           previous.status != current.status || previous.step != current.step,
       listener: (context, state) {
@@ -104,7 +98,7 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
         canPop: true,
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) {
-            locator<AuthBloc>().add(const NavigateBack(isNativePop: true));
+            context.read<AuthBloc>().add(const NavigateBack(isNativePop: true));
           }
         },
         child: Scaffold(
@@ -197,7 +191,7 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
                           ),
                           hapticFeedbackType: HapticFeedbackType.lightImpact,
                           onCompleted: (code) {
-                            locator<AuthBloc>().add(SubmitInviteCode(code));
+                            context.read<AuthBloc>().add(SubmitInviteCode(code));
                           },
                         ),
                       ),
@@ -206,7 +200,7 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
                       SizedBox(height: AdaptiveLayout.h(context, 32)),
 
                       BlocBuilder<AuthBloc, AuthState>(
-                        bloc: locator<AuthBloc>(),
+                        bloc: context.read<AuthBloc>(),
                         builder: (context, state) {
                           final isLoading = state.status == AuthStatus.loading;
                           return SizedBox(
@@ -215,7 +209,7 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
                             child: ElevatedButton(
                               onPressed: (_canSubmit && !isLoading)
                                   ? () {
-                                      locator<AuthBloc>().add(
+                                      context.read<AuthBloc>().add(
                                         SubmitInviteCode(_pinController.text),
                                       );
                                     }
@@ -260,7 +254,7 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
 
                       Center(
                         child: GestureDetector(
-                          onTap: () => locator<AuthBloc>().add(
+                          onTap: () => context.read<AuthBloc>().add(
                             const NavigateToPasteLink(),
                           ),
                           child: Text(

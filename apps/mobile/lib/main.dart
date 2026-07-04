@@ -1,18 +1,5 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/bloc/app_bloc_observer.dart';
-import 'package:guardian/core/theme/app_theme.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
-import 'package:guardian/features/auth/presentation/screens/welcome_screen.dart';
-import 'package:guardian/features/home/home.dart';
-
-import 'package:firebase_core/firebase_core.dart';
-import 'package:guardian/firebase_options.dart';
+import 'export.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,11 +9,8 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Initialize dependency injection
-  await initDependencies();
-
-  // Dispatch AppStarted to initialize the active onboarding/authenticated step
-  locator<AuthBloc>().add(const AppStarted());
+  // Initialize dependency injection and get initial auth step
+  final initialStep = await initDependencies();
 
   // Lock to portrait — landscape causes overflow on all screens.
   await SystemChrome.setPreferredOrientations([
@@ -35,11 +19,12 @@ void main() async {
   ]);
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  runApp(const GuardianApp());
+  runApp(GuardianApp(initialStep: initialStep));
 }
 
 class GuardianApp extends StatelessWidget {
-  const GuardianApp({super.key});
+  final AuthStep initialStep;
+  const GuardianApp({super.key, required this.initialStep});
 
   @override
   Widget build(BuildContext context) {
@@ -53,22 +38,41 @@ class GuardianApp extends StatelessWidget {
       ),
     );
 
-    return BlocBuilder<AuthBloc, AuthState>(
-      bloc: locator<AuthBloc>(),
-      builder: (context, state) {
-        final Widget homeScreen = (state.step == AuthStep.completed)
-            ? const HomeScreen()
-            : const WelcomeScreen();
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<FirebaseAuthService>(
+          create: (context) => FirebaseAuthService(),
+        ),
+      ],
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>(
+            create: (context) =>
+                AuthBloc(initialStep: initialStep)..add(const AppStarted()),
+          ),
+          BlocProvider<JourneyBloc>(create: (context) => JourneyBloc()),
+          BlocProvider<HomeBloc>(
+            create: (context) => HomeBloc(authBloc: context.read<AuthBloc>()),
+          ),
+          BlocProvider<SettingsBloc>(create: (context) => SettingsBloc()),
+        ],
+        child: BlocBuilder<AuthBloc, AuthState>(
+          builder: (context, state) {
+            final Widget homeScreen = (state.step == AuthStep.completed)
+                ? const HomeScreen()
+                : const WelcomeScreen();
 
-        return MaterialApp(
-          title: 'Guardian',
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.system,
-          debugShowCheckedModeBanner: false,
-          home: homeScreen,
-        );
-      },
+            return MaterialApp(
+              title: 'Guardian',
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: ThemeMode.system,
+              debugShowCheckedModeBanner: false,
+              home: homeScreen,
+            );
+          },
+        ),
+      ),
     );
   }
 }

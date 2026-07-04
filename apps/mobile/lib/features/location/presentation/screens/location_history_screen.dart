@@ -5,7 +5,7 @@ class LocationHistoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Location History', style: TextStyle(fontFamily: 'Outfit')),

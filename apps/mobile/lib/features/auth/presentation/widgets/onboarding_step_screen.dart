@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
-import 'package:guardian/features/auth/presentation/widgets/shared/auth_shared.dart';
+
+import 'package:guardian/export.dart';
 
 class OnboardingStepScreen extends StatelessWidget {
   final String title;
@@ -32,13 +28,11 @@ class OnboardingStepScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        locator<AuthBloc>().add(const NavigateBack());
+        context.read<AuthBloc>().add(const NavigateBack());
       },
       child: Scaffold(
         body: Stack(

@@ -10,6 +10,8 @@ use crate::domains::circles::domain::repositories::{
     circle_repository::CircleRepository,
     invite_repository::InviteRepository,
 };
+use crate::domains::location::domain::repositories::location_repository::LocationRepository;
+use crate::domains::sos::domain::repositories::sos_repository::SosRepository;
 
 /// Central application state — cloned into every request handler.
 #[derive(Clone)]
@@ -22,6 +24,10 @@ pub struct AppState {
     // Circles domain
     pub circle_repo: Arc<dyn CircleRepository>,
     pub invite_repo: Arc<dyn InviteRepository>,
+    // Location domain
+    pub location_repo: Arc<dyn LocationRepository>,
+    // SOS domain
+    pub sos_repo: Arc<dyn SosRepository>,
 }
 
 /// Build the complete Axum router with all domain routes nested.
@@ -34,8 +40,8 @@ pub fn create_router(state: AppState) -> Router {
         .route("/.well-known/assetlinks.json", get(assetlinks_json))
         .nest("/api/v1/auth", crate::domains::identity::api::routes::router())
         .nest("/api/v1/circles", crate::domains::circles::api::routes::router())
-        // .nest("/api/v1/location",  crate::domains::location::api::routes::router())
-        // .nest("/api/v1/sos",       crate::domains::sos::api::routes::router())
+        .nest("/api/v1/location", crate::domains::location::api::routes::router())
+        .nest("/api/v1/sos",      crate::domains::sos::api::routes::router())
         .with_state(state)
 }
 

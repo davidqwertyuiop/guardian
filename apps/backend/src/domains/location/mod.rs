@@ -1,1 +1,4 @@
-// location domain — stub, implementation coming in subsequent sprints.
+pub mod api;
+pub mod application;
+pub mod domain;
+pub mod infrastructure;

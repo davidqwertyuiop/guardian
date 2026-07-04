@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
-import '../widgets/onboarding_top_icon.dart';
 
+import 'package:guardian/export.dart';
 class PasteLinkScreen extends StatefulWidget {
   const PasteLinkScreen({super.key});
 
@@ -42,7 +34,7 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
       canPop: true,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          locator<AuthBloc>().add(const NavigateBack(isNativePop: true));
+          context.read<AuthBloc>().add(const NavigateBack(isNativePop: true));
         }
       },
       child: Scaffold(
@@ -170,7 +162,7 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
 
                     // Join via Link button
                     BlocBuilder<AuthBloc, AuthState>(
-                      bloc: locator<AuthBloc>(),
+                      bloc: context.read<AuthBloc>(),
                       builder: (context, state) {
                         final isLoading = state.status == AuthStatus.loading;
                         return SizedBox(
@@ -180,7 +172,7 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                             onPressed: isLoading
                                 ? null
                                 : () {
-                                    locator<AuthBloc>().add(
+                                    context.read<AuthBloc>().add(
                                       SubmitInviteLink(_controller.text),
                                     );
                                   },

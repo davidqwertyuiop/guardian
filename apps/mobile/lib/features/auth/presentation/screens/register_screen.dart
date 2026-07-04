@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
-import '../widgets/register_screen_widgets.dart';
+
+import 'package:guardian/export.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -22,7 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   void initState() {
     super.initState();
-    _authBloc = locator<AuthBloc>();
+    _authBloc = context.read<AuthBloc>();
   }
 
   void _completeOnboarding() {
@@ -42,10 +36,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-        locator<AuthBloc>().add(const NavigateBack());
+        context.read<AuthBloc>().add(const NavigateBack());
       },
       child: BlocListener<AuthBloc, AuthState>(
-        bloc: locator<AuthBloc>(),
+        bloc: context.read<AuthBloc>(),
         listenWhen: (previous, current) =>
             previous.status != current.status &&
             current.status == AuthStatus.failure,

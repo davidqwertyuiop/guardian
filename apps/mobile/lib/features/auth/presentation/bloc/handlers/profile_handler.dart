@@ -17,13 +17,13 @@ Future<void> onCompleteProfile(
   emit(state.copyWith(status: AuthStatus.loading));
   try {
     final prefs = locator<SharedPreferences>();
+    await prefs.setString('username', event.username);
     await prefs.setString('country_code', state.countryCode);
     
     try {
       await ApiService.updateProfile(event.username);
     } catch (e) {
-      log('Backend fallback: updateProfile failed ($e). Storing locally.');
-      await prefs.setString('username', event.username);
+      log('Backend fallback: updateProfile failed ($e).');
     }
 
     emit(

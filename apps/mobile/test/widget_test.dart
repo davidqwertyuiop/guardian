@@ -7,11 +7,12 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:guardian/main.dart';
+import 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
 
 void main() {
   testWidgets('Splash screen builds successfully', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const GuardianApp());
+    await tester.pumpWidget(const GuardianApp(initialStep: AuthStep.welcome));
 
     // Verify that splash logo or name is present
     expect(find.text('guardian'), findsOneWidget);

@@ -6,7 +6,7 @@ class FamilyCircleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('My Circle', style: TextStyle(fontFamily: 'Outfit')),

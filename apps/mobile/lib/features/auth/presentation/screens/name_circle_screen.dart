@@ -1,14 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
-import '../widgets/circle_ready_sheet.dart';
-import '../widgets/onboarding_top_icon.dart';
-
+import 'package:guardian/export.dart';
 class NameCircleScreen extends StatefulWidget {
   const NameCircleScreen({super.key});
 
@@ -56,7 +47,7 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
     final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return BlocListener<AuthBloc, AuthState>(
-      bloc: locator<AuthBloc>(),
+      bloc: context.read<AuthBloc>(),
       listenWhen: (previous, current) =>
           previous.status != current.status || previous.step != current.step,
       listener: (context, state) {
@@ -69,7 +60,7 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
         canPop: false,
         onPopInvokedWithResult: (didPop, result) {
           if (didPop) return;
-          locator<AuthBloc>().add(const NavigateBack());
+          context.read<AuthBloc>().add(const NavigateBack());
         },
         child: Scaffold(
           backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
@@ -174,7 +165,7 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
 
                       // Create Circle Button
                       BlocBuilder<AuthBloc, AuthState>(
-                        bloc: locator<AuthBloc>(),
+                        bloc: context.read<AuthBloc>(),
                         builder: (context, state) {
                           final isLoading = state.status == AuthStatus.loading;
                           return SizedBox(
@@ -183,7 +174,7 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
                             child: ElevatedButton(
                               onPressed: _isValid && !isLoading
                                   ? () {
-                                      locator<AuthBloc>().add(
+                                      context.read<AuthBloc>().add(
                                         CreateCircle(_controller.text),
                                       );
                                     }

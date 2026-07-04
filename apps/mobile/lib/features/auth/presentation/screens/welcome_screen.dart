@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
+
 import 'package:guardian/core/theme/smooth_page_route.dart';
 import 'package:guardian/features/auth/presentation/widgets/welcome_card.dart';
-import 'package:guardian/features/home/home.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
-import 'login_screen.dart';
+
 import 'otp_screen.dart';
 import 'register_screen.dart';
 import 'location_permission_screen.dart';
@@ -21,6 +13,7 @@ import 'name_circle_screen.dart';
 import 'enter_invite_code_screen.dart';
 import 'circle_empty_screen.dart';
 import 'paste_link_screen.dart';
+import 'package:guardian/export.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -35,7 +28,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
-    _currentStep = locator<AuthBloc>().state.step;
+    _currentStep = context.read<AuthBloc>().state.step;
   }
 
   void _handleStepTransition(AuthState state) {
@@ -86,8 +79,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     bool isBackTransition(AuthStep oldS, AuthStep newS) {
       if (oldS == AuthStep.login && newS == AuthStep.welcome) return true;
-      if (oldS == AuthStep.login && newS == AuthStep.enterInviteCode)
+      if (oldS == AuthStep.login && newS == AuthStep.enterInviteCode) {
         return true;
+      }
       if (oldS == AuthStep.otp && newS == AuthStep.login) return true;
       if (oldS == AuthStep.profile && newS == AuthStep.otp) return true;
       if (oldS == AuthStep.profile && newS == AuthStep.enterInviteCode) {
@@ -139,7 +133,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
-      bloc: locator<AuthBloc>(),
+      bloc: context.read<AuthBloc>(),
       listener: (context, state) => _handleStepTransition(state),
       child: const WelcomeStepView(),
     );
@@ -217,7 +211,7 @@ class WelcomeStepView extends StatelessWidget {
               left: AdaptiveLayout.padding(context, 16),
               right: AdaptiveLayout.padding(context, 16),
               bottom: AdaptiveLayout.padding(context, 16),
-              top: AdaptiveLayout.padding(context, 50),
+              top: MediaQuery.paddingOf(context).top + AdaptiveLayout.padding(context, 12),
             ),
             child: (isLandscape || isShort)
                 ? SingleChildScrollView(
@@ -238,7 +232,8 @@ class WelcomeStepView extends StatelessWidget {
           width: double.infinity,
           height: AdaptiveLayout.h(context, 54),
           child: ElevatedButton(
-            onPressed: () => locator<AuthBloc>().add(const NavigateToLogin()),
+            onPressed: () =>
+                context.read<AuthBloc>().add(const NavigateToLogin()),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
@@ -262,7 +257,8 @@ class WelcomeStepView extends StatelessWidget {
           width: double.infinity,
           height: AdaptiveLayout.h(context, 54),
           child: TextButton(
-            onPressed: () => locator<AuthBloc>().add(const ClickInviteLink()),
+            onPressed: () =>
+                context.read<AuthBloc>().add(const ClickInviteLink()),
             style: TextButton.styleFrom(
               backgroundColor: isDark
                   ? const Color(0xFF1E1E22)

@@ -28,35 +28,38 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  flutter_skill: ^0.2.6
   flutter:
     sdk: flutter
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  equatable: ^2.0.5
-  google_fonts: ^6.2.0
+  equatable: ^2.0.8
+  google_fonts: ^8.1.0
   shared_preferences: ^2.5.5
-  url_launcher: ^6.2.0
-  http: ^1.1.0
-  get_it: ^7.6.0
-  flutter_secure_storage: ^9.0.0
-  intl_country_data: ^1.2.9
-  bloc: ^8.1.4
-  flutter_bloc: ^8.1.6
-  permission_handler: ^11.3.1
-  page_transition: ^2.1.0
-  share_plus: ^9.0.0
+  url_launcher: ^6.3.2
+  http: ^1.6.0
+  get_it: ^9.2.1
+  flutter_secure_storage: ^10.3.1
+  intl_phone_number_field: ^0.2.1
+  bloc: ^9.2.1
+  flutter_bloc: ^9.0.0
+  intl_country_data: ^1.0.3
+  permission_handler: ^12.0.3
+  page_transition: ^2.2.2
+  share_plus: ^13.2.0
   pinput: ^6.0.2
-  firebase_core: ^3.4.0
-  firebase_auth: ^5.2.0
+  firebase_core: ^4.11.0
+  firebase_auth: ^6.5.4
   toastification: ^3.2.0
-  image: ^4.9.1
+  image: ^4.2.0
   smart_auth: ^3.2.0
-  device_info_plus: ^10.1.2
-  google_maps_flutter: ^2.14.2
-  geolocator: ^12.0.0
+  device_info_plus: ^13.2.0
+  google_maps_flutter: ^2.17.1
+  geolocator: ^14.0.3
+  geocoding: ^3.0.0
+  intl: ^0.20.2
+  apple_maps_flutter: ^1.4.0
 
 dev_dependencies:
   flutter_test:
@@ -88,7 +91,6 @@ flutter:
     - assets/icons/
     - assets/icons/android/
     - assets/icons/ios/
-    - shorebird.yaml
   fonts:
     - family: Outfit
       fonts:

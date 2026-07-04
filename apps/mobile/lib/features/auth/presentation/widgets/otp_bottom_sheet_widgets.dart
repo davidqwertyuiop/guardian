@@ -1,10 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
 
+import 'package:flutter/material.dart';
+
+import 'package:guardian/export.dart';
 class OtpBottomSheetHeader extends StatelessWidget {
   const OtpBottomSheetHeader({super.key});
 
@@ -17,13 +14,13 @@ class OtpBottomSheetHeader extends StatelessWidget {
       children: [
         IconButton(
           icon: Icon(Icons.arrow_back, color: iconColor, size: 22),
-          onPressed: () => locator<AuthBloc>().add(const NavigateBack()),
+          onPressed: () => context.read<AuthBloc>().add(const NavigateBack()),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
         IconButton(
           icon: Icon(Icons.close, color: iconColor, size: 22),
-          onPressed: () => locator<AuthBloc>().add(const NavigateToWelcome()),
+          onPressed: () => context.read<AuthBloc>().add(const NavigateToWelcome()),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
         ),
@@ -51,7 +48,7 @@ class OtpBottomSheetSubtitle extends StatelessWidget {
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
             child: GestureDetector(
-              onTap: () => locator<AuthBloc>().add(const NavigateBack()),
+              onTap: () => context.read<AuthBloc>().add(const NavigateBack()),
               child: Text(
                 "Edit",
                 style: TextStyle(

@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
@@ -51,9 +52,33 @@ class GpsService {
         return fallback;
       }
 
+      LocationSettings locationSettings;
+      if (Platform.isAndroid) {
+        locationSettings = AndroidSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 0,
+          forceLocationManager: true,
+          timeLimit: const Duration(seconds: 8),
+        );
+      } else if (Platform.isIOS || Platform.isMacOS) {
+        locationSettings = AppleSettings(
+          accuracy: LocationAccuracy.high,
+          activityType: ActivityType.fitness,
+          distanceFilter: 0,
+          pauseLocationUpdatesAutomatically: true,
+          showBackgroundLocationIndicator: true,
+          timeLimit: const Duration(seconds: 8),
+        );
+      } else {
+        locationSettings = const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          distanceFilter: 0,
+          timeLimit: Duration(seconds: 8),
+        );
+      }
+
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 5),
+        locationSettings: locationSettings,
       );
       return {
         'latitude': position.latitude,

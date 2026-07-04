@@ -12,7 +12,9 @@ import 'home_event.dart';
 import 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc() : super(const HomeState()) {
+  final AuthBloc authBloc;
+
+  HomeBloc({required this.authBloc}) : super(const HomeState()) {
     on<ChangeTab>(_onChangeTab);
     on<LoadHomeData>(_onLoadHomeData);
     on<ChangeMapState>(_onChangeMapState);
@@ -41,11 +43,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     String activeCircleName = '';
     String activeCircleId = '';
     List<dynamic> circleMembers = [];
+    List<dynamic> sosBroadcasts = [];
 
     // Try fetching profile from API
     try {
       final profile = await ApiService.getMe();
-      name = profile['name'] as String? ?? localUsername;
+      final apiName = profile['name'] as String?;
+      if (apiName != null && apiName.trim().isNotEmpty) {
+        name = apiName;
+      } else {
+        name = localUsername;
+      }
       avatar = profile['avatar_url'] as String? ?? '';
     } catch (e) {
       log('Failed to fetch profile from API, fallback to local username: $e');
@@ -56,7 +64,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         await prefs.setBool('onboarding_completed', false);
         await prefs.remove('username');
         await prefs.remove('user_id');
-        locator<AuthBloc>().add(const ResetAuth());
+        authBloc.add(const ResetAuth());
         return;
       }
     }
@@ -71,6 +79,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         if (activeCircleId.isNotEmpty) {
           circleMembers = await ApiService.getCircleMembers(activeCircleId);
+          try {
+            sosBroadcasts = await ApiService.getSosBroadcasts(activeCircleId);
+          } catch (_) {
+            // Ignore if sos broadcasts fail
+          }
         }
       }
     } catch (e) {
@@ -82,7 +95,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         await prefs.setBool('onboarding_completed', false);
         await prefs.remove('username');
         await prefs.remove('user_id');
-        locator<AuthBloc>().add(const ResetAuth());
+        authBloc.add(const ResetAuth());
         return;
       }
     }
@@ -106,6 +119,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         circleName: activeCircleName,
         circleId: activeCircleId,
         members: circleMembers,
+        sosBroadcasts: sosBroadcasts,
         weatherGreeting: weatherGreeting,
         userLatitude: lat,
         userLongitude: lon,

@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
+
+import 'package:guardian/export.dart';
 
 class YouAreInSheet extends StatelessWidget {
   const YouAreInSheet({super.key});
@@ -28,7 +22,7 @@ class YouAreInSheet extends StatelessWidget {
             vertical: 24,
           ),
           child: BlocBuilder<AuthBloc, AuthState>(
-            bloc: locator<AuthBloc>(),
+            bloc: context.read<AuthBloc>(),
             builder: (context, state) {
               final username = state.username.isNotEmpty
                   ? state.username
@@ -93,7 +87,7 @@ class YouAreInSheet extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.of(context).pop(); // Close sheet
-                          locator<AuthBloc>().add(
+                          context.read<AuthBloc>().add(
                             const CompleteCircleOnboarding(),
                           );
                         },

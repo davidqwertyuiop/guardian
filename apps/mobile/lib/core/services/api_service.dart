@@ -1,6 +1,7 @@
 import 'api/api_base.dart';
 import 'api/auth_api_service.dart';
 import 'api/circles_api_service.dart';
+import 'api/sos_api_service.dart';
 
 /// Guardian API Service Facade
 /// delegates calls to modular, domain-specific api sub-services.
@@ -34,4 +35,6 @@ class ApiService {
       CirclesApiService.getCircleMembers(circleId);
   static Future<bool> checkCircleHasMembers(String code) =>
       CirclesApiService.checkCircleHasMembers(code);
+  static Future<List<dynamic>> getSosBroadcasts(String circleId) =>
+      SosApiService.getSosBroadcasts(circleId);
 }

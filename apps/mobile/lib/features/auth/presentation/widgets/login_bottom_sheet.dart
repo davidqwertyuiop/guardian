@@ -1,12 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl_country_data/intl_country_data.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:guardian/core/utils/phone_number_utils.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
+import 'package:guardian/export.dart';
 import 'phone_input_field.dart';
 import 'country_picker_bottom_sheet.dart';
 import 'login_bottom_sheet_widgets.dart';
@@ -25,7 +18,7 @@ class _LoginBottomSheetState extends State<LoginBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _authBloc = locator<AuthBloc>();
+    _authBloc = context.read<AuthBloc>();
     _phoneController = TextEditingController(text: _authBloc.state.phoneNumber);
     _phoneController.addListener(() {
       final text = _phoneController.text;

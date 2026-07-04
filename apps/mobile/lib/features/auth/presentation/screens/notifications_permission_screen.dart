@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
-import 'package:guardian/features/auth/presentation/widgets/onboarding_step_screen.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
-import 'package:guardian/features/auth/presentation/widgets/you_are_in_sheet.dart';
 
+import 'package:guardian/export.dart';
 class NotificationsPermissionScreen extends StatelessWidget {
   const NotificationsPermissionScreen({super.key});
 
@@ -28,7 +20,7 @@ class NotificationsPermissionScreen extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return BlocListener<AuthBloc, AuthState>(
-      bloc: locator<AuthBloc>(),
+      bloc: context.read<AuthBloc>(),
       listenWhen: (previous, current) =>
           previous.status != current.status || previous.step != current.step,
       listener: (context, state) {
@@ -48,10 +40,10 @@ class NotificationsPermissionScreen extends StatelessWidget {
         primaryButtonText: 'Turn on notifications',
         secondaryButtonText: 'Skip — I\'ll miss these alerts',
         onPrimaryPressed: () {
-          locator<AuthBloc>().add(const EnableNotifications());
+          context.read<AuthBloc>().add(const EnableNotifications());
         },
         onSecondaryPressed: () {
-          locator<AuthBloc>().add(const SkipNotifications());
+          context.read<AuthBloc>().add(const SkipNotifications());
         },
         headerIcon: Container(
           width: 48,

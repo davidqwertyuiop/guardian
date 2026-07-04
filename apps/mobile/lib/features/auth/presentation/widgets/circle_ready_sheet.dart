@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
 import 'package:share_plus/share_plus.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
+
+import 'package:guardian/export.dart';
 
 class CircleReadySheet extends StatelessWidget {
   const CircleReadySheet({super.key});
@@ -14,7 +11,7 @@ class CircleReadySheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final authState = locator<AuthBloc>().state;
+    final authState = context.read<AuthBloc>().state;
     final inviteCode = authState.inviteCode ?? "CODE";
     final inviteLink =
         authState.inviteLink ?? "https://guardian.app/invite/token";
@@ -108,9 +105,12 @@ class CircleReadySheet extends StatelessWidget {
               height: 54,
               child: TextButton.icon(
                 onPressed: () {
-                  Share.share(
-                    'Join my Guardian circle! Code: $inviteCode or click: $inviteLink',
-                    subject: 'Guardian circle invite',
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text:
+                          'Join my Guardian circle! Code: $inviteCode or click: $inviteLink',
+                      subject: 'Guardian circle invite',
+                    ),
                   );
                 },
                 style: TextButton.styleFrom(
@@ -141,7 +141,9 @@ class CircleReadySheet extends StatelessWidget {
               child: TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
-                  locator<AuthBloc>().add(const CompleteCircleOnboarding());
+                  context.read<AuthBloc>().add(
+                    const CompleteCircleOnboarding(),
+                  );
                 },
                 style: TextButton.styleFrom(
                   shape: RoundedRectangleBorder(

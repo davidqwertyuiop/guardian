@@ -6,7 +6,7 @@ class MemberLocationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(title: Text('$memberName\'s Location')),
       body: Center(

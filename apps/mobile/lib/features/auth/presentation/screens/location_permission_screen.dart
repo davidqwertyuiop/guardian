@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:guardian/features/auth/presentation/bloc/auth_event.dart';
-import 'package:guardian/features/auth/presentation/widgets/onboarding_step_screen.dart';
 
+import 'package:flutter/material.dart';
+
+import 'package:guardian/export.dart';
 class LocationPermissionScreen extends StatelessWidget {
   const LocationPermissionScreen({super.key});
 
@@ -21,10 +19,10 @@ class LocationPermissionScreen extends StatelessWidget {
       primaryButtonText: 'Turn on location',
       secondaryButtonText: 'Not now — I\'ll do this later',
       onPrimaryPressed: () {
-        locator<AuthBloc>().add(const EnableLocation());
+        context.read<AuthBloc>().add(const EnableLocation());
       },
       onSecondaryPressed: () {
-        locator<AuthBloc>().add(const SkipLocation());
+        context.read<AuthBloc>().add(const SkipLocation());
       },
     );
   }

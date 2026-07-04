@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
+
+import 'package:guardian/export.dart';
 
 class LoginBottomSheetHeader extends StatelessWidget {
   const LoginBottomSheetHeader({super.key});
@@ -17,7 +14,7 @@ class LoginBottomSheetHeader extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         GestureDetector(
-          onTap: () => locator<AuthBloc>().add(const NavigateBack()),
+          onTap: () => context.read<AuthBloc>().add(const NavigateBack()),
           child: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: closeBg, shape: BoxShape.circle),

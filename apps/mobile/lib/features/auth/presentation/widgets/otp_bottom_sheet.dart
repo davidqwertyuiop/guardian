@@ -1,16 +1,12 @@
+
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:smart_auth/smart_auth.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/utils/adaptive_layout.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
+
 import 'otp_input_field.dart';
 import 'otp_bottom_sheet_widgets.dart';
-
+import 'package:guardian/export.dart';
 class OtpBottomSheet extends StatefulWidget {
   const OtpBottomSheet({super.key});
 
@@ -29,7 +25,7 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _authBloc = locator<AuthBloc>();
+    _authBloc = context.read<AuthBloc>();
     _smsRetriever = SmsRetrieverImpl(SmartAuth.instance);
     _startTimer();
   }
