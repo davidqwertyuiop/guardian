@@ -1,4 +1,4 @@
-platform :ios, '14.0'
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -40,11 +40,11 @@ post_install do |installer|
       # Allow non-modular includes in framework modules to support hybrid SPM/CocoaPods setups
       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
       
-      # Force deployment target to be at least 14.0 for all Pods to avoid compiler/deployment target errors
+      # Force deployment target to be at least 15.0 for all Pods to avoid compiler/deployment target errors
       if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
         current_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f
-        if current_target < 14.0
-          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+        if current_target < 15.0
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
         end
       end
     end
