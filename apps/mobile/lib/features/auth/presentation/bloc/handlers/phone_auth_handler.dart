@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/core/services/api_service.dart';
 import '../auth_event.dart';
 import '../auth_state.dart';
@@ -95,6 +96,17 @@ Future<void> onSubmitVerificationCode(
     }
 
     if (isProfileComplete) {
+      try {
+        final profile = await ApiService.getMe();
+        final name = profile['name'] as String?;
+        if (name != null && name.trim().isNotEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('username', name);
+        }
+      } catch (e) {
+        log('Failed to pre-fetch profile username on login: $e');
+      }
+
       if (state.isJoiningCircle) {
         emit(state.copyWith(status: AuthStatus.success, step: AuthStep.otp));
       } else {

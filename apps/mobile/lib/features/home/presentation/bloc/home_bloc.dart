@@ -51,7 +51,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final apiName = profile['name'] as String?;
       if (apiName != null && apiName.trim().isNotEmpty) {
         name = apiName;
+        await prefs.setString('username', name);
       } else {
+        if (localUsername != 'User' && localUsername.trim().isNotEmpty) {
+          try {
+            await ApiService.updateProfile(localUsername);
+            log('Synced local username "$localUsername" to backend.');
+          } catch (e) {
+            log('Failed to sync local username to backend: $e');
+          }
+        }
         name = localUsername;
       }
       avatar = profile['avatar_url'] as String? ?? '';
