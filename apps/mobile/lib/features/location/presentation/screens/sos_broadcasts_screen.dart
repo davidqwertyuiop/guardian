@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/utils/responsive_scale.dart';
-import 'package:guardian/core/services/api_service.dart';
-import 'package:guardian/core/services/api/sos_api_service.dart';
-import 'package:toastification/toastification.dart';
+import 'package:guardian/export.dart';
 
 class SosBroadcastsScreen extends StatefulWidget {
   final String circleId;
@@ -57,7 +52,9 @@ class _SosBroadcastsScreenState extends State<SosBroadcastsScreen>
       if (success) {
         toastification.show(
           title: const Text('SOS Resolved'),
-          description: const Text('The SOS broadcast has been successfully resolved.'),
+          description: const Text(
+            'The SOS broadcast has been successfully resolved.',
+          ),
           type: ToastificationType.success,
           autoCloseDuration: const Duration(seconds: 3),
         );
@@ -68,7 +65,9 @@ class _SosBroadcastsScreenState extends State<SosBroadcastsScreen>
     } catch (_) {
       toastification.show(
         title: const Text('Error'),
-        description: const Text('Could not resolve the SOS broadcast. Please try again.'),
+        description: const Text(
+          'Could not resolve the SOS broadcast. Please try again.',
+        ),
         type: ToastificationType.error,
         autoCloseDuration: const Duration(seconds: 3),
       );
@@ -79,11 +78,17 @@ class _SosBroadcastsScreenState extends State<SosBroadcastsScreen>
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final activeBroadcasts = _broadcasts.where((b) => b['status'] == 'active').toList();
-    final pastBroadcasts = _broadcasts.where((b) => b['status'] != 'active').toList();
+    final activeBroadcasts = _broadcasts
+        .where((b) => b['status'] == 'active')
+        .toList();
+    final pastBroadcasts = _broadcasts
+        .where((b) => b['status'] != 'active')
+        .toList();
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F0E17) : const Color(0xFFF9F9FB),
+      backgroundColor: isDark
+          ? const Color(0xFF0F0E17)
+          : const Color(0xFFF9F9FB),
       appBar: AppBar(
         title: Text(
           'SOS Broadcasts',
@@ -103,7 +108,10 @@ class _SosBroadcastsScreenState extends State<SosBroadcastsScreen>
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: isDark ? Colors.white38 : Colors.black38,
-          labelStyle: const TextStyle(fontFamily: 'Outfit', fontWeight: FontWeight.bold),
+          labelStyle: const TextStyle(
+            fontFamily: 'Outfit',
+            fontWeight: FontWeight.bold,
+          ),
           tabs: [
             Tab(text: 'Active (${activeBroadcasts.length})'),
             Tab(text: 'Past (${pastBroadcasts.length})'),
@@ -112,21 +120,31 @@ class _SosBroadcastsScreenState extends State<SosBroadcastsScreen>
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.primary,
-              ),
+              child: CircularProgressIndicator(color: AppColors.primary),
             )
           : TabBarView(
               controller: _tabController,
               children: [
-                _buildBroadcastList(activeBroadcasts, isActive: true, isDark: isDark),
-                _buildBroadcastList(pastBroadcasts, isActive: false, isDark: isDark),
+                _buildBroadcastList(
+                  activeBroadcasts,
+                  isActive: true,
+                  isDark: isDark,
+                ),
+                _buildBroadcastList(
+                  pastBroadcasts,
+                  isActive: false,
+                  isDark: isDark,
+                ),
               ],
             ),
     );
   }
 
-  Widget _buildBroadcastList(List<dynamic> list, {required bool isActive, required bool isDark}) {
+  Widget _buildBroadcastList(
+    List<dynamic> list, {
+    required bool isActive,
+    required bool isDark,
+  }) {
     if (list.isEmpty) {
       return Center(
         child: Column(
@@ -309,7 +327,11 @@ class _SosBroadcastsScreenState extends State<SosBroadcastsScreen>
                     child: OutlinedButton(
                       onPressed: () => _resolveBroadcast(broadcastId),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: isDark ? Colors.redAccent.withValues(alpha: 0.5) : Colors.redAccent),
+                        side: BorderSide(
+                          color: isDark
+                              ? Colors.redAccent.withValues(alpha: 0.5)
+                              : Colors.redAccent,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),

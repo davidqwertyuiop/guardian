@@ -46,18 +46,27 @@ class AdaptiveShell extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
-      body: body,
-      bottomNavigationBar: Platform.isIOS
-          ? IosTabBar(
-              currentIndex: currentIndex,
-              onTap: onTabChanged,
-              profileImageUrl: profileImageUrl,
-            )
-          : AndroidNavBar(
-              currentIndex: currentIndex,
-              onTap: onTabChanged,
-              profileImageUrl: profileImageUrl,
-            ),
+      body: Stack(
+        children: [
+          body,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Platform.isIOS
+                ? IosTabBar(
+                    currentIndex: currentIndex,
+                    onTap: onTabChanged,
+                    profileImageUrl: profileImageUrl,
+                  )
+                : AndroidNavBar(
+                    currentIndex: currentIndex,
+                    onTap: onTabChanged,
+                    profileImageUrl: profileImageUrl,
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -38,12 +38,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final prefs = locator<SharedPreferences>();
     final localUsername = prefs.getString('username') ?? 'User';
 
-    String name = localUsername;
-    String avatar = '';
-    String activeCircleName = '';
-    String activeCircleId = '';
-    List<dynamic> circleMembers = [];
-    List<dynamic> sosBroadcasts = [];
+    String name = state.userName.isNotEmpty && state.userName != 'User' ? state.userName : localUsername;
+    String avatar = state.avatarUrl;
+    String activeCircleName = state.circleName;
+    String activeCircleId = state.circleId;
+    List<dynamic> circleMembers = state.members;
+    List<dynamic> sosBroadcasts = state.sosBroadcasts;
 
     // Try fetching profile from API
     try {

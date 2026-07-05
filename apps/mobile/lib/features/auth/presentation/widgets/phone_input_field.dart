@@ -1,6 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+class StripLeadingZeroFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.startsWith('0')) {
+      final newText = newValue.text.substring(1);
+      return TextEditingValue(
+        text: newText,
+        selection: TextSelection.collapsed(
+          offset: newValue.selection.baseOffset > 0 
+              ? newValue.selection.baseOffset - 1 
+              : 0,
+        ),
+      );
+    }
+    return newValue;
+  }
+}
+
 class PhoneInputField extends StatelessWidget {
   final TextEditingController controller;
   final String flag;
@@ -86,6 +107,7 @@ class PhoneInputField extends StatelessWidget {
                       onSubmitted: (_) => FocusScope.of(context).unfocus(),
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
+                        StripLeadingZeroFormatter(),
                         LengthLimitingTextInputFormatter(maxDigits),
                       ],
                       style: TextStyle(

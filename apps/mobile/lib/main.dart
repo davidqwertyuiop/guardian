@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'export.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Set the Bloc Observer to monitor all blocs
   Bloc.observer = AppBlocObserver();
+
+  // Load environment variables
+  await dotenv.load(fileName: ".env");
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

@@ -236,8 +236,8 @@ class _MapCardState extends State<MapCard> {
     }
 
     final defaultKey = Platform.isIOS
-        ? 'AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs'
-        : 'AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q';
+        ? EnvConfig.googleMapsIosKey
+        : EnvConfig.googleMapsAndroidKey;
     final key = _mapsApiKey.isNotEmpty ? _mapsApiKey : defaultKey;
 
     final prefs = locator<SharedPreferences>();
@@ -278,8 +278,8 @@ class _MapCardState extends State<MapCard> {
 
   Future<void> _selectPlace(LivePlace place) async {
     final defaultKey = Platform.isIOS
-        ? 'AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs'
-        : 'AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q';
+        ? EnvConfig.googleMapsIosKey
+        : EnvConfig.googleMapsAndroidKey;
     final key = _mapsApiKey.isNotEmpty ? _mapsApiKey : defaultKey;
 
     final url = 'https://maps.googleapis.com/maps/api/place/details/json'

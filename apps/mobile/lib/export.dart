@@ -3,6 +3,7 @@ export 'package:flutter/services.dart';
 export 'dart:developer';
 export 'dart:io';
 
+export 'package:guardian/core/services/api/sos_api_service.dart';
 export 'package:flutter_bloc/flutter_bloc.dart';
 
 export 'package:geolocator/geolocator.dart';
@@ -64,3 +65,4 @@ export 'package:guardian/features/settings/presentation/bloc/settings_event.dart
 export 'package:guardian/features/settings/presentation/bloc/settings_state.dart';
 export 'package:guardian/features/location/presentation/widgets/sos_broadcasts_section.dart';
 export 'package:guardian/features/location/presentation/screens/sos_broadcasts_screen.dart';
+export 'package:guardian/core/config/env_config.dart';
