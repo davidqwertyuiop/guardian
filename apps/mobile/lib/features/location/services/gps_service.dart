@@ -62,12 +62,12 @@ class GpsService {
         );
       } else if (Platform.isIOS || Platform.isMacOS) {
         locationSettings = AppleSettings(
-          accuracy: LocationAccuracy.high,
-          activityType: ActivityType.fitness,
+          accuracy: LocationAccuracy.best,
+          activityType: ActivityType.other,
           distanceFilter: 0,
-          pauseLocationUpdatesAutomatically: true,
+          pauseLocationUpdatesAutomatically: false,
           showBackgroundLocationIndicator: true,
-          timeLimit: const Duration(seconds: 8),
+          timeLimit: const Duration(seconds: 10),
         );
       } else {
         locationSettings = const LocationSettings(

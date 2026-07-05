@@ -2,6 +2,7 @@ import 'api/api_base.dart';
 import 'api/auth_api_service.dart';
 import 'api/circles_api_service.dart';
 import 'api/sos_api_service.dart';
+import 'api/location_api_service.dart';
 
 /// Guardian API Service Facade
 /// delegates calls to modular, domain-specific api sub-services.
@@ -37,4 +38,27 @@ class ApiService {
       CirclesApiService.checkCircleHasMembers(code);
   static Future<List<dynamic>> getSosBroadcasts(String circleId) =>
       SosApiService.getSosBroadcasts(circleId);
+
+  // ── Location Endpoints ──────────────────────────────────────────────────────
+  static Future<void> updateLocation({
+    required String circleId,
+    required double latitude,
+    required double longitude,
+    double? accuracy,
+    double? heading,
+    double? speed,
+  }) => LocationApiService.updateLocation(
+        circleId: circleId,
+        latitude: latitude,
+        longitude: longitude,
+        accuracy: accuracy,
+        heading: heading,
+        speed: speed,
+      );
+
+  static Future<List<dynamic>> getCircleMemberLocations(String circleId) =>
+      LocationApiService.getCircleMemberLocations(circleId);
+
+  static Future<Map<String, dynamic>?> getNearestMemberLocation(String circleId) =>
+      LocationApiService.getNearestMemberLocation(circleId);
 }

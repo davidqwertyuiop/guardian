@@ -2,7 +2,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:smart_auth/smart_auth.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'otp_input_field.dart';
 import 'otp_bottom_sheet_widgets.dart';

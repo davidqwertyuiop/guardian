@@ -73,4 +73,29 @@ abstract class LocationApiService {
       ApiBase.rethrowNetworkError(e);
     }
   }
+
+  /// Fetches the nearest circle member relative to the user's location.
+  /// Returns a map with: name, avatar_url, distance_km, duration_mins.
+  static Future<Map<String, dynamic>?> getNearestMemberLocation(
+    String circleId,
+  ) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/location/circles/$circleId/nearest');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>?;
+      } else {
+        throw Exception(ApiBase.extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
 }

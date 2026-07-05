@@ -1,30 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
-import 'dart:io';
-import 'dart:ui';
 import 'dart:ui' as ui;
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:apple_maps_flutter/apple_maps_flutter.dart' as am;
-import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:toastification/toastification.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:guardian/features/location/services/gps_service.dart';
 import 'package:http/http.dart' as http;
-import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/constants/app_assets.dart';
-import 'package:guardian/core/constants/app_colors.dart';
-import 'package:guardian/core/utils/fade_route.dart';
-import 'package:guardian/core/utils/responsive_scale.dart';
-import 'package:guardian/core/services/api/api_base.dart';
-import 'package:guardian/features/emergency/presentation/screens/emergency_screen.dart';
-import 'package:guardian/features/home/presentation/bloc/home_bloc.dart';
-import 'package:guardian/features/home/presentation/bloc/home_event.dart';
-import 'package:guardian/features/home/presentation/bloc/home_state.dart';
 import 'package:guardian/export.dart';
-// ─── Map Style Configs ────────────────────────────────────────────────────────
 
 const String _darkMapStyle = '''
 [
@@ -116,6 +98,13 @@ class _LiveMapScreenState extends State<LiveMapScreen>
   late final AnimationController _mapAnim;
   late final AnimationController _fullAnim;
 
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  String _mapsApiKey = '';
+  List<LivePlace> _suggestions = [];
+  SelectedLivePlace? _selectedPlace;
+  bool _isSearching = false;
+
   @override
   void initState() {
     super.initState();
@@ -128,13 +117,131 @@ class _LiveMapScreenState extends State<LiveMapScreen>
       vsync: this,
       duration: const Duration(milliseconds: 380),
     );
+    _fetchMapKeys();
   }
 
   @override
   void dispose() {
     _mapAnim.dispose();
     _fullAnim.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchMapKeys() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiBase.baseUrl}/api/v1/config/maps'),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final key = Platform.isIOS ? data['ios_key'] : data['android_key'];
+        if (key != null && key.toString().isNotEmpty) {
+          setState(() {
+            _mapsApiKey = key.toString();
+          });
+        }
+      }
+    } catch (e) {
+      log('Error fetching maps API key from backend: $e');
+    }
+  }
+
+  Future<void> _onSearchChanged(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _suggestions = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    final defaultKey = Platform.isIOS
+        ? 'AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs'
+        : 'AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q';
+    final key = _mapsApiKey.isNotEmpty ? _mapsApiKey : defaultKey;
+
+    final prefs = locator<SharedPreferences>();
+    final countryCode = prefs.getString('country_code') ?? 'NG';
+
+    final url =
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+        '?input=${Uri.encodeComponent(query)}'
+        '&key=$key'
+        '&components=country:${countryCode.toLowerCase()}';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'OK' || data['status'] == 'ZERO_RESULTS') {
+          final predictions = data['predictions'] as List<dynamic>? ?? [];
+          final results = predictions.map((pred) {
+            return LivePlace(
+              placeId: pred['place_id'] as String,
+              name:
+                  pred['structured_formatting']?['main_text'] as String? ??
+                  pred['description'] as String,
+              address:
+                  pred['structured_formatting']?['secondary_text'] as String? ??
+                  '',
+            );
+          }).toList();
+
+          setState(() {
+            _suggestions = results;
+            _isSearching = true;
+          });
+        } else {
+          log('Google Places Autocomplete status error: ${data["status"]}');
+        }
+      }
+    } catch (e) {
+      log('Error querying Google Places API: $e');
+    }
+  }
+
+  Future<void> _selectPlace(LivePlace place) async {
+    final defaultKey = Platform.isIOS
+        ? 'AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs'
+        : 'AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q';
+    final key = _mapsApiKey.isNotEmpty ? _mapsApiKey : defaultKey;
+
+    final url =
+        'https://maps.googleapis.com/maps/api/place/details/json'
+        '?place_id=${place.placeId}'
+        '&key=$key'
+        '&fields=geometry';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'OK') {
+          final location = data['result']?['geometry']?['location'];
+          if (location != null) {
+            final lat = location['lat'] as double;
+            final lng = location['lng'] as double;
+            final selectedLatLng = LatLng(lat, lng);
+
+            setState(() {
+              _selectedPlace = SelectedLivePlace(
+                name: place.name,
+                address: place.address,
+                coordinates: selectedLatLng,
+              );
+              _isSearching = false;
+              _searchController.text = place.name;
+              _suggestions = [];
+            });
+            _searchFocusNode.unfocus();
+          }
+        }
+      }
+    } catch (e) {
+      log('Error getting place details: $e');
+    }
   }
 
   void _toggleMap() {
@@ -179,6 +286,7 @@ class _LiveMapScreenState extends State<LiveMapScreen>
         bloc: _bloc,
         builder: (context, state) {
           final isFull = state.mapDisplayState == MapDisplayState.full;
+          final isDark = Theme.of(context).brightness == Brightness.dark;
 
           return Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -246,6 +354,16 @@ class _LiveMapScreenState extends State<LiveMapScreen>
                             members: state.members,
                             userLatitude: state.userLatitude,
                             userLongitude: state.userLongitude,
+                            circleId: state.circleId,
+                            selectedPlace: _selectedPlace,
+                            onClearSearch: () {
+                              _searchController.clear();
+                              setState(() {
+                                _selectedPlace = null;
+                                _suggestions = [];
+                                _isSearching = false;
+                              });
+                            },
                           ),
 
                           const SizedBox(height: 16),
@@ -280,22 +398,95 @@ class _LiveMapScreenState extends State<LiveMapScreen>
                   AnimatedBuilder(
                     animation: _mapAnim,
                     builder: (context, child) {
+                      final displayState = state.mapDisplayState;
                       return Positioned(
-                        top: 20,
+                        top: MediaQuery.paddingOf(context).top + 24,
                         left: 0,
                         right: 0,
                         child: _TopBar(
-                          isExpanded: _mapAnim.value > 0.5,
+                          showSearch: displayState != MapDisplayState.compact,
                           onSosTap: () => Navigator.push(
                             context,
                             FadeRoute(page: const EmergencyScreen()),
                           ),
                           latitude: state.userLatitude,
                           longitude: state.userLongitude,
+                          searchController: _searchController,
+                          onSearchChanged: _onSearchChanged,
+                          onClearSearch: () {
+                            _searchController.clear();
+                            setState(() {
+                              _selectedPlace = null;
+                              _suggestions = [];
+                              _isSearching = false;
+                            });
+                          },
+                          searchFocusNode: _searchFocusNode,
                         ),
                       );
                     },
                   ),
+
+                  // Autocomplete suggestions overlay
+                  if (state.mapDisplayState != MapDisplayState.compact &&
+                      _isSearching &&
+                      _suggestions.isNotEmpty)
+                    Positioned(
+                      top: MediaQuery.paddingOf(context).top + 10 + 48 + 8,
+                      left: 20,
+                      right: 20,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E1E24)
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        constraints: const BoxConstraints(maxHeight: 220),
+                        child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shrinkWrap: true,
+                          itemCount: _suggestions.length,
+                          separatorBuilder: (_, _) => Divider(
+                            height: 1,
+                            color: isDark ? Colors.white10 : Colors.black12,
+                          ),
+                          itemBuilder: (context, idx) {
+                            final suggestion = _suggestions[idx];
+                            return ListTile(
+                              leading: const Icon(
+                                Icons.location_on_rounded,
+                                color: AppColors.primary,
+                              ),
+                              title: Text(
+                                suggestion.name,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : Colors.black,
+                                ),
+                              ),
+                              subtitle: suggestion.address.isNotEmpty
+                                  ? Text(
+                                      suggestion.address,
+                                      style: const TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 12,
+                                      ),
+                                    )
+                                  : null,
+                              onTap: () => _selectPlace(suggestion),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -309,158 +500,199 @@ class _LiveMapScreenState extends State<LiveMapScreen>
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
 class _TopBar extends StatelessWidget {
-  final bool isExpanded;
+  final bool showSearch;
   final VoidCallback onSosTap;
   final double latitude;
   final double longitude;
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onClearSearch;
+  final FocusNode searchFocusNode;
 
   const _TopBar({
-    required this.isExpanded,
+    required this.showSearch,
     required this.onSosTap,
     required this.latitude,
     required this.longitude,
+    required this.searchController,
+    required this.onSearchChanged,
+    required this.onClearSearch,
+    required this.searchFocusNode,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Notification button (phbell) specs:
-    // width: 40, height: 40, padding: 6.4px, gap: 8px
     final double bellSize = context.w(40);
-    final double bellPadding = context.w(6.4);
-
-    // Center icon specs:
-    // width: 40, height: 40
     final double centerIconSize = context.w(40);
-
-    // SOS button specs:
-    // width: 83, height: 40, padding-top/bottom: 4, padding-left/right: 11, gap: 10
     final double sosHeight = context.w(40);
-    final double sosPaddingHorizontal = context.w(11);
-    final double sosPaddingVertical = context.w(4);
-    final double sosGap = context.w(10);
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: context.w(20)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Bell icon — circular grey pill
+          // Bell icon — glassmorphic circular button with explicit size icon
           Container(
             width: bellSize,
             height: bellSize,
-            padding: EdgeInsets.all(bellPadding),
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF1E1E24)
-                  : const Color(0xFFF2F2F5).withValues(alpha: 0.95),
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Colors.black.withValues(alpha: 0.04),
               shape: BoxShape.circle,
             ),
             child: Center(
               child: Image.asset(
                 AppAssets.phBell,
+                width: context.w(20),
+                height: context.w(20),
+                color: isDark ? Colors.white : const Color(0xFF1C1C24),
                 errorBuilder: (_, _, _) => Icon(
                   Icons.notifications_none_rounded,
                   size: context.w(20),
-                  color: isDark ? Colors.white70 : const Color(0xFF555566),
+                  color: isDark ? Colors.white : const Color(0xFF1C1C24),
                 ),
               ),
             ),
           ),
 
-          // Centre: Guardian home icon OR Address Pill
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: isExpanded
-                ? Container(
-                    key: const ValueKey('address'),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: context.w(16),
-                      vertical: context.w(10),
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFB3B3BB).withValues(alpha: 0.95),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: context.w(180)),
-                      child: _AddressText(
-                        latitude: latitude,
-                        longitude: longitude,
-                      ),
-                    ),
-                  )
-                : Image.asset(
-                    AppAssets.appCenterHomeIcon,
-                    key: const ValueKey('icon'),
-                    width: centerIconSize,
-                    height: centerIconSize,
-                    errorBuilder: (_, _, _) => Container(
-                      width: centerIconSize,
-                      height: centerIconSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isDark
-                            ? const Color(0xFF28243D)
-                            : const Color(0xFFE5DEFF),
-                      ),
-                      child: Icon(
-                        Icons.map_rounded,
-                        color: isDark
-                            ? const Color(0xFF8F76FF)
-                            : const Color(0xFF7C60FF),
-                        size: context.w(22),
-                      ),
-                    ),
+          // Centre: Expandable search bar OR Guardian Home Icon / Address Pill
+          if (showSearch)
+            Expanded(
+              child: Container(
+                height: context.w(40),
+                margin: EdgeInsets.symmetric(horizontal: context.w(10)),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.05),
+                    width: 1,
                   ),
-          ),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: context.w(12)),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.search_rounded,
+                      color: isDark ? Colors.white54 : Colors.black54,
+                      size: context.w(18),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: searchController,
+                        focusNode: searchFocusNode,
+                        onChanged: onSearchChanged,
+                        decoration: InputDecoration(
+                          hintText: 'Search places...',
+                          hintStyle: TextStyle(
+                            color: isDark ? Colors.white38 : Colors.black38,
+                            fontSize: context.sp(13),
+                            fontFamily: 'Inter',
+                          ),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black,
+                          fontSize: context.sp(14),
+                          fontFamily: 'Inter',
+                        ),
+                      ),
+                    ),
+                    if (searchController.text.isNotEmpty)
+                      GestureDetector(
+                        onTap: onClearSearch,
+                        child: Icon(
+                          Icons.clear_rounded,
+                          color: isDark ? Colors.white54 : Colors.black54,
+                          size: context.w(16),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            )
+          else
+            // In compact mode, show the center home icon
+            Image.asset(
+              AppAssets.appCenterHomeIcon,
+              width: centerIconSize,
+              height: centerIconSize,
+              errorBuilder: (_, _, _) => Container(
+                width: centerIconSize,
+                height: centerIconSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark
+                      ? const Color(0xFF28243D)
+                      : const Color(0xFFE5DEFF),
+                ),
+                child: Icon(
+                  Icons.map_rounded,
+                  color: isDark
+                      ? const Color(0xFF8F76FF)
+                      : const Color(0xFF7C60FF),
+                  size: context.w(22),
+                ),
+              ),
+            ),
 
-          // SOS and grid combined pill
+          // SOS trigger
           GestureDetector(
             onTap: onSosTap,
             child: Container(
               height: sosHeight,
-              padding: EdgeInsets.symmetric(
-                horizontal: sosPaddingHorizontal,
-                vertical: sosPaddingVertical,
+              padding: EdgeInsets.only(
+                left: context.w(16),
+                right: context.w(6),
               ),
               decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF1E1E24)
-                    : const Color(0xFFF2F2F5).withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(200),
+                    ? const Color(0xFF2C2C34)
+                    : const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(24),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'SOS',
-                    style: TextStyle(
-                      fontFamily: 'Outfit',
-                      fontSize: context.sp(14),
-                      fontWeight: FontWeight.w800,
-                      color: const Color(0xFFFF3380),
-                    ),
-                  ),
-                  SizedBox(width: sosGap),
-                  Container(
-                    width: context.w(28),
-                    height: context.w(28),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFF3380),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.grid_view_rounded,
-                        color: Colors.white,
-                        size: context.w(14),
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'SOS',
+                      style: TextStyle(
+                        fontFamily: 'Outfit',
+                        fontSize: context.sp(14),
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFFF3380),
+                        letterSpacing: 0.5,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Container(
+                      width: sosHeight - 12,
+                      height: sosHeight - 12,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF3380),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Icon(
+                          Icons.grid_view_rounded,
+                          color: Colors.white,
+                          size: context.w(14),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -648,6 +880,9 @@ class _MapCard extends StatefulWidget {
   final List<dynamic> members;
   final double userLatitude;
   final double userLongitude;
+  final String circleId;
+  final SelectedLivePlace? selectedPlace;
+  final VoidCallback onClearSearch;
 
   const _MapCard({
     required this.mapState,
@@ -659,6 +894,9 @@ class _MapCard extends StatefulWidget {
     required this.members,
     required this.userLatitude,
     required this.userLongitude,
+    required this.circleId,
+    required this.selectedPlace,
+    required this.onClearSearch,
   });
 
   @override
@@ -667,11 +905,7 @@ class _MapCard extends StatefulWidget {
 
 class _MapCardState extends State<_MapCard> {
   GoogleMapController? _controller;
-  final TextEditingController _searchController = TextEditingController();
-  String _mapsApiKey = '';
-  List<LivePlace> _suggestions = [];
-  SelectedLivePlace? _selectedPlace;
-  bool _isSearching = false;
+  am.AppleMapController? _amController;
 
   BitmapDescriptor? _avatarTopMarker;
   BitmapDescriptor? _avatarLeftMarker;
@@ -686,31 +920,126 @@ class _MapCardState extends State<_MapCard> {
   am.BitmapDescriptor? _amUserLocationMarker;
   am.BitmapDescriptor? _amDevicePhoneMarker;
   am.BitmapDescriptor? _amDeviceLaptopMarker;
-  am.AppleMapController? _amController;
+
+  Timer? _gpsTimer;
+  List<dynamic> _serverLocations = [];
+  Map<String, dynamic>? _nearestMemberInfo;
+  List<dynamic> _sessions = [];
+  String _currentDeviceModel = '';
+  String _currentUserId = '';
+
+  final Map<String, BitmapDescriptor> _googleMarkersCache = {};
+  final Map<String, am.BitmapDescriptor> _appleMarkersCache = {};
+  final Map<String, bool> _loadingAvatars = {};
 
   @override
   void initState() {
     super.initState();
-    _fetchMapKeys();
     _loadMarkerIcons();
+    _loadCurrentUserId();
+    _fetchCurrentDeviceModel();
+    _syncLocationAndLoadData();
+    _startGpsTimer();
   }
 
-  Future<void> _fetchMapKeys() async {
+  @override
+  void dispose() {
+    _gpsTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startGpsTimer() {
+    _gpsTimer?.cancel();
+    _gpsTimer = Timer.periodic(const Duration(seconds: 10), (timer) async {
+      await _syncLocationAndLoadData();
+    });
+  }
+
+  Future<void> _loadCurrentUserId() async {
     try {
-      final response = await http.get(
-        Uri.parse('${ApiBase.baseUrl}/api/v1/config/maps'),
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final key = Platform.isIOS ? data['ios_key'] : data['android_key'];
-        if (key != null && key.toString().isNotEmpty) {
-          setState(() {
-            _mapsApiKey = key.toString();
+      final prefs = locator<SharedPreferences>();
+      _currentUserId = prefs.getString('user_id') ?? '';
+    } catch (_) {}
+  }
+
+  Future<void> _fetchCurrentDeviceModel() async {
+    try {
+      final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        _currentDeviceModel = androidInfo.model;
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        _currentDeviceModel = iosInfo.utsname.machine;
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _syncLocationAndLoadData() async {
+    if (!mounted) return;
+    try {
+      final loc = await GpsService().getCurrentLocation();
+      final lat = loc['latitude'] ?? widget.userLatitude;
+      final lon = loc['longitude'] ?? widget.userLongitude;
+
+      if (widget.circleId.isNotEmpty) {
+        await ApiService.updateLocation(
+          circleId: widget.circleId,
+          latitude: lat,
+          longitude: lon,
+          accuracy: 10.0,
+        );
+      }
+
+      final sessionsList = await ApiService.getSessions();
+
+      List<dynamic> serverLocs = [];
+      Map<String, dynamic>? nearest;
+      if (widget.circleId.isNotEmpty) {
+        serverLocs = await ApiService.getCircleMemberLocations(widget.circleId);
+        nearest = await ApiService.getNearestMemberLocation(widget.circleId);
+      }
+
+      if (mounted) {
+        setState(() {
+          _sessions = sessionsList;
+          _serverLocations = serverLocs;
+          _nearestMemberInfo = nearest;
+        });
+      }
+
+      // Background avatar preloading
+      for (var member in serverLocs) {
+        final String uid = member['user_id'] ?? '';
+        final String url = member['avatar_url'] ?? '';
+        final String name = member['name'] ?? 'Member';
+
+        if (uid.isNotEmpty &&
+            url.isNotEmpty &&
+            !_loadingAvatars.containsKey(uid)) {
+          _loadingAvatars[uid] = true;
+          _loadNetworkImage(url).then((img) async {
+            if (img != null) {
+              final gMarker = await _createAvatarPinMarker(
+                name,
+                avatarImage: img,
+              );
+              final aMarker = await _createAmAvatarPinMarker(
+                name,
+                avatarImage: img,
+              );
+              if (mounted) {
+                setState(() {
+                  _googleMarkersCache[uid] = gMarker;
+                  _appleMarkersCache[uid] = aMarker;
+                });
+              }
+            }
           });
         }
       }
     } catch (e) {
-      log('Error fetching maps API key from backend: $e');
+      log('Error in location background sync: $e');
     }
   }
 
@@ -722,30 +1051,30 @@ class _MapCardState extends State<_MapCard> {
 
       // 2. Member avatar pins (Nigeria/brother's circle members with labels)
       _avatarTopMarker = await _createAvatarPinMarker(
-        AppAssets.avatarTop,
         "Dave",
+        assetPath: AppAssets.avatarTop,
       );
       _amAvatarTopMarker = await _createAmAvatarPinMarker(
-        AppAssets.avatarTop,
         "Dave",
+        assetPath: AppAssets.avatarTop,
       );
 
       _avatarLeftMarker = await _createAvatarPinMarker(
-        AppAssets.avatarLeft,
         "Sarah",
+        assetPath: AppAssets.avatarLeft,
       );
       _amAvatarLeftMarker = await _createAmAvatarPinMarker(
-        AppAssets.avatarLeft,
         "Sarah",
+        assetPath: AppAssets.avatarLeft,
       );
 
       _avatarRightMarker = await _createAvatarPinMarker(
-        AppAssets.avatarRight,
         "John",
+        assetPath: AppAssets.avatarRight,
       );
       _amAvatarRightMarker = await _createAmAvatarPinMarker(
-        AppAssets.avatarRight,
         "John",
+        assetPath: AppAssets.avatarRight,
       );
 
       // 3. Logged-in device pins (locator icon for other user devices)
@@ -771,6 +1100,24 @@ class _MapCardState extends State<_MapCard> {
     } catch (e) {
       log('Error loading custom marker bitmaps: $e');
     }
+  }
+
+  Future<ui.Image?> _loadNetworkImage(String url) async {
+    try {
+      final response = await http
+          .get(Uri.parse(url))
+          .timeout(const Duration(seconds: 5));
+      if (response.statusCode == 200) {
+        final ui.Codec codec = await ui.instantiateImageCodec(
+          response.bodyBytes,
+        );
+        final ui.FrameInfo fi = await codec.getNextFrame();
+        return fi.image;
+      }
+    } catch (e) {
+      log('Error downloading avatar $url: $e');
+    }
+    return null;
   }
 
   Future<ui.Image> _loadUiImage(String assetPath) async {
@@ -911,9 +1258,10 @@ class _MapCardState extends State<_MapCard> {
   }
 
   Future<BitmapDescriptor> _createAvatarPinMarker(
-    String assetPath,
-    String label,
-  ) async {
+    String label, {
+    String? assetPath,
+    ui.Image? avatarImage,
+  }) async {
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
     const double width = 120;
@@ -974,13 +1322,20 @@ class _MapCardState extends State<_MapCard> {
         );
       canvas.clipPath(clipPath);
 
-      final ui.Image avatarImage = await _loadUiImage(assetPath);
-      paintImage(
-        canvas: canvas,
-        rect: Rect.fromCircle(center: avatarCenter, radius: avatarRadius - 1.5),
-        image: avatarImage,
-        fit: BoxFit.cover,
-      );
+      final ui.Image? img =
+          avatarImage ??
+          (assetPath != null ? await _loadUiImage(assetPath) : null);
+      if (img != null)
+        paintImage(
+          canvas: canvas,
+          rect: Rect.fromCircle(
+            center: avatarCenter,
+            radius: avatarRadius - 1.5,
+          ),
+          image: img,
+          fit: BoxFit.cover,
+        );
+
       canvas.restore();
     } catch (_) {
       canvas.restore();
@@ -997,9 +1352,10 @@ class _MapCardState extends State<_MapCard> {
   }
 
   Future<am.BitmapDescriptor> _createAmAvatarPinMarker(
-    String assetPath,
-    String label,
-  ) async {
+    String label, {
+    String? assetPath,
+    ui.Image? avatarImage,
+  }) async {
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
     const double width = 120;
@@ -1060,13 +1416,20 @@ class _MapCardState extends State<_MapCard> {
         );
       canvas.clipPath(clipPath);
 
-      final ui.Image avatarImage = await _loadUiImage(assetPath);
-      paintImage(
-        canvas: canvas,
-        rect: Rect.fromCircle(center: avatarCenter, radius: avatarRadius - 1.5),
-        image: avatarImage,
-        fit: BoxFit.cover,
-      );
+      final ui.Image? img =
+          avatarImage ??
+          (assetPath != null ? await _loadUiImage(assetPath) : null);
+      if (img != null)
+        paintImage(
+          canvas: canvas,
+          rect: Rect.fromCircle(
+            center: avatarCenter,
+            radius: avatarRadius - 1.5,
+          ),
+          image: img,
+          fit: BoxFit.cover,
+        );
+
       canvas.restore();
     } catch (_) {
       canvas.restore();
@@ -1249,223 +1612,6 @@ class _MapCardState extends State<_MapCard> {
     _controller = controller;
   }
 
-  List<MockPlace> _getPlacesForCountry(String countryCode) {
-    switch (countryCode.toUpperCase()) {
-      case 'NG':
-        return [
-          const MockPlace(
-            name: 'Wuse Market',
-            address: 'Herbert Macaulay Way, Wuse, Abuja',
-            coordinates: LatLng(9.0614, 7.4682),
-          ),
-          const MockPlace(
-            name: 'Millennium Park',
-            address: 'Three Arms Zone, Abuja 900103',
-            coordinates: LatLng(9.0620, 7.5020),
-          ),
-          const MockPlace(
-            name: 'Transcorp Hilton Abuja',
-            address: '1 Aguiyi Ironsi St, Maitama, Abuja',
-            coordinates: LatLng(9.0782, 7.4984),
-          ),
-          const MockPlace(
-            name: 'Jabi Lake Mall',
-            address: 'Bala Sokoto Way, Jabi, Abuja',
-            coordinates: LatLng(9.0788, 7.4290),
-          ),
-          const MockPlace(
-            name: 'Nnamdi Azikiwe Airport',
-            address: 'Airport Road, Abuja',
-            coordinates: LatLng(9.0067, 7.2631),
-          ),
-        ];
-      case 'US':
-        return [
-          const MockPlace(
-            name: 'Golden Gate Bridge',
-            address: 'Golden Gate Bridge, San Francisco, CA',
-            coordinates: LatLng(37.8199, -122.4783),
-          ),
-          const MockPlace(
-            name: 'Fisherman\'s Wharf',
-            address: 'Jefferson Street, San Francisco, CA',
-            coordinates: LatLng(37.8080, -122.4177),
-          ),
-          const MockPlace(
-            name: 'Union Square',
-            address: '333 Post St, San Francisco, CA 94108',
-            coordinates: LatLng(37.7876, -122.4066),
-          ),
-          const MockPlace(
-            name: 'San Francisco Airport (SFO)',
-            address: 'SFO Airport, CA 94128',
-            coordinates: LatLng(37.6213, -122.3790),
-          ),
-        ];
-      case 'GB':
-        return [
-          const MockPlace(
-            name: 'Buckingham Palace',
-            address: 'London SW1A 1AA, UK',
-            coordinates: LatLng(51.5014, -0.1419),
-          ),
-          const MockPlace(
-            name: 'London Eye',
-            address: 'Riverside Building, County Hall, London',
-            coordinates: LatLng(51.5033, -0.1195),
-          ),
-          const MockPlace(
-            name: 'Heathrow Airport',
-            address: 'Hounslow TW6, UK',
-            coordinates: LatLng(51.4700, -0.4543),
-          ),
-          const MockPlace(
-            name: 'Big Ben',
-            address: 'London SW1A 0AA, UK',
-            coordinates: LatLng(51.5007, -0.1246),
-          ),
-        ];
-      default:
-        return [
-          const MockPlace(
-            name: 'Central Park',
-            address: 'Central Business District, Abuja',
-            coordinates: LatLng(9.0538, 7.4891),
-          ),
-          const MockPlace(
-            name: 'Wuse Market',
-            address: 'Herbert Macaulay Way, Wuse, Abuja',
-            coordinates: LatLng(9.0614, 7.4682),
-          ),
-          const MockPlace(
-            name: 'Nnamdi Azikiwe Airport',
-            address: 'Airport Road, Abuja',
-            coordinates: LatLng(9.0067, 7.2631),
-          ),
-        ];
-    }
-  }
-
-  Future<void> _onSearchChanged(String query) async {
-    if (query.isEmpty) {
-      setState(() {
-        _suggestions = [];
-        _isSearching = false;
-      });
-      return;
-    }
-
-    final defaultKey = Platform.isIOS
-        ? 'AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs'
-        : 'AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q';
-    final key = _mapsApiKey.isNotEmpty ? _mapsApiKey : defaultKey;
-
-    final prefs = locator<SharedPreferences>();
-    final countryCode = prefs.getString('country_code') ?? 'NG';
-
-    final url =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-        '?input=${Uri.encodeComponent(query)}'
-        '&key=$key'
-        '&components=country:${countryCode.toLowerCase()}';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'OK' || data['status'] == 'ZERO_RESULTS') {
-          final predictions = data['predictions'] as List<dynamic>? ?? [];
-          final results = predictions.map((pred) {
-            return LivePlace(
-              placeId: pred['place_id'] as String,
-              name:
-                  pred['structured_formatting']?['main_text'] as String? ??
-                  pred['description'] as String,
-              address:
-                  pred['structured_formatting']?['secondary_text'] as String? ??
-                  '',
-            );
-          }).toList();
-
-          setState(() {
-            _suggestions = results;
-            _isSearching = true;
-          });
-        } else {
-          log('Google Places Autocomplete status error: ${data["status"]}');
-        }
-      }
-    } catch (e) {
-      log('Error querying Google Places API: $e');
-    }
-  }
-
-  Future<void> _selectPlace(LivePlace place) async {
-    final defaultKey = Platform.isIOS
-        ? 'AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs'
-        : 'AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q';
-    final key = _mapsApiKey.isNotEmpty ? _mapsApiKey : defaultKey;
-
-    final url =
-        'https://maps.googleapis.com/maps/api/place/details/json'
-        '?place_id=${place.placeId}'
-        '&key=$key'
-        '&fields=geometry';
-
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'OK') {
-          final location = data['result']?['geometry']?['location'];
-          if (location != null) {
-            final lat = location['lat'] as double;
-            final lng = location['lng'] as double;
-            final selectedLatLng = LatLng(lat, lng);
-
-            setState(() {
-              _selectedPlace = SelectedLivePlace(
-                name: place.name,
-                address: place.address,
-                coordinates: selectedLatLng,
-              );
-              _isSearching = false;
-              _searchController.text = place.name;
-              _suggestions = [];
-            });
-
-            if (Platform.isIOS) {
-              _amController?.animateCamera(
-                am.CameraUpdate.newCameraPosition(
-                  am.CameraPosition(
-                    target: am.LatLng(
-                      selectedLatLng.latitude,
-                      selectedLatLng.longitude,
-                    ),
-                    zoom: 15.5,
-                    pitch: 45.0,
-                  ),
-                ),
-              );
-            } else {
-              _controller?.animateCamera(
-                CameraUpdate.newCameraPosition(
-                  CameraPosition(
-                    target: selectedLatLng,
-                    zoom: 15.5,
-                    tilt: 45.0,
-                  ),
-                ),
-              );
-            }
-          }
-        }
-      }
-    } catch (e) {
-      log('Error getting place details: $e');
-    }
-  }
-
   List<LatLng> _generateRoutingCoordinates(LatLng start, LatLng end) {
     final List<LatLng> points = [];
     points.add(start);
@@ -1486,9 +1632,9 @@ class _MapCardState extends State<_MapCard> {
   }
 
   Future<void> _launchDirections() async {
-    if (_selectedPlace == null) return;
+    if (widget.selectedPlace == null) return;
     final url =
-        'https://www.google.com/maps/dir/?api=1&destination=${_selectedPlace!.coordinates.latitude},${_selectedPlace!.coordinates.longitude}';
+        'https://www.google.com/maps/dir/?api=1&destination=${widget.selectedPlace!.coordinates.latitude},${widget.selectedPlace!.coordinates.longitude}';
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -1581,7 +1727,10 @@ class _MapCardState extends State<_MapCard> {
         final bool ignoreGestures = isCompact;
 
         // Define markers list
-        final Set<Marker> markers = {
+        final Set<Marker> markers = {};
+
+        // Add User Location
+        markers.add(
           Marker(
             markerId: const MarkerId('user_loc'),
             position: userLoc,
@@ -1592,85 +1741,66 @@ class _MapCardState extends State<_MapCard> {
                 ),
             infoWindow: const InfoWindow(title: 'You'),
           ),
-        };
+        );
 
-        if (_devicePhoneMarker != null) {
-          markers.add(
-            Marker(
-              markerId: const MarkerId('user_device_phone'),
-              position: LatLng(
-                widget.userLatitude + 0.0012,
-                widget.userLongitude - 0.0012,
-              ),
-              icon: _devicePhoneMarker!,
-              infoWindow: const InfoWindow(title: 'Samsung A14 (This Phone)'),
-            ),
-          );
-        }
+        // Add Device Sessions
+        for (var session in _sessions) {
+          if (_sessions.length == 1) continue;
 
-        if (_deviceLaptopMarker != null) {
-          markers.add(
-            Marker(
-              markerId: const MarkerId('user_device_laptop'),
-              position: LatLng(
-                widget.userLatitude - 0.0015,
-                widget.userLongitude + 0.002,
+          final String deviceName = session['device_name'] ?? 'Device';
+          final String os = session['os']?.toString().toLowerCase() ?? '';
+          if (deviceName == _currentDeviceModel) continue;
+
+          final isMobile = os.contains('ios') || os.contains('android');
+          final icon = isMobile ? _devicePhoneMarker : _deviceLaptopMarker;
+          if (icon != null) {
+            markers.add(
+              Marker(
+                markerId: MarkerId('device_${session['hash']}'),
+                position: LatLng(
+                  widget.userLatitude + 0.0012,
+                  widget.userLongitude - 0.0012,
+                ),
+                icon: icon,
+                infoWindow: InfoWindow(title: deviceName),
               ),
-              icon: _deviceLaptopMarker!,
-              infoWindow: const InfoWindow(title: 'MacBook Pro'),
-            ),
-          );
+            );
+          }
         }
 
-        if (_avatarTopMarker != null) {
-          markers.add(
-            Marker(
-              markerId: const MarkerId('member_1'),
-              position: LatLng(
-                widget.userLatitude + 0.003,
-                widget.userLongitude + 0.003,
+        // Add Dynamic Member Locations
+        for (var member in _serverLocations) {
+          final uid = member['user_id'] ?? '';
+          if (uid == _currentUserId) continue;
+
+          final lat = member['latitude'] as double? ?? 0.0;
+          final lng = member['longitude'] as double? ?? 0.0;
+          final name = member['name'] ?? 'Member';
+
+          BitmapDescriptor? icon = _googleMarkersCache[uid];
+          if (icon == null) icon = _avatarTopMarker;
+
+          if (icon != null) {
+            markers.add(
+              Marker(
+                markerId: MarkerId('member_$uid'),
+                position: LatLng(lat, lng),
+                icon: icon,
+                infoWindow: InfoWindow(title: name),
               ),
-              icon: _avatarTopMarker!,
-              infoWindow: const InfoWindow(title: 'Dave'),
-            ),
-          );
-        }
-        if (_avatarLeftMarker != null) {
-          markers.add(
-            Marker(
-              markerId: const MarkerId('member_2'),
-              position: LatLng(
-                widget.userLatitude - 0.002,
-                widget.userLongitude - 0.004,
-              ),
-              icon: _avatarLeftMarker!,
-              infoWindow: const InfoWindow(title: 'Sarah'),
-            ),
-          );
-        }
-        if (_avatarRightMarker != null) {
-          markers.add(
-            Marker(
-              markerId: const MarkerId('member_3'),
-              position: LatLng(
-                widget.userLatitude + 0.002,
-                widget.userLongitude - 0.003,
-              ),
-              icon: _avatarRightMarker!,
-              infoWindow: const InfoWindow(title: 'John'),
-            ),
-          );
+            );
+          }
         }
 
-        if (_selectedPlace != null) {
+        if (widget.selectedPlace != null) {
           markers.add(
             Marker(
               markerId: const MarkerId('destination'),
-              position: _selectedPlace!.coordinates,
+              position: widget.selectedPlace!.coordinates,
               icon: BitmapDescriptor.defaultMarkerWithHue(
                 BitmapDescriptor.hueRose,
               ),
-              infoWindow: InfoWindow(title: _selectedPlace!.name),
+              infoWindow: InfoWindow(title: widget.selectedPlace!.name),
             ),
           );
         }
@@ -1680,10 +1810,10 @@ class _MapCardState extends State<_MapCard> {
         double distanceKm = 0.0;
         int durationMins = 0;
 
-        if (_selectedPlace != null) {
+        if (widget.selectedPlace != null) {
           final routeCoords = _generateRoutingCoordinates(
             userLoc,
-            _selectedPlace!.coordinates,
+            widget.selectedPlace!.coordinates,
           );
           polylines.add(
             Polyline(
@@ -1698,8 +1828,8 @@ class _MapCardState extends State<_MapCard> {
           final meters = Geolocator.distanceBetween(
             userLoc.latitude,
             userLoc.longitude,
-            _selectedPlace!.coordinates.latitude,
-            _selectedPlace!.coordinates.longitude,
+            widget.selectedPlace!.coordinates.latitude,
+            widget.selectedPlace!.coordinates.longitude,
           );
           distanceKm = meters / 1000.0;
           durationMins = (distanceKm / 40.0 * 60.0).round().clamp(1, 120);
@@ -1708,23 +1838,64 @@ class _MapCardState extends State<_MapCard> {
         final Widget mapWidget;
 
         if (Platform.isIOS) {
-          final amAnnotations = markers.map((m) {
-            am.BitmapDescriptor? icon;
-            if (m.icon == _avatarTopMarker) icon = _amAvatarTopMarker;
-            if (m.icon == _avatarLeftMarker) icon = _amAvatarLeftMarker;
-            if (m.icon == _avatarRightMarker) icon = _amAvatarRightMarker;
-            if (m.icon == _userLocationMarker) icon = _amUserLocationMarker;
-            if (m.icon == _devicePhoneMarker) icon = _amDevicePhoneMarker;
-            if (m.icon == _deviceLaptopMarker) icon = _amDeviceLaptopMarker;
-            icon ??= am.BitmapDescriptor.defaultAnnotation;
+          final amAnnotations = <am.Annotation>{};
 
-            return am.Annotation(
-              annotationId: am.AnnotationId(m.markerId.value),
-              position: am.LatLng(m.position.latitude, m.position.longitude),
-              icon: icon,
-              infoWindow: am.InfoWindow(title: m.infoWindow.title),
-            );
-          }).toSet();
+          amAnnotations.add(
+            am.Annotation(
+              annotationId: am.AnnotationId('user_loc'),
+              position: am.LatLng(userLoc.latitude, userLoc.longitude),
+              icon:
+                  _amUserLocationMarker ??
+                  am.BitmapDescriptor.defaultAnnotation,
+              infoWindow: am.InfoWindow(title: 'You'),
+            ),
+          );
+
+          for (var session in _sessions) {
+            if (_sessions.length == 1) continue;
+            final String deviceName = session['device_name'] ?? 'Device';
+            final String os = session['os']?.toString().toLowerCase() ?? '';
+            if (deviceName == _currentDeviceModel) continue;
+            final isMobile = os.contains('ios') || os.contains('android');
+            final icon = isMobile
+                ? _amDevicePhoneMarker
+                : _amDeviceLaptopMarker;
+            if (icon != null) {
+              amAnnotations.add(
+                am.Annotation(
+                  annotationId: am.AnnotationId('device_${session['hash']}'),
+                  position: am.LatLng(
+                    widget.userLatitude + 0.0012,
+                    widget.userLongitude - 0.0012,
+                  ),
+                  icon: icon,
+                  infoWindow: am.InfoWindow(title: deviceName),
+                ),
+              );
+            }
+          }
+
+          for (var member in _serverLocations) {
+            final uid = member['user_id'] ?? '';
+            if (uid == _currentUserId) continue;
+            final lat = member['latitude'] as double? ?? 0.0;
+            final lng = member['longitude'] as double? ?? 0.0;
+            final name = member['name'] ?? 'Member';
+
+            am.BitmapDescriptor? icon = _appleMarkersCache[uid];
+            if (icon == null) icon = _amAvatarTopMarker;
+
+            if (icon != null) {
+              amAnnotations.add(
+                am.Annotation(
+                  annotationId: am.AnnotationId('member_$uid'),
+                  position: am.LatLng(lat, lng),
+                  icon: icon,
+                  infoWindow: am.InfoWindow(title: name),
+                ),
+              );
+            }
+          }
 
           final amPolylines = polylines
               .map(
@@ -1834,20 +2005,8 @@ class _MapCardState extends State<_MapCard> {
                             Positioned(
                               top: 14,
                               left: 14,
-                              child: _MapDistanceBadge(),
-                            ),
-                            const Positioned(
-                              right: 16,
-                              bottom: 14,
-                              child: Text(
-                                'COUNTRY\nCLUB PARK',
-                                textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  fontFamily: 'Outfit',
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF4C5E87),
-                                ),
+                              child: _MapDistanceBadge(
+                                nearestMember: _nearestMemberInfo,
                               ),
                             ),
                           ],
@@ -1924,197 +2083,10 @@ class _MapCardState extends State<_MapCard> {
                         opacity: fullOpacity,
                         child: Stack(
                           children: [
-                            // Top Search Bar
-                            Positioned(
-                              top: MediaQuery.paddingOf(context).top + 10,
-                              left: 16,
-                              right: 16,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        decoration: BoxDecoration(
-                                          color: isDark
-                                              ? const Color(0xFF1E1E24)
-                                              : Colors.white,
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.1,
-                                              ),
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 3),
-                                            ),
-                                          ],
-                                        ),
-                                        child: IconButton(
-                                          icon: Icon(
-                                            Icons.arrow_back_rounded,
-                                            color: isDark
-                                                ? Colors.white
-                                                : Colors.black,
-                                          ),
-                                          onPressed: () {
-                                            // Back resets from full to expanded state
-                                            widget.onTap();
-                                          },
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Container(
-                                          height: 52,
-                                          decoration: BoxDecoration(
-                                            color: isDark
-                                                ? const Color(
-                                                    0xFF1E1E24,
-                                                  ).withValues(alpha: 0.95)
-                                                : Colors.white.withValues(
-                                                    alpha: 0.95,
-                                                  ),
-                                            borderRadius: BorderRadius.circular(
-                                              26,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(
-                                                  alpha: 0.1,
-                                                ),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 3),
-                                              ),
-                                            ],
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                Icons.search_rounded,
-                                                color: AppColors.primary,
-                                                size: 20,
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Expanded(
-                                                child: TextField(
-                                                  controller: _searchController,
-                                                  onChanged: _onSearchChanged,
-                                                  decoration:
-                                                      const InputDecoration(
-                                                        hintText:
-                                                            'Search places...',
-                                                        border:
-                                                            InputBorder.none,
-                                                        isDense: true,
-                                                      ),
-                                                  style: TextStyle(
-                                                    fontFamily: 'Inter',
-                                                    fontSize: 14,
-                                                    color: isDark
-                                                        ? Colors.white
-                                                        : Colors.black,
-                                                  ),
-                                                ),
-                                              ),
-                                              if (_searchController
-                                                  .text
-                                                  .isNotEmpty)
-                                                IconButton(
-                                                  icon: const Icon(
-                                                    Icons.clear_rounded,
-                                                    size: 18,
-                                                  ),
-                                                  onPressed: () {
-                                                    _searchController.clear();
-                                                    setState(() {
-                                                      _selectedPlace = null;
-                                                      _suggestions = [];
-                                                      _isSearching = false;
-                                                    });
-                                                  },
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (_isSearching && _suggestions.isNotEmpty)
-                                    Container(
-                                      margin: const EdgeInsets.only(top: 6),
-                                      constraints: const BoxConstraints(
-                                        maxHeight: 220,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? const Color(0xFF1E1E24)
-                                            : Colors.white,
-                                        borderRadius: BorderRadius.circular(20),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.15,
-                                            ),
-                                            blurRadius: 10,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: ListView.separated(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 8,
-                                        ),
-                                        shrinkWrap: true,
-                                        itemCount: _suggestions.length,
-                                        separatorBuilder: (_, _) => Divider(
-                                          height: 1,
-                                          color: isDark
-                                              ? Colors.white10
-                                              : Colors.black12,
-                                        ),
-                                        itemBuilder: (context, index) {
-                                          final place = _suggestions[index];
-                                          return ListTile(
-                                            leading: const Icon(
-                                              Icons.location_on_rounded,
-                                              color: AppColors.primary,
-                                            ),
-                                            title: Text(
-                                              place.name,
-                                              style: TextStyle(
-                                                fontFamily: 'Inter',
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 14,
-                                                color: isDark
-                                                    ? Colors.white
-                                                    : Colors.black,
-                                              ),
-                                            ),
-                                            subtitle: Text(
-                                              place.address,
-                                              style: const TextStyle(
-                                                fontFamily: 'Inter',
-                                                fontSize: 11,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                            onTap: () => _selectPlace(place),
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-
                             // Right controls (Zoom In, Zoom Out, Recenter to user)
                             Positioned(
                               right: 16,
-                              bottom: _selectedPlace != null ? 300 : 120,
+                              bottom: widget.selectedPlace != null ? 300 : 120,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -2185,7 +2157,7 @@ class _MapCardState extends State<_MapCard> {
                             ),
 
                             // Bottom Directions Panel
-                            if (_selectedPlace != null)
+                            if (widget.selectedPlace != null)
                               Positioned(
                                 left: 16,
                                 right: 16,
@@ -2215,7 +2187,7 @@ class _MapCardState extends State<_MapCard> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        _selectedPlace!.name,
+                                        widget.selectedPlace!.name,
                                         style: TextStyle(
                                           fontFamily: 'Outfit',
                                           fontWeight: FontWeight.w800,
@@ -2227,7 +2199,7 @@ class _MapCardState extends State<_MapCard> {
                                       ),
                                       const SizedBox(height: 2),
                                       Text(
-                                        _selectedPlace!.address,
+                                        widget.selectedPlace!.address,
                                         style: const TextStyle(
                                           fontFamily: 'Inter',
                                           fontSize: 11,
@@ -2294,8 +2266,20 @@ class _MapCardState extends State<_MapCard> {
 }
 
 class _MapDistanceBadge extends StatelessWidget {
+  final Map<String, dynamic>? nearestMember;
+
+  const _MapDistanceBadge({this.nearestMember});
+
   @override
   Widget build(BuildContext context) {
+    String text = 'Finding nearby...';
+    if (nearestMember != null) {
+      final dist = nearestMember!['distance_km'] as double? ?? 0.0;
+      final time = nearestMember!['duration_mins'] as int? ?? 0;
+      final name = nearestMember!['name'] as String? ?? 'Member';
+      text = '${name} is ${dist.toStringAsFixed(1)} km away • ${time} mins';
+    }
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
@@ -2320,9 +2304,9 @@ class _MapDistanceBadge extends StatelessWidget {
                 const Icon(Icons.public, size: 13, color: AppColors.primary),
           ),
           const SizedBox(width: 6),
-          const Text(
-            '20.2 km • 22 mins',
-            style: TextStyle(
+          Text(
+            text,
+            style: const TextStyle(
               fontFamily: 'Inter',
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -2331,79 +2315,6 @@ class _MapDistanceBadge extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _LocationPin extends StatelessWidget {
-  final LatLng position;
-  final String label;
-
-  const _LocationPin({required this.position, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const Icon(Icons.location_on, color: Colors.black, size: 24),
-      ],
-    );
-  }
-}
-
-class _AvatarPin extends StatelessWidget {
-  final String asset;
-  final String label;
-  const _AvatarPin({required this.asset, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Inter',
-              fontSize: 9,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-        ),
-        const SizedBox(height: 3),
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary, width: 2),
-            image: DecorationImage(image: AssetImage(asset), fit: BoxFit.cover),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -2471,9 +2382,7 @@ class _CircleCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          circleName.isNotEmpty
-                              ? circleName
-                              : "brother's\ncircle",
+                          circleName.isNotEmpty ? circleName : "circle",
                           style: TextStyle(
                             fontFamily: 'Outfit',
                             fontSize: context.sp(20),
@@ -2639,6 +2548,10 @@ class _HeadingOutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? Colors.white : Colors.black;
+    final fgColor = isDark ? Colors.black : Colors.white;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: SizedBox(
@@ -2646,10 +2559,13 @@ class _HeadingOutButton extends StatelessWidget {
         height: 56,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
+            backgroundColor: bgColor,
+            foregroundColor: fgColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
+              side: isDark
+                  ? const BorderSide(color: Colors.white)
+                  : BorderSide.none,
             ),
             elevation: 0,
           ),
