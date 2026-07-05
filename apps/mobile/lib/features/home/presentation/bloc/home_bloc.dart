@@ -18,6 +18,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<ChangeTab>(_onChangeTab);
     on<LoadHomeData>(_onLoadHomeData);
     on<ChangeMapState>(_onChangeMapState);
+    on<SelectCircle>(_onSelectCircle);
+    on<LeaveCircle>(_onLeaveCircle);
   }
 
   void _onChangeTab(ChangeTab event, Emitter<HomeState> emit) {
@@ -79,12 +81,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     // Try fetching circles and circle members from API
+    List<dynamic> loadedCircles = [];
     try {
-      final circles = await ApiService.getCircles();
-      if (circles.isNotEmpty) {
-        final firstCircle = circles.first as Map<String, dynamic>;
-        activeCircleName = firstCircle['name'] as String? ?? '';
-        activeCircleId = firstCircle['id'] as String? ?? '';
+      loadedCircles = await ApiService.getCircles();
+      if (loadedCircles.isNotEmpty) {
+        // If current activeCircleId is not in the loaded circles list, reset it to the first circle
+        final activeCircleExists = loadedCircles.any((c) => c['id'] == activeCircleId);
+        if (!activeCircleExists) {
+          final firstCircle = loadedCircles.first as Map<String, dynamic>;
+          activeCircleName = firstCircle['name'] as String? ?? '';
+          activeCircleId = firstCircle['id'] as String? ?? '';
+        }
 
         if (activeCircleId.isNotEmpty) {
           circleMembers = await ApiService.getCircleMembers(activeCircleId);
@@ -94,6 +101,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             // Ignore if sos broadcasts fail
           }
         }
+      } else {
+        // No circles
+        activeCircleId = '';
+        activeCircleName = '';
+        circleMembers = [];
+        sosBroadcasts = [];
       }
     } catch (e) {
       log('Failed to fetch circles/members from API: $e');
@@ -133,7 +146,44 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         userLatitude: lat,
         userLongitude: lon,
         status: HomeStatus.success,
+        circles: loadedCircles,
       ),
     );
+  }
+
+  Future<void> _onSelectCircle(SelectCircle event, Emitter<HomeState> emit) async {
+    emit(state.copyWith(status: HomeStatus.loading));
+    try {
+      final circle = state.circles.firstWhere((c) => c['id'] == event.circleId);
+      final members = await ApiService.getCircleMembers(event.circleId);
+      List<dynamic> sosBroadcasts = [];
+      try {
+        sosBroadcasts = await ApiService.getSosBroadcasts(event.circleId);
+      } catch (_) {}
+      emit(
+        state.copyWith(
+          circleId: event.circleId,
+          circleName: circle['name'] ?? '',
+          members: members,
+          sosBroadcasts: sosBroadcasts,
+          status: HomeStatus.success,
+        ),
+      );
+    } catch (e) {
+      log('Failed to select circle: $e');
+      emit(state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()));
+    }
+  }
+
+  Future<void> _onLeaveCircle(LeaveCircle event, Emitter<HomeState> emit) async {
+    emit(state.copyWith(status: HomeStatus.loading));
+    try {
+      await ApiService.leaveCircle(event.circleId);
+      // Reload home data after leaving circle
+      add(const LoadHomeData());
+    } catch (e) {
+      log('Failed to leave circle: $e');
+      emit(state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()));
+    }
   }
 }

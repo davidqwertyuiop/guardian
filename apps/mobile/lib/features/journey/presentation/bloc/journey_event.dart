@@ -7,10 +7,18 @@ abstract class JourneyEvent extends Equatable {
 }
 
 class StartJourney extends JourneyEvent {
+  final String circleId;
   final String destination;
-  const StartJourney(this.destination);
+  final String duration;
+
+  const StartJourney({
+    required this.circleId,
+    required this.destination,
+    required this.duration,
+  });
+
   @override
-  List<Object?> get props => [destination];
+  List<Object?> get props => [circleId, destination, duration];
 }
 
 class EndJourney extends JourneyEvent {

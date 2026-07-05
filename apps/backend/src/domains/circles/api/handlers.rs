@@ -295,3 +295,23 @@ pub async fn invite_landing_page(
 
     axum::response::Html(html)
 }
+
+pub async fn leave_circle(
+    State(state): State<AppState>,
+    AuthUser(claims): AuthUser,
+    Path(circle_id): Path<Uuid>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let user_id: Uuid = claims.sub.parse()
+        .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
+
+    // Check if the user is a member of the circle first
+    if !state.circle_repo.is_member(circle_id, user_id).await? {
+        return Err(AppError::Unauthorized("You are not a member of this circle.".into()));
+    }
+
+    state.circle_repo.remove_member(circle_id, user_id).await?;
+
+    Ok(Json(serde_json::json!({
+        "message": "Successfully left the circle"
+    })))
+}

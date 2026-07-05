@@ -27,3 +27,19 @@ class ChangeMapState extends HomeEvent {
   @override
   List<Object?> get props => [mapState];
 }
+
+class SelectCircle extends HomeEvent {
+  final String circleId;
+  const SelectCircle(this.circleId);
+
+  @override
+  List<Object?> get props => [circleId];
+}
+
+class LeaveCircle extends HomeEvent {
+  final String circleId;
+  const LeaveCircle(this.circleId);
+
+  @override
+  List<Object?> get props => [circleId];
+}

@@ -123,4 +123,17 @@ impl CircleRepository for PostgresCircleRepository {
         .map_err(|e| AppError::Internal(format!("DB has_members: {e}")))?;
         Ok(row.0)
     }
+
+    async fn remove_member(&self, circle_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
+        sqlx::query(
+            "DELETE FROM circle_memberships
+             WHERE circle_id = $1 AND user_id = $2"
+        )
+        .bind(circle_id)
+        .bind(user_id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AppError::Internal(format!("DB remove member: {e}")))?;
+        Ok(())
+    }
 }

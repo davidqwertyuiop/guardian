@@ -18,6 +18,7 @@ class HomeState extends Equatable {
   final double userLatitude;
   final double userLongitude;
   final MapDisplayState mapDisplayState;
+  final List<dynamic> circles;
 
   const HomeState({
     this.currentIndex = 0,
@@ -33,6 +34,7 @@ class HomeState extends Equatable {
     this.userLatitude = 9.0578,
     this.userLongitude = 7.4951,
     this.mapDisplayState = MapDisplayState.compact,
+    this.circles = const [],
   });
 
   HomeState copyWith({
@@ -49,6 +51,7 @@ class HomeState extends Equatable {
     double? userLatitude,
     double? userLongitude,
     MapDisplayState? mapDisplayState,
+    List<dynamic>? circles,
   }) {
     return HomeState(
       currentIndex: currentIndex ?? this.currentIndex,
@@ -64,6 +67,7 @@ class HomeState extends Equatable {
       userLatitude: userLatitude ?? this.userLatitude,
       userLongitude: userLongitude ?? this.userLongitude,
       mapDisplayState: mapDisplayState ?? this.mapDisplayState,
+      circles: circles ?? this.circles,
     );
   }
 
@@ -82,5 +86,6 @@ class HomeState extends Equatable {
     userLatitude,
     userLongitude,
     mapDisplayState,
+    circles,
   ];
 }

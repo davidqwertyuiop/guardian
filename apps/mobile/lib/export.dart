@@ -31,6 +31,8 @@ export 'package:guardian/features/auth/presentation/bloc/auth_state.dart';
 export 'package:guardian/features/auth/presentation/screens/welcome_screen.dart';
 export 'package:guardian/features/home/home.dart';
 export 'package:guardian/features/journey/presentation/bloc/journey_bloc.dart';
+export 'package:guardian/features/journey/presentation/bloc/journey_event.dart';
+export 'package:guardian/features/journey/presentation/bloc/journey_state.dart';
 export 'package:guardian/features/settings/presentation/bloc/settings_bloc.dart';
 export 'package:guardian/core/services/firebase_auth_service.dart';
 

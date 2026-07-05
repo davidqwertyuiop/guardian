@@ -3,6 +3,7 @@ import 'api/auth_api_service.dart';
 import 'api/circles_api_service.dart';
 import 'api/sos_api_service.dart';
 import 'api/location_api_service.dart';
+import 'api/journey_api_service.dart';
 
 /// Guardian API Service Facade
 /// delegates calls to modular, domain-specific api sub-services.
@@ -38,6 +39,17 @@ class ApiService {
       CirclesApiService.checkCircleHasMembers(code);
   static Future<List<dynamic>> getSosBroadcasts(String circleId) =>
       SosApiService.getSosBroadcasts(circleId);
+  static Future<bool> leaveCircle(String circleId) =>
+      CirclesApiService.leaveCircle(circleId);
+  static Future<bool> startJourney({
+    required String circleId,
+    required String destination,
+    required String duration,
+  }) => JourneyApiService.startJourney(
+        circleId: circleId,
+        destination: destination,
+        duration: duration,
+      );
 
   // ── Location Endpoints ──────────────────────────────────────────────────────
   static Future<void> updateLocation({

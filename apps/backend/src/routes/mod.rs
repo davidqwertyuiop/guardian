@@ -42,6 +42,7 @@ pub fn create_router(state: AppState) -> Router {
         .nest("/api/v1/circles", crate::domains::circles::api::routes::router())
         .nest("/api/v1/location", crate::domains::location::api::routes::router())
         .nest("/api/v1/sos",      crate::domains::sos::api::routes::router())
+        .nest("/api/v1/journey",  crate::domains::journey::api::routes::router())
         .with_state(state)
 }
 

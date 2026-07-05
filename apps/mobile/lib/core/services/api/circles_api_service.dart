@@ -162,4 +162,26 @@ abstract class CirclesApiService {
       return [];
     }
   }
+
+  /// POST /api/v1/circles/{id}/leave (requires Bearer token)
+  static Future<bool> leaveCircle(String circleId) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/circles/$circleId/leave');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(ApiBase.extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
 }

@@ -1,1 +1,1 @@
-// journey domain — stub, implementation coming in subsequent sprints.
+pub mod api;

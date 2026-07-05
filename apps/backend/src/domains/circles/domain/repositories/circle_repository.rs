@@ -17,4 +17,5 @@ pub trait CircleRepository: Send + Sync {
     async fn is_member(&self, circle_id: Uuid, user_id: Uuid) -> Result<bool, AppError>;
     async fn get_members(&self, circle_id: Uuid) -> Result<Vec<MemberWithProfile>, AppError>;
     async fn has_any_member_except_owner(&self, circle_id: Uuid, owner_id: Uuid) -> Result<bool, AppError>;
+    async fn remove_member(&self, circle_id: Uuid, user_id: Uuid) -> Result<(), AppError>;
 }

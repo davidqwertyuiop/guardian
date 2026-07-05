@@ -14,4 +14,6 @@ pub fn router() -> Router<AppState> {
         .route("/join/code", post(join_by_code))
         // Join by URL-safe link token
         .route("/join/link", post(join_by_link))
+        // Leave a circle
+        .route("/{id}/leave", post(leave_circle))
 }
