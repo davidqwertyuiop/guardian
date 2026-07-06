@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guardian/export.dart';
 
 class EmergencyActiveScreen extends StatelessWidget {
   const EmergencyActiveScreen({super.key});
@@ -17,11 +18,7 @@ class EmergencyActiveScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              const Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.redAccent,
-                size: 80,
-              ),
+              Image.asset(AppAssets.activatingSosIcon, height: 80, width: 80),
               const SizedBox(height: 24),
               Text(
                 'SOS ACTIVE',

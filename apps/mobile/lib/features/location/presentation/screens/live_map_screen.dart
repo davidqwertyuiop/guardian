@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:guardian/export.dart';
 import '../../domain/models/live_map_models.dart';
-import '../widgets/live_map/broadcast_circle_card.dart';
+import '../widgets/live_map/broadcast_bottom_panel.dart';
 import '../widgets/live_map/broadcast_controls.dart';
 import '../widgets/live_map/map_card.dart';
 import '../widgets/live_map/place_suggestions_overlay.dart';
+import '../widgets/live_map/sos_bottom_sheet.dart';
 import '../widgets/live_map/top_bar.dart';
 import '../widgets/live_map/welcome_header.dart';
 import '../widgets/live_map/circle_card.dart';
@@ -32,6 +33,7 @@ class _LiveMapScreenState extends State<LiveMapScreen>
   List<LivePlace> _suggestions = [];
   SelectedLivePlace? _selectedPlace;
   bool _isSearching = false;
+  double _broadcastPanelHeight = 260;
 
   @override
   void initState() {
@@ -190,6 +192,24 @@ class _LiveMapScreenState extends State<LiveMapScreen>
     _fullAnim.forward();
   }
 
+  void _closeFullMap() {
+    HapticFeedback.lightImpact();
+    _bloc.add(const ChangeMapState(MapDisplayState.expanded));
+  }
+
+  void _resizeBroadcastPanel(double delta) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final minHeight = context.w(220);
+    final maxHeight = screenHeight * 0.48;
+
+    setState(() {
+      _broadcastPanelHeight = (_broadcastPanelHeight - delta).clamp(
+        minHeight,
+        maxHeight,
+      );
+    });
+  }
+
   void _showStopBroadcastSheet() {
     showModalBottomSheet(
       context: context,
@@ -201,7 +221,17 @@ class _LiveMapScreenState extends State<LiveMapScreen>
   }
 
   void _showSosSheet() {
-    Navigator.push(context, FadeRoute(page: const EmergencyScreen()));
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => SosBottomSheet(
+        circleId: _bloc.state.circleId,
+        fallbackLatitude: _bloc.state.userLatitude,
+        fallbackLongitude: _bloc.state.userLongitude,
+        onClosed: () => _bloc.add(const LoadHomeData()),
+      ),
+    );
   }
 
   @override
@@ -325,17 +355,13 @@ class _LiveMapScreenState extends State<LiveMapScreen>
 
                               const SizedBox(height: 16),
                               if (isActive && isExpanded) ...[
-                                BroadcastControls(
+                                BroadcastBottomPanel(
                                   journeyState: journeyState,
-                                  onStopPressed: _showStopBroadcastSheet,
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: context.w(20),
-                                  ),
-                                ),
-                                const SizedBox(height: 14),
-                                BroadcastCircleCard(
                                   circleName: state.circleName,
                                   members: state.members,
+                                  height: _broadcastPanelHeight,
+                                  onDragDelta: _resizeBroadcastPanel,
+                                  onStopPressed: _showStopBroadcastSheet,
                                   onSeeMore: () {
                                     _bloc.add(
                                       const ChangeMapState(
@@ -343,10 +369,6 @@ class _LiveMapScreenState extends State<LiveMapScreen>
                                       ),
                                     );
                                   },
-                                ),
-                                SizedBox(
-                                  height:
-                                      MediaQuery.paddingOf(context).bottom + 8,
                                 ),
                               ] else if (isActive) ...[
                                 CircleCard(
@@ -431,6 +453,8 @@ class _LiveMapScreenState extends State<LiveMapScreen>
                             });
                           },
                           searchFocusNode: _searchFocusNode,
+                          showBackButton: displayState == MapDisplayState.full,
+                          onBackPressed: _closeFullMap,
                         ),
                       );
                     },

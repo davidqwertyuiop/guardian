@@ -22,6 +22,10 @@ class AppAssets {
   static const String flyingRocket = 'assets/animations/flying_rocket.png';
   static const String sosBroadcastIcon = 'assets/icons/sosbroadcast_icon.png';
   static const String openMapIcon = 'assets/icons/openmapicon.png';
+  static const String activatingSosIcon =
+      'assets/icons/activativatingsosicon.png';
+  static const String stopBroadcastingIcon =
+      'assets/icons/stopbroadcastingicon.png';
   static const String appCirclesIcon = 'assets/icons/android/group-icon.png';
   static const String appCenterHomeIcon = 'assets/icons/App_icon.png';
 

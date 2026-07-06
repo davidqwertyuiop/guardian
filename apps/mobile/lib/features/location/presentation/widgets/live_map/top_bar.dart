@@ -10,6 +10,8 @@ class LiveMapTopBar extends StatelessWidget {
   final ValueChanged<String> onSearchChanged;
   final VoidCallback onClearSearch;
   final FocusNode searchFocusNode;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
 
   const LiveMapTopBar({
     super.key,
@@ -21,6 +23,8 @@ class LiveMapTopBar extends StatelessWidget {
     required this.onSearchChanged,
     required this.onClearSearch,
     required this.searchFocusNode,
+    this.showBackButton = false,
+    this.onBackPressed,
   });
 
   @override
@@ -36,31 +40,39 @@ class LiveMapTopBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Bell icon — glassmorphic circular button with explicit size icon
-          Container(
-            width: bellSize,
-            height: bellSize,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : Colors.black.withValues(alpha: 0.04),
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Image.asset(
-                AppAssets.phBell,
-                width: context.w(20),
-                height: context.w(20),
+          GestureDetector(
+            onTap: showBackButton ? onBackPressed : null,
+            child: Container(
+              width: bellSize,
+              height: bellSize,
+              decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFFD7D7DE)
-                    : const Color(0xFF1C1C24),
-                errorBuilder: (_, _, _) => Icon(
-                  Icons.notifications_none_rounded,
-                  size: context.w(20),
-                  color: isDark
-                      ? const Color(0xFFD7D7DE)
-                      : const Color(0xFF1C1C24),
-                ),
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.04),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: showBackButton
+                    ? Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: context.w(18),
+                        color: isDark ? Colors.white : const Color(0xFF1C1C24),
+                      )
+                    : Image.asset(
+                        AppAssets.phBell,
+                        width: context.w(20),
+                        height: context.w(20),
+                        color: isDark
+                            ? const Color(0xFFD7D7DE)
+                            : const Color(0xFF1C1C24),
+                        errorBuilder: (_, _, _) => Icon(
+                          Icons.notifications_none_rounded,
+                          size: context.w(20),
+                          color: isDark
+                              ? const Color(0xFFD7D7DE)
+                              : const Color(0xFF1C1C24),
+                        ),
+                      ),
               ),
             ),
           ),

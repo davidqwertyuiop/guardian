@@ -152,18 +152,20 @@ class MapCardState extends State<MapCard> {
         final String url = member['avatar_url'] ?? '';
         final String name = member['name'] ?? 'Member';
 
-        if (uid.isNotEmpty &&
-            url.isNotEmpty &&
-            !_loadingAvatars.containsKey(uid)) {
+        if (uid.isNotEmpty && !_loadingAvatars.containsKey(uid)) {
           _loadingAvatars[uid] = true;
-          _loadNetworkImage(url).then((img) async {
-            if (img != null) {
+          (() async {
+            try {
+              final img = url.isNotEmpty ? await _loadNetworkImage(url) : null;
+              final fallbackAsset = _fallbackAvatarAsset(uid);
               final gMarker = await _createAvatarPinMarker(
                 name,
+                assetPath: img == null ? fallbackAsset : null,
                 avatarImage: img,
               );
               final aMarker = await _createAmAvatarPinMarker(
                 name,
+                assetPath: img == null ? fallbackAsset : null,
                 avatarImage: img,
               );
               if (mounted) {
@@ -172,13 +174,27 @@ class MapCardState extends State<MapCard> {
                   _appleMarkersCache[uid] = aMarker;
                 });
               }
+            } catch (e) {
+              log('Error creating member marker for $name: $e');
             }
-          });
+          })();
         }
       }
     } catch (e) {
       log('Error in location background sync: $e');
     }
+  }
+
+  String _fallbackAvatarAsset(String seed) {
+    final assets = [
+      AppAssets.avatarTop,
+      AppAssets.avatarLeft,
+      AppAssets.avatarRight,
+    ];
+    final index =
+        seed.codeUnits.fold<int>(0, (sum, unit) => sum + unit).abs() %
+        assets.length;
+    return assets[index];
   }
 
   Future<void> _loadMarkerIcons() async {

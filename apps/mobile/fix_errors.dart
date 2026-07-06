@@ -6,7 +6,7 @@ void main() {
 
   // Fix import
   final importTarget = "import 'package:guardian/features/location/presentation/widgets/live_map/heading_out_bottom_sheet.dart';";
-  final importReplacement = importTarget + "\nimport 'package:guardian/features/location/presentation/widgets/live_map/member_avatar_row.dart';";
+  final importReplacement = "$importTarget\nimport 'package:guardian/features/location/presentation/widgets/live_map/member_avatar_row.dart';";
   if (!content.contains("member_avatar_row.dart")) {
     content = content.replaceFirst(importTarget, importReplacement);
   }
