@@ -1,7 +1,8 @@
-use axum::{routing::{get, post}, Router};
+use super::handlers::{dismiss_sos, list_sos_broadcasts, resolve_sos, trigger_sos};
 use crate::routes::AppState;
-use super::handlers::{
-    dismiss_sos, list_sos_broadcasts, resolve_sos, trigger_sos,
+use axum::{
+    routing::{get, post},
+    Router,
 };
 
 pub fn router() -> Router<AppState> {

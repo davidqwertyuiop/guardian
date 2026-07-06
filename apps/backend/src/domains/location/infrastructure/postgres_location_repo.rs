@@ -1,11 +1,11 @@
-use async_trait::async_trait;
-use sqlx::PgPool;
-use uuid::Uuid;
-use crate::shared::errors::AppError;
 use crate::domains::location::domain::{
     entities::member_location::{MemberLocation, MemberLocationWithProfile},
     repositories::location_repository::LocationRepository,
 };
+use crate::shared::errors::AppError;
+use async_trait::async_trait;
+use sqlx::PgPool;
+use uuid::Uuid;
 
 pub struct PostgresLocationRepository {
     pub pool: PgPool,

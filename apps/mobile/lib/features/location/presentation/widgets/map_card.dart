@@ -5,87 +5,6 @@ import 'package:http/http.dart' as http;
 
 import 'package:guardian/export.dart';
 
-// ─── Map Style Configs ────────────────────────────────────────────────────────
-
-const String _darkMapStyle = '''
-[
-  {
-    "elementType": "geometry",
-    "stylers": [{"color": "#151226"}]
-  },
-  {
-    "elementType": "labels.icon",
-    "stylers": [{"visibility": "off"}]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [{"color": "#7c77a3"}]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [{"color": "#151226"}]
-  },
-  {
-    "featureType": "administrative",
-    "elementType": "geometry",
-    "stylers": [{"color": "#28234a"}]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry.fill",
-    "stylers": [{"color": "#28234a"}]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [{"color": "#383166"}]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry",
-    "stylers": [{"color": "#0a0814"}]
-  }
-]
-''';
-
-const String _lightMapStyle = '''
-[
-  {
-    "elementType": "geometry",
-    "stylers": [{"color": "#f2f0fc"}]
-  },
-  {
-    "elementType": "labels.icon",
-    "stylers": [{"visibility": "off"}]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [{"color": "#5b568c"}]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [{"color": "#f2f0fc"}]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry.fill",
-    "stylers": [{"color": "#ffffff"}]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [{"color": "#e1ddfa"}]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry",
-    "stylers": [{"color": "#d4d0f5"}]
-  }
-]
-''';
-
-
-
 class MapCard extends StatefulWidget {
   final MapDisplayState mapState;
   final Animation<double> mapAnim;
@@ -123,12 +42,12 @@ class _MapCardState extends State<MapCard> {
   List<LivePlace> _suggestions = [];
   SelectedLivePlace? _selectedPlace;
   bool _isSearching = false;
-  
+
   String _currentAddress = 'Loading address...';
   bool _is3D = true;
   bool _isDarkModeOverride = false;
   bool _useDarkOverride = false; // toggle usage
-  
+
   BitmapDescriptor? _avatarTopMarker;
   BitmapDescriptor? _avatarLeftMarker;
   BitmapDescriptor? _avatarRightMarker;
@@ -167,7 +86,9 @@ class _MapCardState extends State<MapCard> {
 
   Future<void> _fetchMapKeys() async {
     try {
-      final response = await http.get(Uri.parse('${ApiBase.baseUrl}/api/v1/config/maps'));
+      final response = await http.get(
+        Uri.parse('${ApiBase.baseUrl}/api/v1/config/maps'),
+      );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final key = Platform.isIOS ? data['ios_key'] : data['android_key'];
@@ -243,7 +164,8 @@ class _MapCardState extends State<MapCard> {
     final prefs = locator<SharedPreferences>();
     final countryCode = prefs.getString('country_code') ?? 'NG';
 
-    final url = 'https://maps.googleapis.com/maps/api/place/autocomplete/json'
+    final url =
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json'
         '?input=${Uri.encodeComponent(query)}'
         '&key=$key'
         '&components=country:${countryCode.toLowerCase()}';
@@ -257,8 +179,12 @@ class _MapCardState extends State<MapCard> {
           final results = predictions.map((pred) {
             return LivePlace(
               placeId: pred['place_id'] as String,
-              name: pred['structured_formatting']?['main_text'] as String? ?? pred['description'] as String,
-              address: pred['structured_formatting']?['secondary_text'] as String? ?? '',
+              name:
+                  pred['structured_formatting']?['main_text'] as String? ??
+                  pred['description'] as String,
+              address:
+                  pred['structured_formatting']?['secondary_text'] as String? ??
+                  '',
             );
           }).toList();
 
@@ -282,7 +208,8 @@ class _MapCardState extends State<MapCard> {
         : EnvConfig.googleMapsAndroidKey;
     final key = _mapsApiKey.isNotEmpty ? _mapsApiKey : defaultKey;
 
-    final url = 'https://maps.googleapis.com/maps/api/place/details/json'
+    final url =
+        'https://maps.googleapis.com/maps/api/place/details/json'
         '?place_id=${place.placeId}'
         '&key=$key'
         '&fields=geometry';
@@ -312,11 +239,7 @@ class _MapCardState extends State<MapCard> {
 
             _controller?.animateCamera(
               CameraUpdate.newCameraPosition(
-                CameraPosition(
-                  target: selectedLatLng,
-                  zoom: 15.5,
-                  tilt: 45.0,
-                ),
+                CameraPosition(target: selectedLatLng, zoom: 15.5, tilt: 45.0),
               ),
             );
           }
@@ -330,15 +253,26 @@ class _MapCardState extends State<MapCard> {
   List<LatLng> _generateRoutingCoordinates(LatLng start, LatLng end) {
     final List<LatLng> points = [];
     points.add(start);
-    points.add(LatLng(start.latitude + (end.latitude - start.latitude) * 0.4, start.longitude));
-    points.add(LatLng(start.latitude + (end.latitude - start.latitude) * 0.4, end.longitude));
+    points.add(
+      LatLng(
+        start.latitude + (end.latitude - start.latitude) * 0.4,
+        start.longitude,
+      ),
+    );
+    points.add(
+      LatLng(
+        start.latitude + (end.latitude - start.latitude) * 0.4,
+        end.longitude,
+      ),
+    );
     points.add(end);
     return points;
   }
 
   Future<void> _launchDirections() async {
     if (_selectedPlace == null) return;
-    final url = 'https://www.google.com/maps/dir/?api=1&destination=${_selectedPlace!.coordinates.latitude},${_selectedPlace!.coordinates.longitude}';
+    final url =
+        'https://www.google.com/maps/dir/?api=1&destination=${_selectedPlace!.coordinates.latitude},${_selectedPlace!.coordinates.longitude}';
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -393,7 +327,9 @@ class _MapCardState extends State<MapCard> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = _useDarkOverride ? _isDarkModeOverride : (Theme.of(context).brightness == Brightness.dark);
+    final isDark = _useDarkOverride
+        ? _isDarkModeOverride
+        : (Theme.of(context).brightness == Brightness.dark);
 
     final userLoc = LatLng(widget.userLatitude, widget.userLongitude);
 
@@ -407,12 +343,15 @@ class _MapCardState extends State<MapCard> {
 
         // Interpolate height: Compact: 168, Expanded & Full: screenHeight
         final double currentHeight = 168.0 + (screenHeight - 168.0) * mapVal;
-        
+
         final double currentMargin = 20.0 * (1.0 - mapVal);
         final double currentRadius = 24.0 * (1.0 - mapVal);
 
         final double compactOpacity = (1.0 - mapVal).clamp(0.0, 1.0);
-        final double expandedOpacity = (mapVal * (1.0 - fullVal)).clamp(0.0, 1.0);
+        final double expandedOpacity = (mapVal * (1.0 - fullVal)).clamp(
+          0.0,
+          1.0,
+        );
         final double fullOpacity = fullVal.clamp(0.0, 1.0);
 
         final bool isCompact = widget.mapState == MapDisplayState.compact;
@@ -424,7 +363,9 @@ class _MapCardState extends State<MapCard> {
           Marker(
             markerId: const MarkerId('user_loc'),
             position: userLoc,
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              BitmapDescriptor.hueViolet,
+            ),
             infoWindow: const InfoWindow(title: 'You'),
           ),
         };
@@ -433,19 +374,31 @@ class _MapCardState extends State<MapCard> {
           final member = widget.members[i];
           // Fallback to static offsets if real lat/lng isn't implemented in backend yet,
           // but parse them if they exist to be ready for the backend endpoint.
-          final lat = member['latitude'] as double? ?? (widget.userLatitude + (i == 0 ? 0.003 : (i == 1 ? -0.002 : 0.002)));
-          final lng = member['longitude'] as double? ?? (widget.userLongitude + (i == 0 ? 0.003 : (i == 1 ? -0.004 : -0.003)));
+          final lat =
+              member['latitude'] as double? ??
+              (widget.userLatitude +
+                  (i == 0 ? 0.003 : (i == 1 ? -0.002 : 0.002)));
+          final lng =
+              member['longitude'] as double? ??
+              (widget.userLongitude +
+                  (i == 0 ? 0.003 : (i == 1 ? -0.004 : -0.003)));
           final name = member['name'] as String? ?? 'Member ${i + 1}';
-          
-          final icon = (i % 3 == 0) ? _avatarTopMarker 
-                     : (i % 3 == 1) ? _avatarLeftMarker 
-                     : _avatarRightMarker;
+
+          final icon = (i % 3 == 0)
+              ? _avatarTopMarker
+              : (i % 3 == 1)
+              ? _avatarLeftMarker
+              : _avatarRightMarker;
 
           markers.add(
             Marker(
               markerId: MarkerId('member_$i'),
               position: LatLng(lat, lng),
-              icon: icon ?? BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+              icon:
+                  icon ??
+                  BitmapDescriptor.defaultMarkerWithHue(
+                    BitmapDescriptor.hueCyan,
+                  ),
               infoWindow: InfoWindow(title: name),
             ),
           );
@@ -456,7 +409,9 @@ class _MapCardState extends State<MapCard> {
             Marker(
               markerId: const MarkerId('destination'),
               position: _selectedPlace!.coordinates,
-              icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueRose,
+              ),
               infoWindow: InfoWindow(title: _selectedPlace!.name),
             ),
           );
@@ -468,7 +423,10 @@ class _MapCardState extends State<MapCard> {
         int durationMins = 0;
 
         if (_selectedPlace != null) {
-          final routeCoords = _generateRoutingCoordinates(userLoc, _selectedPlace!.coordinates);
+          final routeCoords = _generateRoutingCoordinates(
+            userLoc,
+            _selectedPlace!.coordinates,
+          );
           polylines.add(
             Polyline(
               polylineId: const PolylineId('route'),
@@ -495,10 +453,13 @@ class _MapCardState extends State<MapCard> {
             zoom: isFull ? 15.0 : 16.0,
             tilt: 45.0,
           ),
-          style: isDark ? _darkMapStyle : _lightMapStyle,
+          style: null,
+          mapType: isDark ? MapType.hybrid : MapType.normal,
           onMapCreated: _onMapCreated,
           markers: markers,
           polylines: polylines,
+          buildingsEnabled: true,
+          trafficEnabled: isFull,
           compassEnabled: false,
           mapToolbarEnabled: false,
           myLocationEnabled: false,
@@ -551,7 +512,15 @@ class _MapCardState extends State<MapCard> {
                         opacity: compactOpacity,
                         child: Stack(
                           children: [
-                            Positioned(top: 14, left: 14, child: _MapDistanceBadge(members: widget.members, userLat: widget.userLatitude, userLng: widget.userLongitude)),
+                            Positioned(
+                              top: 14,
+                              left: 14,
+                              child: _MapDistanceBadge(
+                                members: widget.members,
+                                userLat: widget.userLatitude,
+                                userLng: widget.userLongitude,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -588,14 +557,17 @@ class _MapCardState extends State<MapCard> {
                                       borderRadius: BorderRadius.circular(20),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.15),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.15,
+                                          ),
                                           blurRadius: 12,
                                           offset: const Offset(0, 4),
                                         ),
                                       ],
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       children: [
                                         Image.asset(
                                           AppAssets.openMapIcon,
@@ -643,11 +615,15 @@ class _MapCardState extends State<MapCard> {
                                     children: [
                                       Container(
                                         decoration: BoxDecoration(
-                                          color: isDark ? const Color(0xFF1E1E24) : Colors.white,
+                                          color: isDark
+                                              ? const Color(0xFF1E1E24)
+                                              : Colors.white,
                                           shape: BoxShape.circle,
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.1),
+                                              color: Colors.black.withValues(
+                                                alpha: 0.1,
+                                              ),
                                               blurRadius: 8,
                                               offset: const Offset(0, 3),
                                             ),
@@ -656,7 +632,9 @@ class _MapCardState extends State<MapCard> {
                                         child: IconButton(
                                           icon: Icon(
                                             Icons.arrow_back_rounded,
-                                            color: isDark ? Colors.white : Colors.black,
+                                            color: isDark
+                                                ? Colors.white
+                                                : Colors.black,
                                           ),
                                           onPressed: () {
                                             widget.onBack();
@@ -669,18 +647,28 @@ class _MapCardState extends State<MapCard> {
                                           height: 52,
                                           decoration: BoxDecoration(
                                             color: isDark
-                                                ? const Color(0xFF1E1E24).withValues(alpha: 0.95)
-                                                : Colors.white.withValues(alpha: 0.95),
-                                            borderRadius: BorderRadius.circular(26),
+                                                ? const Color(
+                                                    0xFF1E1E24,
+                                                  ).withValues(alpha: 0.95)
+                                                : Colors.white.withValues(
+                                                    alpha: 0.95,
+                                                  ),
+                                            borderRadius: BorderRadius.circular(
+                                              26,
+                                            ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: Colors.black.withValues(alpha: 0.1),
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.1,
+                                                ),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 3),
                                               ),
                                             ],
                                           ),
-                                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                          ),
                                           child: Row(
                                             children: [
                                               const Icon(
@@ -693,21 +681,31 @@ class _MapCardState extends State<MapCard> {
                                                 child: TextField(
                                                   controller: _searchController,
                                                   onChanged: _onSearchChanged,
-                                                  decoration: const InputDecoration(
-                                                    hintText: 'Search places...',
-                                                    border: InputBorder.none,
-                                                    isDense: true,
-                                                  ),
+                                                  decoration:
+                                                      const InputDecoration(
+                                                        hintText:
+                                                            'Search places...',
+                                                        border:
+                                                            InputBorder.none,
+                                                        isDense: true,
+                                                      ),
                                                   style: TextStyle(
                                                     fontFamily: 'Inter',
                                                     fontSize: 14,
-                                                    color: isDark ? Colors.white : Colors.black,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : Colors.black,
                                                   ),
                                                 ),
                                               ),
-                                              if (_searchController.text.isNotEmpty)
+                                              if (_searchController
+                                                  .text
+                                                  .isNotEmpty)
                                                 IconButton(
-                                                  icon: const Icon(Icons.clear_rounded, size: 18),
+                                                  icon: const Icon(
+                                                    Icons.clear_rounded,
+                                                    size: 18,
+                                                  ),
                                                   onPressed: () {
                                                     _searchController.clear();
                                                     if (!mounted) return;
@@ -727,37 +725,52 @@ class _MapCardState extends State<MapCard> {
                                   if (_isSearching && _suggestions.isNotEmpty)
                                     Container(
                                       margin: const EdgeInsets.only(top: 6),
-                                      constraints: const BoxConstraints(maxHeight: 220),
+                                      constraints: const BoxConstraints(
+                                        maxHeight: 220,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: isDark ? const Color(0xFF1E1E24) : Colors.white,
+                                        color: isDark
+                                            ? const Color(0xFF1E1E24)
+                                            : Colors.white,
                                         borderRadius: BorderRadius.circular(20),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: Colors.black.withValues(alpha: 0.15),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.15,
+                                            ),
                                             blurRadius: 10,
                                             offset: const Offset(0, 4),
                                           ),
                                         ],
                                       ),
                                       child: ListView.separated(
-                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                        ),
                                         shrinkWrap: true,
                                         itemCount: _suggestions.length,
                                         separatorBuilder: (_, _) => Divider(
                                           height: 1,
-                                          color: isDark ? Colors.white10 : Colors.black12,
+                                          color: isDark
+                                              ? Colors.white10
+                                              : Colors.black12,
                                         ),
                                         itemBuilder: (context, index) {
                                           final place = _suggestions[index];
                                           return ListTile(
-                                            leading: const Icon(Icons.location_on_rounded, color: AppColors.primary),
+                                            leading: const Icon(
+                                              Icons.location_on_rounded,
+                                              color: AppColors.primary,
+                                            ),
                                             title: Text(
                                               place.name,
                                               style: TextStyle(
                                                 fontFamily: 'Inter',
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 14,
-                                                color: isDark ? Colors.white : Colors.black,
+                                                color: isDark
+                                                    ? Colors.white
+                                                    : Colors.black,
                                               ),
                                             ),
                                             subtitle: Text(
@@ -784,29 +797,30 @@ class _MapCardState extends State<MapCard> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _buildMapControl(isDark, Icons.add_rounded, () {
-                                    _controller?.animateCamera(CameraUpdate.zoomIn());
-                                  }),
+                                  _buildMapControl(
+                                    isDark,
+                                    Icons.add_rounded,
+                                    () {
+                                      _controller?.animateCamera(
+                                        CameraUpdate.zoomIn(),
+                                      );
+                                    },
+                                  ),
                                   const SizedBox(height: 10),
-                                  _buildMapControl(isDark, Icons.remove_rounded, () {
-                                    _controller?.animateCamera(CameraUpdate.zoomOut());
-                                  }),
+                                  _buildMapControl(
+                                    isDark,
+                                    Icons.remove_rounded,
+                                    () {
+                                      _controller?.animateCamera(
+                                        CameraUpdate.zoomOut(),
+                                      );
+                                    },
+                                  ),
                                   const SizedBox(height: 10),
-                                  _buildMapControl(isDark, Icons.my_location_rounded, () {
-                                    _controller?.animateCamera(
-                                      CameraUpdate.newCameraPosition(
-                                        CameraPosition(
-                                          target: userLoc,
-                                          zoom: 15.5,
-                                          tilt: _is3D ? 45.0 : 0.0,
-                                        ),
-                                      ),
-                                    );
-                                  }),
-                                  const SizedBox(height: 10),
-                                  _buildMapControl(isDark, _is3D ? Icons.map_outlined : Icons.layers_outlined, () {
-                                    setState(() {
-                                      _is3D = !_is3D;
+                                  _buildMapControl(
+                                    isDark,
+                                    Icons.my_location_rounded,
+                                    () {
                                       _controller?.animateCamera(
                                         CameraUpdate.newCameraPosition(
                                           CameraPosition(
@@ -816,15 +830,42 @@ class _MapCardState extends State<MapCard> {
                                           ),
                                         ),
                                       );
-                                    });
-                                  }),
+                                    },
+                                  ),
                                   const SizedBox(height: 10),
-                                  _buildMapControl(isDark, isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded, () {
-                                    setState(() {
-                                      _useDarkOverride = true;
-                                      _isDarkModeOverride = !isDark;
-                                    });
-                                  }),
+                                  _buildMapControl(
+                                    isDark,
+                                    _is3D
+                                        ? Icons.map_outlined
+                                        : Icons.layers_outlined,
+                                    () {
+                                      setState(() {
+                                        _is3D = !_is3D;
+                                        _controller?.animateCamera(
+                                          CameraUpdate.newCameraPosition(
+                                            CameraPosition(
+                                              target: userLoc,
+                                              zoom: 15.5,
+                                              tilt: _is3D ? 45.0 : 0.0,
+                                            ),
+                                          ),
+                                        );
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _buildMapControl(
+                                    isDark,
+                                    isDark
+                                        ? Icons.light_mode_rounded
+                                        : Icons.dark_mode_rounded,
+                                    () {
+                                      setState(() {
+                                        _useDarkOverride = true;
+                                        _isDarkModeOverride = !isDark;
+                                      });
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -839,12 +880,16 @@ class _MapCardState extends State<MapCard> {
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
                                     color: isDark
-                                        ? const Color(0xFF1C1C22).withValues(alpha: 0.95)
+                                        ? const Color(
+                                            0xFF1C1C22,
+                                          ).withValues(alpha: 0.95)
                                         : Colors.white.withValues(alpha: 0.95),
                                     borderRadius: BorderRadius.circular(24),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.15),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         blurRadius: 16,
                                         offset: const Offset(0, 6),
                                       ),
@@ -852,7 +897,8 @@ class _MapCardState extends State<MapCard> {
                                   ),
                                   child: Column(
                                     mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         _selectedPlace!.name,
@@ -860,7 +906,9 @@ class _MapCardState extends State<MapCard> {
                                           fontFamily: 'Outfit',
                                           fontWeight: FontWeight.w800,
                                           fontSize: 16,
-                                          color: isDark ? Colors.white : Colors.black,
+                                          color: isDark
+                                              ? Colors.white
+                                              : Colors.black,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -897,7 +945,8 @@ class _MapCardState extends State<MapCard> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: AppColors.primary,
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(14),
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
                                             ),
                                             elevation: 0,
                                           ),
@@ -934,10 +983,7 @@ class _ExpandedTopRow extends StatelessWidget {
   final VoidCallback onSosTap;
   final String address;
 
-  const _ExpandedTopRow({
-    required this.onSosTap,
-    required this.address,
-  });
+  const _ExpandedTopRow({required this.onSosTap, required this.address});
 
   @override
   Widget build(BuildContext context) {
@@ -960,7 +1006,9 @@ class _ExpandedTopRow extends StatelessWidget {
             width: 38,
             height: 38,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E1E24).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.95),
+              color: isDark
+                  ? const Color(0xFF1E1E24).withValues(alpha: 0.95)
+                  : Colors.white.withValues(alpha: 0.95),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -984,7 +1032,9 @@ class _ExpandedTopRow extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1C1C22).withValues(alpha: 0.85) : Colors.grey.shade700.withValues(alpha: 0.82),
+              color: isDark
+                  ? const Color(0xFF1C1C22).withValues(alpha: 0.85)
+                  : Colors.grey.shade700.withValues(alpha: 0.82),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -1116,11 +1166,7 @@ class LivePlace {
   final String name;
   final String address;
 
-  LivePlace({
-    required this.placeId,
-    required this.name,
-    required this.address,
-  });
+  LivePlace({required this.placeId, required this.name, required this.address});
 }
 
 class SelectedLivePlace {

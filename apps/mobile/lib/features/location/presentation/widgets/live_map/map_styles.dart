@@ -38,39 +38,3 @@ const String darkMapStyle = '''
   }
 ]
 ''';
-
-const String lightMapStyle = '''
-[
-  {
-    "elementType": "geometry",
-    "stylers": [{"color": "#f2f0fc"}]
-  },
-  {
-    "elementType": "labels.icon",
-    "stylers": [{"visibility": "off"}]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [{"color": "#5b568c"}]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [{"color": "#f2f0fc"}]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry.fill",
-    "stylers": [{"color": "#ffffff"}]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [{"color": "#e1ddfa"}]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry",
-    "stylers": [{"color": "#d4d0f5"}]
-  }
-]
-''';

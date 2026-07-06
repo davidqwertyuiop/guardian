@@ -1,11 +1,10 @@
+use crate::domains::identity::domain::{
+    entities::user::User, repositories::user_repository::UserRepository,
+};
+use crate::shared::errors::AppError;
 use async_trait::async_trait;
 use sqlx::PgPool;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::identity::domain::{
-    entities::user::User,
-    repositories::user_repository::UserRepository,
-};
 
 pub struct PostgresUserRepository {
     pub pool: PgPool,
@@ -62,7 +61,12 @@ impl UserRepository for PostgresUserRepository {
         .ok_or_else(|| AppError::NotFound("User not found".to_string()))
     }
 
-    async fn update_preferences(&self, id: Uuid, location_enabled: bool, notifications_enabled: bool) -> Result<User, AppError> {
+    async fn update_preferences(
+        &self,
+        id: Uuid,
+        location_enabled: bool,
+        notifications_enabled: bool,
+    ) -> Result<User, AppError> {
         sqlx::query_as::<_, User>(
             "UPDATE users
              SET location_enabled = $1, notifications_enabled = $2

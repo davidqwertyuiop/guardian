@@ -1,11 +1,10 @@
+use crate::domains::identity::domain::{
+    entities::user_session::UserSession, repositories::session_repository::SessionRepository,
+};
+use crate::shared::errors::AppError;
 use async_trait::async_trait;
 use sqlx::PgPool;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::identity::domain::{
-    entities::user_session::UserSession,
-    repositories::session_repository::SessionRepository,
-};
 
 pub struct PostgresSessionRepository {
     pub pool: PgPool,
@@ -57,7 +56,7 @@ impl SessionRepository for PostgresSessionRepository {
 
     async fn update_last_active(&self, hash: &str) -> Result<(), AppError> {
         sqlx::query(
-            "UPDATE user_sessions SET last_active_at = NOW() WHERE refresh_token_hash = $1"
+            "UPDATE user_sessions SET last_active_at = NOW() WHERE refresh_token_hash = $1",
         )
         .bind(hash)
         .execute(&self.pool)

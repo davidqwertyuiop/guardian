@@ -1,7 +1,7 @@
+use super::super::entities::user::User;
+use crate::shared::errors::AppError;
 use async_trait::async_trait;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use super::super::entities::user::User;
 
 #[async_trait]
 pub trait UserRepository: Send + Sync {
@@ -18,5 +18,10 @@ pub trait UserRepository: Send + Sync {
     async fn update_profile(&self, id: Uuid, name: &str) -> Result<User, AppError>;
 
     /// Update user preferences for location and notifications.
-    async fn update_preferences(&self, id: Uuid, location_enabled: bool, notifications_enabled: bool) -> Result<User, AppError>;
+    async fn update_preferences(
+        &self,
+        id: Uuid,
+        location_enabled: bool,
+        notifications_enabled: bool,
+    ) -> Result<User, AppError>;
 }

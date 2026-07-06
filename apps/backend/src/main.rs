@@ -1,14 +1,14 @@
 mod bootstrap;
 mod config;
-mod shared;
-mod infrastructure;
 mod domains;
+mod infrastructure;
 mod routes;
+mod shared;
 mod websocket;
 mod workers;
 
-use std::net::SocketAddr;
 use sqlx::postgres::PgPoolOptions;
+use std::net::SocketAddr;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 /// Guardian Backend v2
@@ -36,19 +36,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Database connection
     let db_url = std::env::var("DATABASE_URL")
         .expect("DATABASE_URL must be set in environment or .env file");
-    
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .connect(&db_url)
         .await?;
-    
+
     tracing::info!("✅ Connected to Postgres database");
 
     // Run pending migrations
-    sqlx::migrate!("./migrations")
-        .run(&pool)
-        .await?;
-    
+    sqlx::migrate!("./migrations").run(&pool).await?;
+
     tracing::info!("✅ Database migrations applied successfully");
 
     // Build the Router
@@ -59,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .ok()
         .and_then(|p| p.parse::<u16>().ok())
         .unwrap_or(8000);
-    
+
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     tracing::info!("📡 Listening on {}", addr);
 

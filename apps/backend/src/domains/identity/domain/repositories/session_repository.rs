@@ -1,7 +1,7 @@
+use crate::domains::identity::domain::entities::user_session::UserSession;
+use crate::shared::errors::AppError;
 use async_trait::async_trait;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::identity::domain::entities::user_session::UserSession;
 
 #[async_trait]
 pub trait SessionRepository: Send + Sync {

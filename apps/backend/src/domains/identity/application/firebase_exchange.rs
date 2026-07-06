@@ -1,14 +1,13 @@
-use std::sync::Arc;
-use crate::shared::errors::AppError;
-use crate::domains::identity::domain::repositories::{
-    user_repository::UserRepository,
-    session_repository::SessionRepository,
-};
-use crate::domains::identity::domain::entities::user_session::UserSession;
-use crate::shared::auth::jwt::{sign_access_token, sign_refresh_token};
 use crate::config::AppConfig;
+use crate::domains::identity::domain::entities::user_session::UserSession;
+use crate::domains::identity::domain::repositories::{
+    session_repository::SessionRepository, user_repository::UserRepository,
+};
+use crate::shared::auth::jwt::{sign_access_token, sign_refresh_token};
+use crate::shared::errors::AppError;
+use chrono::{Duration, Utc};
+use std::sync::Arc;
 use uuid::Uuid;
-use chrono::{Utc, Duration};
 
 pub struct FirebaseExchangeUseCase {
     pub user_repo: Arc<dyn UserRepository>,
@@ -25,9 +24,15 @@ pub struct FirebaseExchangeOutput {
 }
 
 impl FirebaseExchangeUseCase {
-    pub async fn execute(&self, phone: &str, device_name: &str, device_model: Option<String>, platform: &str) -> Result<FirebaseExchangeOutput, AppError> {
-        let phone = phone.to_string(); 
-        
+    pub async fn execute(
+        &self,
+        phone: &str,
+        device_name: &str,
+        device_model: Option<String>,
+        platform: &str,
+    ) -> Result<FirebaseExchangeOutput, AppError> {
+        let phone = phone.to_string();
+
         let user = match self.user_repo.find_by_phone(&phone).await? {
             Some(u) => u,
             None => self.user_repo.create(&phone).await?,

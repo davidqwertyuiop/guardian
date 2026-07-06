@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
-use std::time::{SystemTime, UNIX_EPOCH};
-use jsonwebtoken::{encode, decode, Header, EncodingKey, DecodingKey, Validation};
 use crate::config::AppConfig;
 use crate::shared::errors::AppError;
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use serde::{Deserialize, Serialize};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// JWT claims for both access and refresh tokens.
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -25,7 +25,11 @@ fn now_secs() -> u64 {
 }
 
 /// Sign a short-lived access token (15 min).
-pub fn sign_access_token(user_id: &str, phone: &str, config: &AppConfig) -> Result<String, AppError> {
+pub fn sign_access_token(
+    user_id: &str,
+    phone: &str,
+    config: &AppConfig,
+) -> Result<String, AppError> {
     let exp = (now_secs() + 900) as usize;
     let claims = Claims {
         sub: user_id.to_string(),
@@ -33,12 +37,20 @@ pub fn sign_access_token(user_id: &str, phone: &str, config: &AppConfig) -> Resu
         token_type: "access".to_string(),
         phone: phone.to_string(),
     };
-    encode(&Header::default(), &claims, &EncodingKey::from_secret(config.jwt_secret.as_bytes()))
-        .map_err(|e| AppError::Internal(format!("Failed to sign access token: {}", e)))
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(config.jwt_secret.as_bytes()),
+    )
+    .map_err(|e| AppError::Internal(format!("Failed to sign access token: {}", e)))
 }
 
 /// Sign a long-lived refresh token (30 days).
-pub fn sign_refresh_token(user_id: &str, phone: &str, config: &AppConfig) -> Result<String, AppError> {
+pub fn sign_refresh_token(
+    user_id: &str,
+    phone: &str,
+    config: &AppConfig,
+) -> Result<String, AppError> {
     let exp = (now_secs() + 30 * 86400) as usize;
     let claims = Claims {
         sub: user_id.to_string(),
@@ -46,8 +58,12 @@ pub fn sign_refresh_token(user_id: &str, phone: &str, config: &AppConfig) -> Res
         token_type: "refresh".to_string(),
         phone: phone.to_string(),
     };
-    encode(&Header::default(), &claims, &EncodingKey::from_secret(config.jwt_refresh_secret.as_bytes()))
-        .map_err(|e| AppError::Internal(format!("Failed to sign refresh token: {}", e)))
+    encode(
+        &Header::default(),
+        &claims,
+        &EncodingKey::from_secret(config.jwt_refresh_secret.as_bytes()),
+    )
+    .map_err(|e| AppError::Internal(format!("Failed to sign refresh token: {}", e)))
 }
 
 /// Verify and decode an access token.

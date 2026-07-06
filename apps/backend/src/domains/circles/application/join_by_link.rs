@@ -1,11 +1,10 @@
+use crate::domains::circles::domain::repositories::{
+    circle_repository::CircleRepository, invite_repository::InviteRepository,
+};
+use crate::shared::errors::AppError;
+use chrono::Utc;
 use std::sync::Arc;
 use uuid::Uuid;
-use chrono::Utc;
-use crate::shared::errors::AppError;
-use crate::domains::circles::domain::repositories::{
-    circle_repository::CircleRepository,
-    invite_repository::InviteRepository,
-};
 
 pub struct JoinByLinkUseCase {
     pub circle_repo: Arc<dyn CircleRepository>,
@@ -40,7 +39,11 @@ impl JoinByLinkUseCase {
         }
 
         // 4. Idempotent membership check
-        if self.circle_repo.is_member(invite.circle_id, user_id).await? {
+        if self
+            .circle_repo
+            .is_member(invite.circle_id, user_id)
+            .await?
+        {
             return Ok(invite.circle_id);
         }
 

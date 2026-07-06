@@ -33,17 +33,24 @@ pub enum AppError {
 impl IntoResponse for AppError {
     fn into_response(self) -> Response {
         let (status, error_code, message) = match &self {
-            AppError::InvalidInput(msg)  => (StatusCode::BAD_REQUEST, "INVALID_INPUT", msg.clone()),
-            AppError::NotFound(msg)      => (StatusCode::NOT_FOUND, "NOT_FOUND", msg.clone()),
-            AppError::Conflict(msg)      => (StatusCode::CONFLICT, "CONFLICT", msg.clone()),
-            AppError::Forbidden(msg)     => (StatusCode::FORBIDDEN, "FORBIDDEN", msg.clone()),
-            AppError::Unauthorized(msg)  => (StatusCode::UNAUTHORIZED, "UNAUTHORIZED", msg.clone()),
-            AppError::RateLimit(secs)    => (
+            AppError::InvalidInput(msg) => (StatusCode::BAD_REQUEST, "INVALID_INPUT", msg.clone()),
+            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, "NOT_FOUND", msg.clone()),
+            AppError::Conflict(msg) => (StatusCode::CONFLICT, "CONFLICT", msg.clone()),
+            AppError::Forbidden(msg) => (StatusCode::FORBIDDEN, "FORBIDDEN", msg.clone()),
+            AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, "UNAUTHORIZED", msg.clone()),
+            AppError::RateLimit(secs) => (
                 StatusCode::TOO_MANY_REQUESTS,
                 "RATE_LIMIT",
-                format!("Please wait {} seconds before requesting another code.", secs),
+                format!(
+                    "Please wait {} seconds before requesting another code.",
+                    secs
+                ),
             ),
-            AppError::Internal(msg)      => (StatusCode::INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", msg.clone()),
+            AppError::Internal(msg) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "INTERNAL_ERROR",
+                msg.clone(),
+            ),
         };
 
         let body = Json(json!({

@@ -1,8 +1,11 @@
-use axum::{extract::{Path, State}, Json};
-use uuid::Uuid;
+use super::dto::{MemberLocationResponse, UpdateLocationRequest, UpdateLocationResponse};
 use crate::routes::AppState;
 use crate::shared::{errors::AppError, middleware::auth::AuthUser};
-use super::dto::{MemberLocationResponse, UpdateLocationRequest, UpdateLocationResponse};
+use axum::{
+    extract::{Path, State},
+    Json,
+};
+use uuid::Uuid;
 
 // ── PUT /api/v1/location ────────────────────────────────────────────────────
 //
@@ -14,7 +17,9 @@ pub async fn update_location(
     AuthUser(claims): AuthUser,
     Json(body): Json<UpdateLocationRequest>,
 ) -> Result<Json<UpdateLocationResponse>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     // Verify the caller is a member of the target circle before accepting
@@ -53,7 +58,9 @@ pub async fn get_circle_locations(
     AuthUser(claims): AuthUser,
     Path(circle_id): Path<Uuid>,
 ) -> Result<Json<Vec<MemberLocationResponse>>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     // Membership check — only circle members can query locations.
@@ -63,7 +70,10 @@ pub async fn get_circle_locations(
         ));
     }
 
-    let locations = state.location_repo.get_circle_member_locations(circle_id).await?;
+    let locations = state
+        .location_repo
+        .get_circle_member_locations(circle_id)
+        .await?;
 
     let resp = locations
         .into_iter()
@@ -108,7 +118,9 @@ pub async fn get_nearest_member_location(
     AuthUser(claims): AuthUser,
     Path(circle_id): Path<Uuid>,
 ) -> Result<Json<Option<NearestMemberResponse>>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     // Verify membership
@@ -119,13 +131,20 @@ pub async fn get_nearest_member_location(
     }
 
     // Fetch user's own location
-    let user_loc = match state.location_repo.get_user_location(user_id, circle_id).await? {
+    let user_loc = match state
+        .location_repo
+        .get_user_location(user_id, circle_id)
+        .await?
+    {
         Some(loc) => loc,
         None => return Ok(Json(None)),
     };
 
     // Fetch all members' locations
-    let members = state.location_repo.get_circle_member_locations(circle_id).await?;
+    let members = state
+        .location_repo
+        .get_circle_member_locations(circle_id)
+        .await?;
 
     let mut nearest_member = None;
     let mut min_distance = f64::MAX;
@@ -134,7 +153,12 @@ pub async fn get_nearest_member_location(
         if m.user_id == user_id {
             continue;
         }
-        let dist = haversine_distance(user_loc.latitude, user_loc.longitude, m.latitude, m.longitude);
+        let dist = haversine_distance(
+            user_loc.latitude,
+            user_loc.longitude,
+            m.latitude,
+            m.longitude,
+        );
         if dist < min_distance {
             min_distance = dist;
             nearest_member = Some(m);

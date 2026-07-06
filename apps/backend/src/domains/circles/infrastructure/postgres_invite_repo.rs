@@ -1,12 +1,11 @@
+use crate::domains::circles::domain::{
+    entities::invite_token::InviteToken, repositories::invite_repository::InviteRepository,
+};
+use crate::shared::errors::AppError;
 use async_trait::async_trait;
+use chrono::Utc;
 use sqlx::PgPool;
 use uuid::Uuid;
-use chrono::Utc;
-use crate::shared::errors::AppError;
-use crate::domains::circles::domain::{
-    entities::invite_token::InviteToken,
-    repositories::invite_repository::InviteRepository,
-};
 
 pub struct PostgresInviteRepository {
     pub pool: PgPool,
@@ -22,8 +21,8 @@ impl InviteRepository for PostgresInviteRepository {
         token: &str,
     ) -> Result<InviteToken, AppError> {
         let now = Utc::now();
-        let code_expires  = now + chrono::Duration::days(3);
-        let link_expires  = now + chrono::Duration::days(60);
+        let code_expires = now + chrono::Duration::days(3);
+        let link_expires = now + chrono::Duration::days(60);
 
         sqlx::query_as::<_, InviteToken>(
             "INSERT INTO invite_tokens

@@ -40,8 +40,8 @@ pub enum SosStatus {
 impl SosStatus {
     pub fn as_str(self) -> &'static str {
         match self {
-            Self::Active    => "active",
-            Self::Resolved  => "resolved",
+            Self::Active => "active",
+            Self::Resolved => "resolved",
             Self::Dismissed => "dismissed",
         }
     }

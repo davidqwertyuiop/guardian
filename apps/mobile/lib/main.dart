@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:guardian/core/services/notification_service.dart';
 import 'package:guardian/core/services/background_trigger_service.dart';
 import 'export.dart';
@@ -14,6 +16,9 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Prefer the latest Android Maps renderer before any GoogleMap is created.
+  await _initializeAndroidMapRenderer();
 
   // Initialize notifications
   await NotificationService.initialize();
@@ -32,6 +37,21 @@ void main() async {
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   runApp(GuardianApp(initialStep: initialStep));
+}
+
+Future<void> _initializeAndroidMapRenderer() async {
+  final mapsImplementation = GoogleMapsFlutterPlatform.instance;
+  if (mapsImplementation is! GoogleMapsFlutterAndroid) return;
+
+  try {
+    await mapsImplementation.initializeWithRenderer(AndroidMapRenderer.latest);
+  } catch (error, stackTrace) {
+    log(
+      'Failed to initialize latest Android Google Maps renderer.',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
 }
 
 class GuardianApp extends StatelessWidget {

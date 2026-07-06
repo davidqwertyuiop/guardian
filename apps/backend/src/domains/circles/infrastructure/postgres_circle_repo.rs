@@ -1,11 +1,14 @@
+use crate::domains::circles::domain::{
+    entities::{
+        circle::Circle,
+        membership::{MemberWithProfile, Membership},
+    },
+    repositories::circle_repository::CircleRepository,
+};
+use crate::shared::errors::AppError;
 use async_trait::async_trait;
 use sqlx::PgPool;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::circles::domain::{
-    entities::{circle::Circle, membership::{Membership, MemberWithProfile}},
-    repositories::circle_repository::CircleRepository,
-};
 
 pub struct PostgresCircleRepository {
     pub pool: PgPool,
@@ -36,7 +39,11 @@ impl CircleRepository for PostgresCircleRepository {
         .map_err(|e| AppError::Internal(format!("DB find circle: {e}")))
     }
 
-    async fn find_by_owner_and_name(&self, owner_id: Uuid, name: &str) -> Result<Option<Circle>, AppError> {
+    async fn find_by_owner_and_name(
+        &self,
+        owner_id: Uuid,
+        name: &str,
+    ) -> Result<Option<Circle>, AppError> {
         sqlx::query_as::<_, Circle>(
             "SELECT id, name, owner_id, created_at, updated_at 
              FROM circles 
@@ -63,7 +70,12 @@ impl CircleRepository for PostgresCircleRepository {
         .map_err(|e| AppError::Internal(format!("DB list circles: {e}")))
     }
 
-    async fn add_member(&self, circle_id: Uuid, user_id: Uuid, role: &str) -> Result<Membership, AppError> {
+    async fn add_member(
+        &self,
+        circle_id: Uuid,
+        user_id: Uuid,
+        role: &str,
+    ) -> Result<Membership, AppError> {
         sqlx::query_as::<_, Membership>(
             "INSERT INTO circle_memberships (circle_id, user_id, role)
              VALUES ($1, $2, $3)
@@ -127,7 +139,7 @@ impl CircleRepository for PostgresCircleRepository {
     async fn remove_member(&self, circle_id: Uuid, user_id: Uuid) -> Result<(), AppError> {
         sqlx::query(
             "DELETE FROM circle_memberships
-             WHERE circle_id = $1 AND user_id = $2"
+             WHERE circle_id = $1 AND user_id = $2",
         )
         .bind(circle_id)
         .bind(user_id)

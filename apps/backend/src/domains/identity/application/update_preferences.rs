@@ -1,10 +1,9 @@
+use crate::domains::identity::domain::{
+    entities::user::User, repositories::user_repository::UserRepository,
+};
+use crate::shared::errors::AppError;
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::identity::domain::{
-    entities::user::User,
-    repositories::user_repository::UserRepository,
-};
 
 pub struct UpdatePreferencesUseCase {
     pub user_repo: Arc<dyn UserRepository>,
@@ -20,10 +19,11 @@ impl UpdatePreferencesUseCase {
         let id = Uuid::parse_str(user_id)
             .map_err(|_| AppError::InvalidInput("Invalid user ID".to_string()))?;
 
-        let user = self.user_repo
+        let user = self
+            .user_repo
             .update_preferences(id, location_enabled, notifications_enabled)
             .await?;
-        
+
         Ok(user)
     }
 }

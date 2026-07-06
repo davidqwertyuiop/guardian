@@ -1,17 +1,15 @@
-use std::sync::Arc;
-use axum::{extract::State, routing::get, Router};
-use sqlx::PgPool;
 use crate::config::AppConfig;
-use crate::domains::identity::domain::repositories::{
-    user_repository::UserRepository,
-    session_repository::SessionRepository,
-};
 use crate::domains::circles::domain::repositories::{
-    circle_repository::CircleRepository,
-    invite_repository::InviteRepository,
+    circle_repository::CircleRepository, invite_repository::InviteRepository,
+};
+use crate::domains::identity::domain::repositories::{
+    session_repository::SessionRepository, user_repository::UserRepository,
 };
 use crate::domains::location::domain::repositories::location_repository::LocationRepository;
 use crate::domains::sos::domain::repositories::sos_repository::SosRepository;
+use axum::{extract::State, routing::get, Router};
+use sqlx::PgPool;
+use std::sync::Arc;
 
 /// Central application state — cloned into every request handler.
 #[derive(Clone)]
@@ -34,15 +32,33 @@ pub struct AppState {
 pub fn create_router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(|| async { "Guardian API v2 — OK" }))
-        .route("/invite/{token}", get(crate::domains::circles::api::handlers::invite_landing_page))
+        .route(
+            "/invite/{token}",
+            get(crate::domains::circles::api::handlers::invite_landing_page),
+        )
         .route("/api/v1/config/maps", get(maps_config))
-        .route("/.well-known/apple-app-site-association", get(apple_app_site_association))
+        .route(
+            "/.well-known/apple-app-site-association",
+            get(apple_app_site_association),
+        )
         .route("/.well-known/assetlinks.json", get(assetlinks_json))
-        .nest("/api/v1/auth", crate::domains::identity::api::routes::router())
-        .nest("/api/v1/circles", crate::domains::circles::api::routes::router())
-        .nest("/api/v1/location", crate::domains::location::api::routes::router())
-        .nest("/api/v1/sos",      crate::domains::sos::api::routes::router())
-        .nest("/api/v1/journey",  crate::domains::journey::api::routes::router())
+        .nest(
+            "/api/v1/auth",
+            crate::domains::identity::api::routes::router(),
+        )
+        .nest(
+            "/api/v1/circles",
+            crate::domains::circles::api::routes::router(),
+        )
+        .nest(
+            "/api/v1/location",
+            crate::domains::location::api::routes::router(),
+        )
+        .nest("/api/v1/sos", crate::domains::sos::api::routes::router())
+        .nest(
+            "/api/v1/journey",
+            crate::domains::journey::api::routes::router(),
+        )
         .with_state(state)
 }
 
@@ -55,7 +71,9 @@ async fn maps_config(State(state): State<AppState>) -> axum::Json<serde_json::Va
 
 // ── Universal Links Endpoints ───────────────────────────────────────────────
 
-async fn apple_app_site_association(State(state): State<AppState>) -> axum::Json<serde_json::Value> {
+async fn apple_app_site_association(
+    State(state): State<AppState>,
+) -> axum::Json<serde_json::Value> {
     let app_id = format!("{}.com.sijibomi.guardian", state.config.apple_team_id);
     axum::Json(serde_json::json!({
         "applinks": {

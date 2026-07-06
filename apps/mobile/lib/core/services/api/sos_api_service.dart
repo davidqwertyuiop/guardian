@@ -13,6 +13,34 @@ import 'api_base.dart';
 abstract class SosApiService {
   static String get baseUrl => ApiBase.baseUrl;
 
+  static Future<String> _requireAccessToken() async {
+    final tokenManager = TokenManager();
+    final accessToken = await tokenManager.getAccessToken();
+    if (accessToken != null && accessToken.trim().isNotEmpty) {
+      return accessToken;
+    }
+
+    final refreshToken = await tokenManager.getRefreshToken();
+    if (refreshToken != null && refreshToken.trim().isNotEmpty) {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/v1/auth/refresh'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'refresh_token': refreshToken}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final newToken = data['access_token'] as String?;
+        if (newToken != null && newToken.trim().isNotEmpty) {
+          await tokenManager.saveAccessToken(newToken);
+          return newToken;
+        }
+      }
+    }
+
+    throw Exception('Your session has expired. Please sign in again.');
+  }
+
   /// Triggers a new SOS broadcast for the given circle.
   /// Returns the created broadcast id and status.
   static Future<Map<String, dynamic>> triggerSos({
@@ -21,7 +49,7 @@ abstract class SosApiService {
     double? longitude,
     String? address,
   }) async {
-    final token = await TokenManager().getAccessToken();
+    final token = await _requireAccessToken();
     final url = Uri.parse('$baseUrl/api/v1/sos');
     try {
       final body = <String, dynamic>{
@@ -34,7 +62,7 @@ abstract class SosApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token',
         },
         body: jsonEncode(body),
       );
@@ -56,7 +84,7 @@ abstract class SosApiService {
     int limit = 20,
     int offset = 0,
   }) async {
-    final token = await TokenManager().getAccessToken();
+    final token = await _requireAccessToken();
     final url = Uri.parse(
       '$baseUrl/api/v1/sos/circles/$circleId?limit=$limit&offset=$offset',
     );
@@ -65,7 +93,7 @@ abstract class SosApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token',
         },
       );
       if (response.statusCode == 200) {
@@ -80,14 +108,14 @@ abstract class SosApiService {
 
   /// Resolves an active SOS broadcast. Any circle member may call this.
   static Future<bool> resolveSos(String broadcastId) async {
-    final token = await TokenManager().getAccessToken();
+    final token = await _requireAccessToken();
     final url = Uri.parse('$baseUrl/api/v1/sos/$broadcastId/resolve');
     try {
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token',
         },
       );
       return response.statusCode == 200;
@@ -98,14 +126,14 @@ abstract class SosApiService {
 
   /// Dismisses the caller's own active SOS broadcast.
   static Future<bool> dismissSos(String broadcastId) async {
-    final token = await TokenManager().getAccessToken();
+    final token = await _requireAccessToken();
     final url = Uri.parse('$baseUrl/api/v1/sos/$broadcastId/dismiss');
     try {
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
+          'Authorization': 'Bearer $token',
         },
       );
       return response.statusCode == 200;

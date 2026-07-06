@@ -1,9 +1,9 @@
-use async_trait::async_trait;
-use uuid::Uuid;
-use crate::shared::errors::AppError;
 use crate::domains::location::domain::entities::member_location::{
     MemberLocation, MemberLocationWithProfile,
 };
+use crate::shared::errors::AppError;
+use async_trait::async_trait;
+use uuid::Uuid;
 
 /// Contract for persisting and querying member GPS locations.
 #[async_trait]

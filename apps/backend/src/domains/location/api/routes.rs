@@ -1,6 +1,9 @@
-use axum::{routing::{get, put}, Router};
+use super::handlers::{get_circle_locations, get_nearest_member_location, update_location};
 use crate::routes::AppState;
-use super::handlers::{get_circle_locations, update_location, get_nearest_member_location};
+use axum::{
+    routing::{get, put},
+    Router,
+};
 
 pub fn router() -> Router<AppState> {
     Router::new()

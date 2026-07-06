@@ -1,9 +1,9 @@
-use axum::{extract::State, Json};
-use uuid::Uuid;
-use crate::routes::AppState;
-use crate::shared::{errors::AppError, middleware::auth::AuthUser};
 use super::dto::*;
 use crate::infrastructure::push_notifications::send_push_notification;
+use crate::routes::AppState;
+use crate::shared::{errors::AppError, middleware::auth::AuthUser};
+use axum::{extract::State, Json};
+use uuid::Uuid;
 
 // ── POST /api/v1/journey/start ──────────────────────────────────────────────
 
@@ -12,16 +12,23 @@ pub async fn start_journey(
     AuthUser(claims): AuthUser,
     Json(body): Json<StartJourneyRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     // 1. Verify membership
     if !state.circle_repo.is_member(body.circle_id, user_id).await? {
-        return Err(AppError::Unauthorized("You are not a member of this circle.".into()));
+        return Err(AppError::Unauthorized(
+            "You are not a member of this circle.".into(),
+        ));
     }
 
     // 2. Fetch broadcaster user name
-    let user = state.user_repo.find_by_id(user_id).await?
+    let user = state
+        .user_repo
+        .find_by_id(user_id)
+        .await?
         .ok_or_else(|| AppError::NotFound("Broadcaster user not found".into()))?;
     let user_name = user.name.unwrap_or_else(|| "Someone".into());
 
@@ -30,7 +37,7 @@ pub async fn start_journey(
         "SELECT dt.fcm_token 
          FROM device_tokens dt
          JOIN circle_memberships cm ON cm.user_id = dt.user_id
-         WHERE cm.circle_id = $1 AND cm.user_id != $2"
+         WHERE cm.circle_id = $1 AND cm.user_id != $2",
     )
     .bind(body.circle_id)
     .bind(user_id)
@@ -40,7 +47,10 @@ pub async fn start_journey(
 
     // 4. Notify all circle members
     let title = format!("{} is live!", user_name);
-    let body_text = format!("They are heading to {} (ETA: {}).", body.destination, body.duration);
+    let body_text = format!(
+        "They are heading to {} (ETA: {}).",
+        body.destination, body.duration
+    );
 
     for token in &other_members_tokens {
         send_push_notification(token, &title, &body_text).await;
@@ -68,16 +78,23 @@ pub async fn stay_journey(
     AuthUser(claims): AuthUser,
     Json(body): Json<StayJourneyRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     // 1. Verify membership
     if !state.circle_repo.is_member(body.circle_id, user_id).await? {
-        return Err(AppError::Unauthorized("You are not a member of this circle.".into()));
+        return Err(AppError::Unauthorized(
+            "You are not a member of this circle.".into(),
+        ));
     }
 
     // 2. Fetch user name
-    let user = state.user_repo.find_by_id(user_id).await?
+    let user = state
+        .user_repo
+        .find_by_id(user_id)
+        .await?
         .ok_or_else(|| AppError::NotFound("User not found".into()))?;
     let user_name = user.name.unwrap_or_else(|| "Someone".into());
 
@@ -101,16 +118,23 @@ pub async fn stop_journey(
     AuthUser(claims): AuthUser,
     Json(body): Json<StopJourneyRequest>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     // 1. Verify membership
     if !state.circle_repo.is_member(body.circle_id, user_id).await? {
-        return Err(AppError::Unauthorized("You are not a member of this circle.".into()));
+        return Err(AppError::Unauthorized(
+            "You are not a member of this circle.".into(),
+        ));
     }
 
     // 2. Fetch user name
-    let user = state.user_repo.find_by_id(user_id).await?
+    let user = state
+        .user_repo
+        .find_by_id(user_id)
+        .await?
         .ok_or_else(|| AppError::NotFound("User not found".into()))?;
     let user_name = user.name.unwrap_or_else(|| "Someone".into());
 
@@ -119,7 +143,7 @@ pub async fn stop_journey(
         "SELECT dt.fcm_token 
          FROM device_tokens dt
          JOIN circle_memberships cm ON cm.user_id = dt.user_id
-         WHERE cm.circle_id = $1 AND cm.user_id != $2"
+         WHERE cm.circle_id = $1 AND cm.user_id != $2",
     )
     .bind(body.circle_id)
     .bind(user_id)
@@ -147,4 +171,3 @@ pub async fn stop_journey(
         "message": "Broadcast stopped successfully"
     })))
 }
-

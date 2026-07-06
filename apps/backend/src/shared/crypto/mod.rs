@@ -1,13 +1,13 @@
+use crate::shared::errors::AppError;
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use crate::shared::errors::AppError;
 
 pub fn hash_password(password: &str) -> Result<String, AppError> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
-    
+
     argon2
         .hash_password(password.as_bytes(), &salt)
         .map(|h| h.to_string())
@@ -17,8 +17,10 @@ pub fn hash_password(password: &str) -> Result<String, AppError> {
 pub fn verify_password(password: &str, hashed_password: &str) -> Result<bool, AppError> {
     let parsed_hash = PasswordHash::new(hashed_password)
         .map_err(|e| AppError::Internal(format!("Invalid password hash format: {}", e)))?;
-        
+
     let argon2 = Argon2::default();
-    
-    Ok(argon2.verify_password(password.as_bytes(), &parsed_hash).is_ok())
+
+    Ok(argon2
+        .verify_password(password.as_bytes(), &parsed_hash)
+        .is_ok())
 }

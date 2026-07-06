@@ -1,9 +1,7 @@
-use serde::{Deserialize, Serialize};
 use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 
 // ── Requests ────────────────────────────────────────────────────────────────
-
-
 
 #[derive(Debug, Deserialize)]
 pub struct SetupProfileRequest {
@@ -30,9 +28,7 @@ pub struct FirebaseExchangeRequest {
     pub device_model: Option<String>,
 }
 
-// Responses 
-
-
+// Responses
 
 #[derive(Debug, Serialize)]
 pub struct AuthResponse {
@@ -74,4 +70,3 @@ pub struct RegisterDeviceRequest {
     pub fcm_token: String,
     pub platform: String,
 }
-

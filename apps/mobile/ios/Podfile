@@ -26,6 +26,42 @@ require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelpe
 
 flutter_ios_podfile_setup
 
+def guardian_read_key_from_file(path, names)
+  return nil unless File.exist?(path)
+
+  File.foreach(path) do |line|
+    cleaned = line.strip
+    next if cleaned.empty? || cleaned.start_with?('#')
+
+    names.each do |name|
+      prefix = "#{name}="
+      next unless cleaned.start_with?(prefix)
+
+      return cleaned[prefix.length..].to_s.strip.gsub(/\A['"]|['"]\z/, '')
+    end
+  end
+
+  nil
+end
+
+def guardian_maps_api_key
+  root = File.expand_path('../../..', __dir__)
+  candidates = [
+    File.join(__dir__, 'Flutter', 'Maps.xcconfig'),
+    File.join(root, 'apps', 'mobile', '.env'),
+    File.join(root, 'apps', 'mobile', 'android', 'local.properties'),
+    File.join(root, 'apps', 'backend', '.env'),
+  ]
+  names = ['MAPS_API_KEY_IOS', 'MAPS_API_KEY']
+
+  candidates.each do |path|
+    key = guardian_read_key_from_file(path, names)
+    return key unless key.nil? || key.empty?
+  end
+
+  ENV['MAPS_API_KEY_IOS'] || ENV['MAPS_API_KEY'] || ''
+end
+
 target 'Runner' do
   use_frameworks! :linkage => :static
   
@@ -33,6 +69,8 @@ target 'Runner' do
 end
 
 post_install do |installer|
+  maps_api_key = guardian_maps_api_key
+
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
     
@@ -54,6 +92,7 @@ post_install do |installer|
     target.user_project.targets.each do |user_target|
       user_target.build_configurations.each do |config|
         config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+        config.build_settings['MAPS_API_KEY'] = maps_api_key unless maps_api_key.empty?
       end
     end
     target.user_project.save

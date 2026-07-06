@@ -1,11 +1,11 @@
-use async_trait::async_trait;
-use sqlx::PgPool;
-use uuid::Uuid;
-use crate::shared::errors::AppError;
 use crate::domains::sos::domain::{
     entities::sos_broadcast::{SosBroadcast, SosBroadcastWithProfile},
     repositories::sos_repository::SosRepository,
 };
+use crate::shared::errors::AppError;
+use async_trait::async_trait;
+use sqlx::PgPool;
+use uuid::Uuid;
 
 pub struct PostgresSosRepository {
     pub pool: PgPool,
@@ -90,7 +90,9 @@ impl SosRepository for PostgresSosRepository {
         .bind(id)
         .fetch_one(&self.pool)
         .await
-        .map_err(|e| AppError::NotFound(format!("SOS broadcast not found or already resolved: {e}")))
+        .map_err(|e| {
+            AppError::NotFound(format!("SOS broadcast not found or already resolved: {e}"))
+        })
     }
 
     async fn dismiss(&self, id: Uuid, user_id: Uuid) -> Result<SosBroadcast, AppError> {
@@ -108,8 +110,10 @@ impl SosRepository for PostgresSosRepository {
         .bind(user_id)
         .fetch_one(&self.pool)
         .await
-        .map_err(|_| AppError::NotFound(
-            "SOS broadcast not found, already resolved, or you are not the owner.".into(),
-        ))
+        .map_err(|_| {
+            AppError::NotFound(
+                "SOS broadcast not found, already resolved, or you are not the owner.".into(),
+            )
+        })
     }
 }

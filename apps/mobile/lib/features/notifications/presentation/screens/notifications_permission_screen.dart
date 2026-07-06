@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:guardian/export.dart';
+
 class NotificationsPermissionScreen extends StatelessWidget {
   const NotificationsPermissionScreen({super.key});
 

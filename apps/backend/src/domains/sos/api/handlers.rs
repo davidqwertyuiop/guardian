@@ -1,12 +1,13 @@
+use super::dto::{SosActionResponse, SosBroadcastResponse, TriggerSosRequest};
+use crate::infrastructure::push_notifications::send_push_notification;
+use crate::routes::AppState;
+use crate::shared::{errors::AppError, middleware::auth::AuthUser};
 use axum::{
     extract::{Path, Query, State},
     Json,
 };
 use serde::Deserialize;
 use uuid::Uuid;
-use crate::routes::AppState;
-use crate::shared::{errors::AppError, middleware::auth::AuthUser};
-use super::dto::{SosActionResponse, SosBroadcastResponse, TriggerSosRequest};
 
 // ── Query params ─────────────────────────────────────────────────────────────
 
@@ -18,7 +19,9 @@ pub struct PaginationParams {
     pub offset: i64,
 }
 
-fn default_limit() -> i64 { 20 }
+fn default_limit() -> i64 {
+    20
+}
 
 // ── POST /api/v1/sos ─────────────────────────────────────────────────────────
 //
@@ -30,7 +33,9 @@ pub async fn trigger_sos(
     AuthUser(claims): AuthUser,
     Json(body): Json<TriggerSosRequest>,
 ) -> Result<Json<SosActionResponse>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     if !state.circle_repo.is_member(body.circle_id, user_id).await? {
@@ -39,7 +44,10 @@ pub async fn trigger_sos(
         ));
     }
 
-    let user = state.user_repo.find_by_id(user_id).await?
+    let user = state
+        .user_repo
+        .find_by_id(user_id)
+        .await?
         .ok_or_else(|| AppError::NotFound("Triggering user not found".into()))?;
     let user_name = user.name.unwrap_or_else(|| "Someone".into());
 
@@ -56,10 +64,10 @@ pub async fn trigger_sos(
 
     // Fetch FCM tokens of other members in this circle to notify them
     let other_members_tokens: Vec<String> = sqlx::query_scalar(
-        "SELECT dt.fcm_token 
+        "SELECT dt.fcm_token
          FROM device_tokens dt
          JOIN circle_memberships cm ON cm.user_id = dt.user_id
-         WHERE cm.circle_id = $1 AND cm.user_id != $2"
+         WHERE cm.circle_id = $1 AND cm.user_id != $2",
     )
     .bind(body.circle_id)
     .bind(user_id)
@@ -74,7 +82,10 @@ pub async fn trigger_sos(
     );
 
     for token in &other_members_tokens {
-        crate::infrastructure::push_notifications::send_push_notification(token, &title, &body_text).await;
+        crate::infrastructure::push_notifications::send_push_notification(
+            token, &title, &body_text,
+        )
+        .await;
     }
 
     tracing::info!(
@@ -101,7 +112,9 @@ pub async fn list_sos_broadcasts(
     Path(circle_id): Path<Uuid>,
     Query(params): Query<PaginationParams>,
 ) -> Result<Json<Vec<SosBroadcastResponse>>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     if !state.circle_repo.is_member(circle_id, user_id).await? {
@@ -143,7 +156,9 @@ pub async fn resolve_sos(
     AuthUser(claims): AuthUser,
     Path(id): Path<Uuid>,
 ) -> Result<Json<SosActionResponse>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     let broadcast = state.sos_repo.resolve(id, user_id).await?;
@@ -163,10 +178,45 @@ pub async fn dismiss_sos(
     AuthUser(claims): AuthUser,
     Path(id): Path<Uuid>,
 ) -> Result<Json<SosActionResponse>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     let broadcast = state.sos_repo.dismiss(id, user_id).await?;
+
+    let user = state
+        .user_repo
+        .find_by_id(user_id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Triggering user not found".into()))?;
+    let user_name = user.name.unwrap_or_else(|| "Someone".into());
+
+    let other_members_tokens: Vec<String> = sqlx::query_scalar(concat!(
+        "SELECT dt.fcm_token ",
+        "FROM device_tokens dt ",
+        "JOIN circle_memberships cm ON cm.user_id = dt.user_id ",
+        "WHERE cm.circle_id = $1 AND cm.user_id != $2",
+    ))
+    .bind(broadcast.circle_id)
+    .bind(user_id)
+    .fetch_all(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Internal(format!("DB fetch FCM tokens: {e}")))?;
+
+    let title = format!("{} is safe", user_name);
+    let body_text = "Their SOS has been cancelled. They marked themselves safe.";
+
+    for token in &other_members_tokens {
+        send_push_notification(token, &title, body_text).await;
+    }
+
+    tracing::info!(
+        "SOS dismissed by user {} for circle {}. Safety notifications dispatched to {} devices.",
+        user_id,
+        broadcast.circle_id,
+        other_members_tokens.len()
+    );
 
     Ok(Json(SosActionResponse {
         id: broadcast.id.to_string(),

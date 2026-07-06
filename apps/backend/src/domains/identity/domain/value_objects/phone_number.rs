@@ -9,7 +9,9 @@ impl PhoneNumber {
     pub fn parse(raw: &str) -> Result<Self, AppError> {
         let trimmed = raw.trim();
         if trimmed.is_empty() {
-            return Err(AppError::InvalidInput("Phone number cannot be empty".to_string()));
+            return Err(AppError::InvalidInput(
+                "Phone number cannot be empty".to_string(),
+            ));
         }
         if !trimmed.starts_with('+') {
             return Err(AppError::InvalidInput(

@@ -1,7 +1,7 @@
+use crate::domains::circles::domain::entities::invite_token::InviteToken;
+use crate::shared::errors::AppError;
 use async_trait::async_trait;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::circles::domain::entities::invite_token::InviteToken;
 
 #[async_trait]
 pub trait InviteRepository: Send + Sync {

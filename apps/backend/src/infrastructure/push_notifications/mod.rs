@@ -1,7 +1,7 @@
-use std::fs;
-use serde::{Deserialize, Serialize};
-use jsonwebtoken::{EncodingKey, Header};
 use chrono::Utc;
+use jsonwebtoken::{EncodingKey, Header};
+use serde::{Deserialize, Serialize};
+use std::fs;
 
 #[derive(Deserialize)]
 struct ServiceAccount {
@@ -26,7 +26,9 @@ struct TokenResponse {
 }
 
 /// Helper to request an OAuth2 access token for Google API calls.
-async fn get_google_access_token(sa: &ServiceAccount) -> Result<String, Box<dyn std::error::Error>> {
+async fn get_google_access_token(
+    sa: &ServiceAccount,
+) -> Result<String, Box<dyn std::error::Error>> {
     let now = Utc::now().timestamp();
     let claims = GoogleClaims {
         iss: sa.client_email.clone(),
@@ -48,7 +50,8 @@ async fn get_google_access_token(sa: &ServiceAccount) -> Result<String, Box<dyn 
         "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion={}",
         assertion
     );
-    let res = client.post("https://oauth2.googleapis.com/token")
+    let res = client
+        .post("https://oauth2.googleapis.com/token")
         .header("content-type", "application/x-www-form-urlencoded")
         .body(body)
         .send()
@@ -67,7 +70,7 @@ pub async fn send_push_notification(token: &str, title: &str, body: &str) {
         "firebase-service-account.json",
         "apps/backend/firebase-service-account.json",
     ];
-    
+
     let mut sa_data = None;
     for path in &paths_to_try {
         if let Ok(content) = fs::read_to_string(path) {
@@ -144,22 +147,30 @@ pub async fn send_push_notification(token: &str, title: &str, body: &str) {
     });
 
     let client = reqwest::Client::new();
-    match client.post(&url)
+    match client
+        .post(&url)
         .bearer_auth(access_token)
         .json(&payload)
         .send()
-        .await 
+        .await
     {
         Ok(res) => {
             if res.status().is_success() {
                 tracing::info!("[FCM SUCCESS] Sent push notification to token {}", token);
             } else {
                 let err_text = res.text().await.unwrap_or_default();
-                tracing::error!("[FCM ERROR] Google returned failure ({}): {}", url, err_text);
+                tracing::error!(
+                    "[FCM ERROR] Google returned failure ({}): {}",
+                    url,
+                    err_text
+                );
             }
         }
         Err(e) => {
-            tracing::error!("[FCM ERROR] Network error while sending push notification: {:?}", e);
+            tracing::error!(
+                "[FCM ERROR] Network error while sending push notification: {:?}",
+                e
+            );
         }
     }
 }

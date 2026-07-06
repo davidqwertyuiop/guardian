@@ -1,10 +1,10 @@
-use std::sync::Arc;
 use crate::config::AppConfig;
-use crate::shared::{
-    errors::AppError,
-    auth::jwt::{verify_refresh_token, sign_access_token},
-};
 use crate::domains::identity::domain::repositories::user_repository::UserRepository;
+use crate::shared::{
+    auth::jwt::{sign_access_token, verify_refresh_token},
+    errors::AppError,
+};
+use std::sync::Arc;
 
 pub struct RefreshTokenOutput {
     pub access_token: String,
@@ -20,7 +20,9 @@ impl RefreshTokenUseCase {
         let claims = verify_refresh_token(refresh_token, &self.config)?;
 
         if claims.token_type != "refresh" {
-            return Err(AppError::Unauthorized("Token must be a refresh token".to_string()));
+            return Err(AppError::Unauthorized(
+                "Token must be a refresh token".to_string(),
+            ));
         }
 
         // Verify user still exists

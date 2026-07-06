@@ -1,7 +1,7 @@
+use crate::domains::sos::domain::entities::sos_broadcast::{SosBroadcast, SosBroadcastWithProfile};
+use crate::shared::errors::AppError;
 use async_trait::async_trait;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::sos::domain::entities::sos_broadcast::{SosBroadcast, SosBroadcastWithProfile};
 
 /// Contract for persisting and querying SOS broadcast events.
 #[async_trait]

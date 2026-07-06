@@ -1,16 +1,17 @@
-use axum::{extract::{State, Path}, Json};
-use uuid::Uuid;
-use crate::routes::AppState;
-use crate::shared::{errors::AppError, middleware::auth::AuthUser};
 use crate::domains::circles::{
+    api::dto::*,
     application::{
-        create_circle::CreateCircleUseCase,
-        join_by_code::JoinByCodeUseCase,
+        create_circle::CreateCircleUseCase, join_by_code::JoinByCodeUseCase,
         join_by_link::JoinByLinkUseCase,
     },
-    api::dto::*,
 };
-
+use crate::routes::AppState;
+use crate::shared::{errors::AppError, middleware::auth::AuthUser};
+use axum::{
+    extract::{Path, State},
+    Json,
+};
+use uuid::Uuid;
 
 // ── POST /api/v1/circles ────────────────────────────────────────────────────
 
@@ -19,7 +20,9 @@ pub async fn create_circle(
     AuthUser(claims): AuthUser,
     Json(body): Json<CreateCircleRequest>,
 ) -> Result<Json<CreateCircleResponse>, AppError> {
-    let owner_id: Uuid = claims.sub.parse()
+    let owner_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     let uc = CreateCircleUseCase {
@@ -50,16 +53,21 @@ pub async fn list_circles(
     State(state): State<AppState>,
     AuthUser(claims): AuthUser,
 ) -> Result<Json<Vec<CircleResponse>>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     let circles = state.circle_repo.list_for_user(user_id).await?;
-    let resp = circles.into_iter().map(|c| CircleResponse {
-        id: c.id.to_string(),
-        name: c.name,
-        owner_id: c.owner_id.to_string(),
-        created_at: c.created_at,
-    }).collect();
+    let resp = circles
+        .into_iter()
+        .map(|c| CircleResponse {
+            id: c.id.to_string(),
+            name: c.name,
+            owner_id: c.owner_id.to_string(),
+            created_at: c.created_at,
+        })
+        .collect();
 
     Ok(Json(resp))
 }
@@ -71,23 +79,30 @@ pub async fn get_members(
     AuthUser(claims): AuthUser,
     Path(circle_id): Path<Uuid>,
 ) -> Result<Json<Vec<MemberResponse>>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     // Only members can see the list
     if !state.circle_repo.is_member(circle_id, user_id).await? {
-        return Err(AppError::Unauthorized("You are not a member of this circle.".into()));
+        return Err(AppError::Unauthorized(
+            "You are not a member of this circle.".into(),
+        ));
     }
 
     let members = state.circle_repo.get_members(circle_id).await?;
-    let resp = members.into_iter().map(|m| MemberResponse {
-        user_id: m.user_id.to_string(),
-        name: m.name,
-        avatar_url: m.avatar_url,
-        phone: m.phone,
-        role: m.role,
-        joined_at: m.joined_at,
-    }).collect();
+    let resp = members
+        .into_iter()
+        .map(|m| MemberResponse {
+            user_id: m.user_id.to_string(),
+            name: m.name,
+            avatar_url: m.avatar_url,
+            phone: m.phone,
+            role: m.role,
+            joined_at: m.joined_at,
+        })
+        .collect();
 
     Ok(Json(resp))
 }
@@ -99,7 +114,9 @@ pub async fn join_by_code(
     AuthUser(claims): AuthUser,
     Json(body): Json<JoinByCodeRequest>,
 ) -> Result<Json<JoinCircleResponse>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     let uc = JoinByCodeUseCase {
@@ -121,7 +138,9 @@ pub async fn join_by_link(
     AuthUser(claims): AuthUser,
     Json(body): Json<JoinByLinkRequest>,
 ) -> Result<Json<JoinCircleResponse>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     let uc = JoinByLinkUseCase {
@@ -142,10 +161,11 @@ pub async fn invite_landing_page(
     State(state): State<AppState>,
     Path(token): Path<String>,
 ) -> axum::response::Html<String> {
-    let app_store_link = &state.config.app_store_link; 
-    let play_store_link = &state.config.play_store_link; 
+    let app_store_link = &state.config.app_store_link;
+    let play_store_link = &state.config.play_store_link;
 
-    let html = format!(r#"<!DOCTYPE html>
+    let html = format!(
+        r#"<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -291,7 +311,11 @@ pub async fn invite_landing_page(
         </script>
     </div>
 </body>
-</html>"#, token = token, app_store_link = app_store_link, play_store_link = play_store_link);
+</html>"#,
+        token = token,
+        app_store_link = app_store_link,
+        play_store_link = play_store_link
+    );
 
     axum::response::Html(html)
 }
@@ -301,12 +325,16 @@ pub async fn leave_circle(
     AuthUser(claims): AuthUser,
     Path(circle_id): Path<Uuid>,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let user_id: Uuid = claims.sub.parse()
+    let user_id: Uuid = claims
+        .sub
+        .parse()
         .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
 
     // Check if the user is a member of the circle first
     if !state.circle_repo.is_member(circle_id, user_id).await? {
-        return Err(AppError::Unauthorized("You are not a member of this circle.".into()));
+        return Err(AppError::Unauthorized(
+            "You are not a member of this circle.".into(),
+        ));
     }
 
     state.circle_repo.remove_member(circle_id, user_id).await?;

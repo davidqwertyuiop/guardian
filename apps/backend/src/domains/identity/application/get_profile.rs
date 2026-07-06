@@ -1,10 +1,9 @@
+use crate::domains::identity::domain::{
+    entities::user::User, repositories::user_repository::UserRepository,
+};
+use crate::shared::errors::AppError;
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::identity::domain::{
-    entities::user::User,
-    repositories::user_repository::UserRepository,
-};
 
 pub struct GetProfileUseCase {
     pub user_repo: Arc<dyn UserRepository>,

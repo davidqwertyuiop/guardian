@@ -1,12 +1,12 @@
-use std::sync::Arc;
-use uuid::Uuid;
-use rand::{Rng, distributions::Alphanumeric};
-use chrono::Utc;
-use crate::shared::errors::AppError;
 use crate::domains::circles::domain::{
     entities::{circle::Circle, invite_token::InviteToken},
     repositories::{circle_repository::CircleRepository, invite_repository::InviteRepository},
 };
+use crate::shared::errors::AppError;
+use chrono::Utc;
+use rand::{distributions::Alphanumeric, Rng};
+use std::sync::Arc;
+use uuid::Uuid;
 
 pub struct CreateCircleOutput {
     pub circle: Circle,
@@ -30,8 +30,14 @@ impl CreateCircleUseCase {
         }
 
         // Check if the owner already has a circle with this name
-        if let Some(_) = self.circle_repo.find_by_owner_and_name(owner_id, name).await? {
-            return Err(AppError::InvalidInput("A circle with this name already exists".into()));
+        if let Some(_) = self
+            .circle_repo
+            .find_by_owner_and_name(owner_id, name)
+            .await?
+        {
+            return Err(AppError::InvalidInput(
+                "A circle with this name already exists".into(),
+            ));
         }
 
         // 1. Create the circle
@@ -43,11 +49,12 @@ impl CreateCircleUseCase {
             .await?;
 
         // 3. Generate a 4-char alphanumeric code and a 6-byte URL-safe token
-        let code  = generate_code(4);
+        let code = generate_code(4);
         let token = generate_token(6);
 
         let now = Utc::now();
-        let invite = self.invite_repo
+        let invite = self
+            .invite_repo
             .create(circle.id, owner_id, &code, &token)
             .await?;
 

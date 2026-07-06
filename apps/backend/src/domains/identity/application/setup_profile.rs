@@ -1,10 +1,9 @@
+use crate::domains::identity::domain::{
+    entities::user::User, repositories::user_repository::UserRepository,
+};
+use crate::shared::errors::AppError;
 use std::sync::Arc;
 use uuid::Uuid;
-use crate::shared::errors::AppError;
-use crate::domains::identity::domain::{
-    entities::user::User,
-    repositories::user_repository::UserRepository,
-};
 
 pub struct SetupProfileUseCase {
     pub user_repo: Arc<dyn UserRepository>,
@@ -17,7 +16,9 @@ impl SetupProfileUseCase {
             return Err(AppError::InvalidInput("Name cannot be empty".to_string()));
         }
         if name.len() > 100 {
-            return Err(AppError::InvalidInput("Name must be 100 characters or fewer".to_string()));
+            return Err(AppError::InvalidInput(
+                "Name must be 100 characters or fewer".to_string(),
+            ));
         }
 
         let id = Uuid::parse_str(user_id)

@@ -24,22 +24,32 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
-    // Load Google Maps API Key from the backend .env file dynamically
-    val envFile = rootProject.file("../../backend/.env")
-    val mapsApiKey = if (envFile.exists()) {
-        val envProperties = Properties()
-        envFile.inputStream().use { envProperties.load(it) }
-        envProperties.getProperty("MAPS_API_KEY_ANDROID") ?: ""
-    } else {
-        ""
+    fun loadPropertiesFile(path: String): Properties {
+        val file = rootProject.file(path)
+        val properties = Properties()
+        if (file.exists()) {
+            file.inputStream().use { properties.load(it) }
+        }
+        return properties
     }
+
+    val localProperties = loadPropertiesFile("local.properties")
+    val backendEnvProperties = loadPropertiesFile("../../backend/.env")
+    val mapsApiKey =
+        localProperties.getProperty("MAPS_API_KEY")
+            ?: localProperties.getProperty("MAPS_API_KEY_ANDROID")
+            ?: System.getenv("MAPS_API_KEY")
+            ?: System.getenv("MAPS_API_KEY_ANDROID")
+            ?: backendEnvProperties.getProperty("MAPS_API_KEY_ANDROID")
+            ?: backendEnvProperties.getProperty("MAPS_API_KEY")
+            ?: ""
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.sijibomi.guardian"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = maxOf(flutter.minSdkVersion, 23)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

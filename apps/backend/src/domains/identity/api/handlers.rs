@@ -4,14 +4,12 @@ use crate::domains::identity::{
     api::dto::*,
     application::{
         firebase_exchange::FirebaseExchangeUseCase, get_profile::GetProfileUseCase,
-        refresh_token::RefreshTokenUseCase, setup_profile::SetupProfileUseCase, 
+        refresh_token::RefreshTokenUseCase, setup_profile::SetupProfileUseCase,
         update_preferences::UpdatePreferencesUseCase,
     },
 };
 use crate::routes::AppState;
 use crate::shared::{errors::AppError, middleware::auth::AuthUser};
-
-
 
 // ── PATCH /api/v1/auth/profile ─────────────────────────────────────────────
 
@@ -192,7 +190,9 @@ pub async fn firebase_exchange(
         config: state.config.clone(),
     };
 
-    let output = use_case.execute(&phone, &body.device_name, body.device_model, &body.platform).await?;
+    let output = use_case
+        .execute(&phone, &body.device_name, body.device_model, &body.platform)
+        .await?;
 
     Ok(Json(AuthResponse {
         access_token: output.access_token,
@@ -225,7 +225,9 @@ pub async fn register_device(
 
     let platform = body.platform.to_lowercase();
     if platform != "ios" && platform != "android" {
-        return Err(AppError::InvalidInput("Platform must be 'ios' or 'android'".into()));
+        return Err(AppError::InvalidInput(
+            "Platform must be 'ios' or 'android'".into(),
+        ));
     }
 
     sqlx::query(
@@ -246,4 +248,3 @@ pub async fn register_device(
         "message": "Device token registered successfully"
     })))
 }
-
