@@ -1,6 +1,49 @@
 part of '../map_card.dart';
 
 extension MapCardActions on MapCardState {
+  void selectMarkerLocation(String label) {
+    final trimmedLabel = label.trim();
+    if (trimmedLabel.isEmpty) return;
+
+    refresh(() => _selectedMarkerLocationLabel = trimmedLabel);
+  }
+
+  void resolveCurrentLocationLabel(LatLng userLoc) {
+    final key =
+        '${userLoc.latitude.toStringAsFixed(4)},'
+        '${userLoc.longitude.toStringAsFixed(4)}';
+    if (_currentLocationKey == key) return;
+
+    _currentLocationKey = key;
+    (() async {
+      try {
+        final placemarks = await Geocoding().placemarkFromCoordinates(
+          userLoc.latitude,
+          userLoc.longitude,
+        );
+        if (!mounted || placemarks.isEmpty) return;
+
+        final label = addressParts(placemarks.first)
+            .whereType<String>()
+            .where((part) => part.trim().isNotEmpty)
+            .join(', ');
+        if (label.isEmpty) return;
+
+        refresh(() => _currentLocationLabel = label);
+      } catch (e) {
+        log('Error resolving map location label: $e');
+      }
+    })();
+  }
+
+  List<String?> addressParts(Placemark place) {
+    return [
+      place.subLocality,
+      place.locality,
+      place.administrativeArea,
+    ];
+  }
+
   void preloadMemberMarker(dynamic member) {
     final uid = member['user_id'] ?? '';
     final url = member['avatar_url'] ?? '';
@@ -33,10 +76,9 @@ extension MapCardActions on MapCardState {
         oldWidget.userLongitude == widget.userLongitude) {
       return;
     }
-    final target = LatLng(
-      _currentLatitude ?? widget.userLatitude,
-      _currentLongitude ?? widget.userLongitude,
-    );
+    _currentLatitude = widget.userLatitude;
+    _currentLongitude = widget.userLongitude;
+    final target = LatLng(widget.userLatitude, widget.userLongitude);
 
     _controller?.animateCamera(
       CameraUpdate.newCameraPosition(
@@ -50,11 +92,12 @@ extension MapCardActions on MapCardState {
   }
 
   Future<void> _launchDirections() async {
-    if (widget.selectedPlace == null) return;
+    final routePlace = activeRoutePlace();
+    if (routePlace == null) return;
     final uri = Uri.parse(
       'https://www.google.com/maps/dir/?api=1&destination='
-      '${widget.selectedPlace!.coordinates.latitude},'
-      '${widget.selectedPlace!.coordinates.longitude}',
+      '${routePlace.coordinates.latitude},'
+      '${routePlace.coordinates.longitude}',
     );
 
     if (await canLaunchUrl(uri)) {

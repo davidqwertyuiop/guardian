@@ -7,6 +7,7 @@ extension MapCardView on MapCardState {
       _currentLatitude ?? widget.userLatitude,
       _currentLongitude ?? widget.userLongitude,
     );
+    resolveCurrentLocationLabel(userLoc);
     final screenHeight = MediaQuery.sizeOf(context).height;
 
     return AnimatedBuilder(

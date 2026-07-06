@@ -26,11 +26,6 @@ extension _LiveMapLayout on _LiveMapScreenState {
               ),
             ),
             buildTopOverlay(state),
-            PlaceSuggestionsOverlay(
-              isVisible: _isSearching,
-              suggestions: _suggestions,
-              onSuggestionTap: selectPlace,
-            ),
           ],
         ),
       ),

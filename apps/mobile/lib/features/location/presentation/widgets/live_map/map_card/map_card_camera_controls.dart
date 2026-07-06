@@ -25,21 +25,13 @@ extension MapCardCameraControls on MapCardState {
     return switch (_effectiveMapType(isDark)) {
       MapType.normal => 'Default',
       MapType.hybrid => 'Hybrid',
-      MapType.satellite => 'Satellite',
-      MapType.terrain => 'Terrain',
       _ => 'Map',
     };
   }
 
   void cycleMapType(bool isDark) {
     final current = _effectiveMapType(isDark);
-    final next = switch (current) {
-      MapType.normal => MapType.hybrid,
-      MapType.hybrid => MapType.satellite,
-      MapType.satellite => MapType.terrain,
-      MapType.terrain => MapType.normal,
-      _ => MapType.normal,
-    };
+    final next = current == MapType.normal ? MapType.hybrid : MapType.normal;
     refresh(() => _selectedMapType = next);
   }
 }

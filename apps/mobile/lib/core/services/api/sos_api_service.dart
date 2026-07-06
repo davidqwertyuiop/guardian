@@ -118,7 +118,8 @@ abstract class SosApiService {
           'Authorization': 'Bearer $token',
         },
       );
-      return response.statusCode == 200;
+      if (response.statusCode == 200) return true;
+      throw Exception(ApiBase.extractErrorMessage(response.body));
     } catch (e) {
       ApiBase.rethrowNetworkError(e);
     }
@@ -136,7 +137,8 @@ abstract class SosApiService {
           'Authorization': 'Bearer $token',
         },
       );
-      return response.statusCode == 200;
+      if (response.statusCode == 200) return true;
+      throw Exception(ApiBase.extractErrorMessage(response.body));
     } catch (e) {
       ApiBase.rethrowNetworkError(e);
     }

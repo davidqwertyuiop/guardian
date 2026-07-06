@@ -34,6 +34,7 @@ extension _SosBottomSheetActions on _SosBottomSheetState {
             result['id']?.toString() ?? result['broadcast_id']?.toString();
         _address = address;
       });
+      widget.onLocationResolved?.call(latitude, longitude);
       widget.onActiveChanged?.call(true);
       widget.onActivated?.call(_broadcastId, address);
     } catch (e) {
@@ -50,11 +51,24 @@ extension _SosBottomSheetActions on _SosBottomSheetState {
     refresh(() => _isResolving = true);
     try {
       final id = _broadcastId;
-      if (id != null && id.isNotEmpty) await ApiService.dismissSos(id);
+      if (id == null || id.isEmpty) {
+        throw Exception('Could not find the active SOS broadcast to cancel.');
+      }
+
+      await ApiService.dismissSos(id);
       if (!mounted) return;
-      refresh(() => _status = SosSheetStatus.cancelled);
+      refresh(() {
+        _status = SosSheetStatus.cancelled;
+        _broadcastId = null;
+      });
       widget.onActiveChanged?.call(false);
       widget.onClosed?.call();
+    } catch (e) {
+      if (!mounted) return;
+      refresh(() {
+        _status = SosSheetStatus.failure;
+        _errorMessage = e.toString();
+      });
     } finally {
       if (mounted) refresh(() => _isResolving = false);
     }

@@ -58,11 +58,12 @@ extension _LiveMapSections on _LiveMapScreenState {
       userLatitude: state.userLatitude,
       userLongitude: state.userLongitude,
       circleId: state.circleId,
-      selectedPlace: _selectedPlace,
-      onClearSearch: clearSearch,
+      selectedPlace: null,
+      onClearSearch: () {},
       isSosActive: _isLocalSosActive,
       activeSosAddress: _activeSosAddress,
       sosBroadcasts: state.sosBroadcasts,
+      mapsApiKey: mapsKey,
     );
   }
 

@@ -58,3 +58,13 @@ class UpdateWeatherAndLocation extends HomeEvent {
   @override
   List<Object?> get props => [latitude, longitude, weatherGreeting];
 }
+
+class UpdateUserLocation extends HomeEvent {
+  final double latitude;
+  final double longitude;
+
+  const UpdateUserLocation({required this.latitude, required this.longitude});
+
+  @override
+  List<Object?> get props => [latitude, longitude];
+}

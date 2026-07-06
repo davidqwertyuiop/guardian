@@ -21,6 +21,31 @@ impl SosRepository for PostgresSosRepository {
         longitude: Option<f64>,
         address: Option<String>,
     ) -> Result<SosBroadcast, AppError> {
+        if let Some(existing) = sqlx::query_as::<_, SosBroadcast>(
+            r#"
+            UPDATE sos_broadcasts
+            SET latitude = COALESCE($3, latitude),
+                longitude = COALESCE($4, longitude),
+                address = COALESCE($5, address)
+            WHERE user_id = $1
+              AND circle_id = $2
+              AND status = 'active'
+            RETURNING id, user_id, circle_id, latitude, longitude, address,
+                      status, resolved_at, created_at
+            "#,
+        )
+        .bind(user_id)
+        .bind(circle_id)
+        .bind(latitude)
+        .bind(longitude)
+        .bind(address.clone())
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AppError::Internal(format!("DB update active SOS: {e}")))?
+        {
+            return Ok(existing);
+        }
+
         sqlx::query_as::<_, SosBroadcast>(
             r#"
             INSERT INTO sos_broadcasts (user_id, circle_id, latitude, longitude, address, status)
@@ -96,14 +121,30 @@ impl SosRepository for PostgresSosRepository {
     }
 
     async fn dismiss(&self, id: Uuid, user_id: Uuid) -> Result<SosBroadcast, AppError> {
-        // Only the originating user may dismiss their own broadcast.
+        // Only the originating user may dismiss their own broadcast. If older
+        // duplicate active rows exist for the same circle, dismiss them too.
         sqlx::query_as::<_, SosBroadcast>(
             r#"
-            UPDATE sos_broadcasts
-            SET status = 'dismissed'
-            WHERE id = $1 AND user_id = $2 AND status = 'active'
-            RETURNING id, user_id, circle_id, latitude, longitude, address,
-                      status, resolved_at, created_at
+            WITH target AS (
+                SELECT circle_id
+                FROM sos_broadcasts
+                WHERE id = $1 AND user_id = $2
+                LIMIT 1
+            ),
+            updated AS (
+                UPDATE sos_broadcasts
+                SET status = 'dismissed'
+                WHERE user_id = $2
+                  AND status = 'active'
+                  AND circle_id = (SELECT circle_id FROM target)
+                RETURNING id, user_id, circle_id, latitude, longitude, address,
+                          status, resolved_at, created_at
+            )
+            SELECT id, user_id, circle_id, latitude, longitude, address,
+                   status, resolved_at, created_at
+            FROM updated
+            ORDER BY created_at DESC
+            LIMIT 1
             "#,
         )
         .bind(id)

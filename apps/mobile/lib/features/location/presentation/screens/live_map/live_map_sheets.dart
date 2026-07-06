@@ -27,6 +27,7 @@ extension _LiveMapSheets on _LiveMapScreenState {
         onClosed: () => _bloc.add(const LoadHomeData()),
         onActivated: rememberActiveSos,
         onActiveChanged: updateSosActiveState,
+        onLocationResolved: updateUserLocationFromSos,
       ),
     );
   }
@@ -53,6 +54,10 @@ extension _LiveMapSheets on _LiveMapScreenState {
     }
   }
 
+  void updateUserLocationFromSos(double latitude, double longitude) {
+    _bloc.add(UpdateUserLocation(latitude: latitude, longitude: longitude));
+  }
+
   void syncMapAnimations(BuildContext context, HomeState state) {
     switch (state.mapDisplayState) {
       case MapDisplayState.compact:
@@ -62,7 +67,7 @@ extension _LiveMapSheets on _LiveMapScreenState {
       case MapDisplayState.expanded:
         if (_fullAnim.value > 0.0) _fullAnim.reverse();
         if (_mapAnim.value < 1.0) _mapAnim.forward();
-        break;
+        break;  
       case MapDisplayState.full:
         if (_mapAnim.value < 1.0) _mapAnim.forward();
         if (_fullAnim.value < 1.0) _fullAnim.forward();

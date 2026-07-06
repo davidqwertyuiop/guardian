@@ -41,7 +41,7 @@ class MapControlsColumn extends StatelessWidget {
           isDark: isDark,
           icon: Icons.layers_rounded,
           onTap: onChangeMapType,
-          tooltip: mapTypeLabel,
+          tooltip: 'Switch map view: $mapTypeLabel',
         ),
         const SizedBox(height: 10),
         MapControlButton(

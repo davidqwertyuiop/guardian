@@ -38,6 +38,11 @@ extension MapCardPlatformMap on MapCardState {
   }
 
   void handlePlatformMapTap(bool isCompact, bool isFull) {
+    if (isFull && _selectedMarkerLocationLabel != null) {
+      refresh(() => _selectedMarkerLocationLabel = null);
+      return;
+    }
+
     if (!isCompact && !isFull) widget.onTap();
   }
 }

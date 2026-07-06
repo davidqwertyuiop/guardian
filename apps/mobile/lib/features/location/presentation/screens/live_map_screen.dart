@@ -3,11 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:guardian/export.dart';
-import '../../domain/models/live_map_models.dart';
 import '../widgets/live_map/broadcast_bottom_panel.dart';
 import '../widgets/live_map/broadcast_controls.dart';
 import '../widgets/live_map/map_card.dart';
-import '../widgets/live_map/place_suggestions_overlay.dart';
 import '../widgets/live_map/sos_bottom_sheet.dart';
 import '../widgets/live_map/top_bar.dart';
 import '../widgets/live_map/welcome_header.dart';
@@ -36,17 +34,11 @@ class _LiveMapScreenState extends State<LiveMapScreen>
   late final AnimationController _fullAnim;
   final ScrollController _scrollController = ScrollController();
 
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
   String _mapsApiKey = '';
-  List<LivePlace> _suggestions = [];
-  SelectedLivePlace? _selectedPlace;
-  bool _isSearching = false;
   double _broadcastPanelHeight = 260;
   bool _isLocalSosActive = false;
   String? _activeSosBroadcastId;
   String? _activeSosAddress;
-  bool _isHomeScrolled = false;
 
   void updateUi(VoidCallback callback) => setState(callback);
 
@@ -62,7 +54,6 @@ class _LiveMapScreenState extends State<LiveMapScreen>
       vsync: this,
       duration: const Duration(milliseconds: 380),
     );
-    _scrollController.addListener(handleScroll);
     fetchMapKeys();
   }
 
@@ -70,11 +61,7 @@ class _LiveMapScreenState extends State<LiveMapScreen>
   void dispose() {
     _mapAnim.dispose();
     _fullAnim.dispose();
-    _scrollController
-      ..removeListener(handleScroll)
-      ..dispose();
-    _searchController.dispose();
-    _searchFocusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 

@@ -3,7 +3,7 @@ part of '../map_card.dart';
 extension MapCardMarkerLoading on MapCardState {
   Future<void> _loadMarkerIcons() async {
     try {
-      _userLocationMarker = await _createLocationPinMarker("Me");
+      _userLocationMarker = await _createLocationPinMarker('');
       _avatarTopMarker = await _createAvatarPinMarker(
         "Dave",
         assetPath: AppAssets.avatarTop,

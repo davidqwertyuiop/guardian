@@ -24,6 +24,7 @@ class SosBottomSheet extends StatefulWidget {
   final VoidCallback? onClosed;
   final ValueChanged<bool>? onActiveChanged;
   final void Function(String? broadcastId, String? address)? onActivated;
+  final void Function(double latitude, double longitude)? onLocationResolved;
   final String? initialBroadcastId;
   final String? initialAddress;
   final bool startActive;
@@ -36,6 +37,7 @@ class SosBottomSheet extends StatefulWidget {
     this.onClosed,
     this.onActiveChanged,
     this.onActivated,
+    this.onLocationResolved,
     this.initialBroadcastId,
     this.initialAddress,
     this.startActive = false,

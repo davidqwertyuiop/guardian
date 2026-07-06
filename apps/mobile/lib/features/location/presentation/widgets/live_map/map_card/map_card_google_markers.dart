@@ -9,7 +9,11 @@ extension MapCardGoogleMarkers on MapCardState {
         icon:
             _userLocationMarker ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        infoWindow: const InfoWindow(title: 'You'),
+        onTap: () => selectMarkerLocation(
+          _currentLocationLabel ??
+              widget.activeSosAddress ??
+              'Current location',
+        ),
       ),
     };
 
@@ -45,7 +49,7 @@ extension MapCardGoogleMarkers on MapCardState {
         markerId: MarkerId('member_$uid'),
         position: LatLng(latitude, longitude),
         icon: icon,
-        infoWindow: InfoWindow(title: member['name'] ?? 'Member'),
+        onTap: () => selectMarkerLocation(_memberLocationLabel(member)),
       );
     }
   }
@@ -59,17 +63,22 @@ extension MapCardGoogleMarkers on MapCardState {
             _sosMarker ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
         zIndexInt: 20,
-        infoWindow: InfoWindow(
-          title: 'SOS active',
-          snippet: widget.activeSosAddress ?? 'Current location',
+        onTap: () => selectMarkerLocation(
+          widget.activeSosAddress ?? _currentLocationLabel ?? 'SOS active',
         ),
       );
     }
 
+    final seenSosUsers = <String>{};
     for (final broadcast in widget.sosBroadcasts) {
       final json = broadcast is Map ? broadcast : const {};
-      final status = json['status']?.toString().toLowerCase() ?? '';
-      if (status.isNotEmpty && status != 'active') continue;
+      final status = json['status']?.toString().trim().toLowerCase() ?? '';
+      if (status != 'active') continue;
+      final userId = json['user_id']?.toString() ?? '';
+      if (userId.isNotEmpty) {
+        if (userId == _currentUserId) continue;
+        if (!seenSosUsers.add(userId)) continue;
+      }
 
       final latitude = _readCoordinate(json['latitude']);
       final longitude = _readCoordinate(json['longitude']);
@@ -83,12 +92,22 @@ extension MapCardGoogleMarkers on MapCardState {
             _sosMarker ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
         zIndexInt: 19,
-        infoWindow: InfoWindow(
-          title: '${json['name'] ?? json['user_name'] ?? 'Member'} SOS',
-          snippet: json['address']?.toString() ?? 'SOS location',
+        onTap: () => selectMarkerLocation(
+          json['address']?.toString() ??
+              '${json['name'] ?? json['user_name'] ?? 'Member'} SOS',
         ),
       );
     }
+  }
+
+  String _memberLocationLabel(Map<dynamic, dynamic> member) {
+    final address = member['address']?.toString();
+    if (address != null && address.isNotEmpty) return address;
+
+    final name = member['name']?.toString();
+    if (name != null && name.isNotEmpty) return name;
+
+    return 'Member location';
   }
 
   double? _readCoordinate(dynamic value) {

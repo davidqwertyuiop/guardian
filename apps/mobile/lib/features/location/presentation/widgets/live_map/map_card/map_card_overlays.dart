@@ -25,6 +25,19 @@ extension MapCardOverlays on MapCardState {
         child: Stack(
           children: [
             Positioned(
+              top: context.w(88),
+              left: 0,
+              right: 0,
+              child: Center(
+                child: buildLocationPill(
+                  _selectedMarkerLocationLabel ??
+                      _currentLocationLabel ??
+                      widget.activeSosAddress ??
+                      'Finding nearby...',
+                ),
+              ),
+            ),
+            Positioned(
               bottom: 16,
               left: 0,
               right: 0,
@@ -42,14 +55,24 @@ extension MapCardOverlays on MapCardState {
     LatLng userLoc,
     MapRouteInfo route,
   ) {
+    final routePlace = activeRoutePlace();
     return Positioned.fill(
       child: Opacity(
         opacity: opacity,
         child: Stack(
           children: [
+            if (_selectedMarkerLocationLabel != null)
+              Positioned(
+                top: MediaQuery.paddingOf(context).top + context.w(72),
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: buildLocationPill(_selectedMarkerLocationLabel!),
+                ),
+              ),
             Positioned(
               right: 16,
-              bottom: widget.selectedPlace != null ? 300 : 120,
+              bottom: routePlace != null ? 300 : 120,
               child: MapControlsColumn(
                 isDark: isDark,
                 onZoomIn: zoomIn,
@@ -59,13 +82,13 @@ extension MapCardOverlays on MapCardState {
                 mapTypeLabel: mapTypeLabel(isDark),
               ),
             ),
-            if (widget.selectedPlace != null)
+            if (routePlace != null)
               Positioned(
                 left: 16,
                 right: 16,
                 bottom: 100,
                 child: DirectionsPanel(
-                  place: widget.selectedPlace!,
+                  place: routePlace,
                   distanceKm: route.distanceKm,
                   durationMins: route.durationMins,
                   isDark: isDark,
@@ -73,6 +96,42 @@ extension MapCardOverlays on MapCardState {
                 ),
               ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildLocationPill(String label) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: context.w(236)),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: context.w(14),
+          vertical: context.w(10),
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFFBFC0C5).withValues(alpha: 0.92),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w600,
+            fontSize: context.sp(13),
+            height: 1,
+          ),
         ),
       ),
     );

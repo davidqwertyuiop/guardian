@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:guardian/features/location/services/gps_service.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:guardian/export.dart';
@@ -40,6 +41,7 @@ class MapCard extends StatefulWidget {
   final bool isSosActive;
   final String? activeSosAddress;
   final List<dynamic> sosBroadcasts;
+  final String mapsApiKey;
 
   const MapCard({
     super.key,
@@ -58,6 +60,7 @@ class MapCard extends StatefulWidget {
     required this.isSosActive,
     required this.activeSosAddress,
     required this.sosBroadcasts,
+    required this.mapsApiKey,
   });
 
   @override
@@ -78,6 +81,14 @@ class MapCardState extends State<MapCard> {
   double? _currentLatitude;
   double? _currentLongitude;
   MapType? _selectedMapType;
+  List<LatLng> _directionsPoints = [];
+  double _directionsDistanceKm = 0;
+  int _directionsDurationMins = 0;
+  String? _directionsRouteKey;
+  bool _isLoadingDirections = false;
+  String? _currentLocationLabel;
+  String? _currentLocationKey;
+  String? _selectedMarkerLocationLabel;
 
   final Map<String, BitmapDescriptor> _googleMarkersCache = {};
   final Map<String, bool> _loadingAvatars = {};
@@ -103,6 +114,7 @@ class MapCardState extends State<MapCard> {
   void didUpdateWidget(covariant MapCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     handleMapCardUpdate(oldWidget);
+    refreshDirectionsIfNeeded();
   }
 
   void _onMapCreated(GoogleMapController controller) {

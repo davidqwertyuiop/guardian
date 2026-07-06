@@ -6,31 +6,19 @@ import 'top_bar/top_bar_leading_button.dart';
 import 'top_bar/top_bar_sos_button.dart';
 
 class LiveMapTopBar extends StatelessWidget {
-  final bool showSearch;
   final VoidCallback onSosTap;
-  final double latitude;
-  final double longitude;
-  final TextEditingController searchController;
-  final ValueChanged<String> onSearchChanged;
-  final VoidCallback onClearSearch;
-  final FocusNode searchFocusNode;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
   final bool isSosActive;
+  final bool showCenterIcon;
 
   const LiveMapTopBar({
     super.key,
-    required this.showSearch,
     required this.onSosTap,
-    required this.latitude,
-    required this.longitude,
-    required this.searchController,
-    required this.onSearchChanged,
-    required this.onClearSearch,
-    required this.searchFocusNode,
     this.showBackButton = false,
     this.onBackPressed,
     this.isSosActive = false,
+    this.showCenterIcon = true,
   });
 
   @override
@@ -47,13 +35,7 @@ class LiveMapTopBar extends StatelessWidget {
             showBackButton: showBackButton,
             onBackPressed: onBackPressed,
           ),
-          TopBarCenter(
-            showSearch: showSearch,
-            searchController: searchController,
-            searchFocusNode: searchFocusNode,
-            onSearchChanged: onSearchChanged,
-            onClearSearch: onClearSearch,
-          ),
+          TopBarCenter(showIcon: showCenterIcon),
           TopBarSosButton(
             height: buttonSize,
             onTap: onSosTap,

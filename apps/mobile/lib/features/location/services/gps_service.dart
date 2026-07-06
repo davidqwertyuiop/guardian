@@ -10,19 +10,31 @@ class GpsService {
       case 'NG':
         return {'latitude': 9.0578, 'longitude': 7.4951}; // Abuja, Nigeria
       case 'US':
-        return {'latitude': 37.7749, 'longitude': -122.4194}; // San Francisco, USA
+        return {
+          'latitude': 37.7749,
+          'longitude': -122.4194,
+        }; // San Francisco, USA
       case 'GB':
         return {'latitude': 51.5074, 'longitude': -0.1278}; // London, UK
       case 'CA':
         return {'latitude': 45.4215, 'longitude': -75.6972}; // Ottawa, Canada
       case 'AU':
-        return {'latitude': -35.2809, 'longitude': 149.1300}; // Canberra, Australia
+        return {
+          'latitude': -35.2809,
+          'longitude': 149.1300,
+        }; // Canberra, Australia
       case 'ZA':
-        return {'latitude': -33.9249, 'longitude': 18.4241}; // Cape Town, South Africa
+        return {
+          'latitude': -33.9249,
+          'longitude': 18.4241,
+        }; // Cape Town, South Africa
       case 'IN':
         return {'latitude': 28.6139, 'longitude': 77.2090}; // New Delhi, India
       default:
-        return {'latitude': 9.0578, 'longitude': 7.4951}; // Abuja default fallback
+        return {
+          'latitude': 9.0578,
+          'longitude': 7.4951,
+        }; // Abuja default fallback
     }
   }
 
@@ -55,9 +67,8 @@ class GpsService {
       LocationSettings locationSettings;
       if (Platform.isAndroid) {
         locationSettings = AndroidSettings(
-          accuracy: LocationAccuracy.high,
+          accuracy: LocationAccuracy.best,
           distanceFilter: 0,
-          forceLocationManager: true,
           timeLimit: const Duration(seconds: 8),
         );
       } else if (Platform.isIOS || Platform.isMacOS) {
@@ -80,10 +91,7 @@ class GpsService {
       final position = await Geolocator.getCurrentPosition(
         locationSettings: locationSettings,
       );
-      return {
-        'latitude': position.latitude,
-        'longitude': position.longitude,
-      };
+      return {'latitude': position.latitude, 'longitude': position.longitude};
     } catch (e) {
       log('Error getting location: $e. Fetching last known position.');
       try {

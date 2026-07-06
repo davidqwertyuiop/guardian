@@ -29,6 +29,7 @@ extension _SosBottomSheetController on _SosBottomSheetState {
       _longitude = longitude;
       _address = address;
     });
+    widget.onLocationResolved?.call(latitude, longitude);
   }
 
   Future<String> resolveAddress(double latitude, double longitude) async {

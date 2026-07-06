@@ -21,6 +21,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<SelectCircle>(_onSelectCircle);
     on<LeaveCircle>(_onLeaveCircle);
     on<UpdateWeatherAndLocation>(_onUpdateWeatherAndLocation);
+    on<UpdateUserLocation>(_onUpdateUserLocation);
   }
 
   void _onChangeTab(ChangeTab event, Emitter<HomeState> emit) {
@@ -104,7 +105,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         if (activeCircleId.isNotEmpty) {
           circleMembers = await ApiService.getCircleMembers(activeCircleId);
           try {
-            sosBroadcasts = await ApiService.getSosBroadcasts(activeCircleId);
+            sosBroadcasts = _activeSosBroadcasts(
+              await ApiService.getSosBroadcasts(activeCircleId),
+            );
           } catch (_) {
             // Ignore if sos broadcasts fail
           }
@@ -193,7 +196,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final members = await ApiService.getCircleMembers(event.circleId);
       List<dynamic> sosBroadcasts = [];
       try {
-        sosBroadcasts = await ApiService.getSosBroadcasts(event.circleId);
+        sosBroadcasts = _activeSosBroadcasts(
+          await ApiService.getSosBroadcasts(event.circleId),
+        );
       } catch (_) {}
       emit(
         state.copyWith(
@@ -240,5 +245,31 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         weatherGreeting: event.weatherGreeting,
       ),
     );
+  }
+
+  void _onUpdateUserLocation(
+    UpdateUserLocation event,
+    Emitter<HomeState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        userLatitude: event.latitude,
+        userLongitude: event.longitude,
+      ),
+    );
+  }
+
+  List<dynamic> _activeSosBroadcasts(List<dynamic> broadcasts) {
+    final seenUserIds = <String>{};
+    return broadcasts.where((value) {
+      final json = value is Map ? value : const {};
+      final status = json['status']?.toString().trim().toLowerCase() ?? '';
+      if (status != 'active') return false;
+
+      final userId = json['user_id']?.toString() ?? '';
+      if (userId.isEmpty) return true;
+
+      return seenUserIds.add(userId);
+    }).toList();
   }
 }

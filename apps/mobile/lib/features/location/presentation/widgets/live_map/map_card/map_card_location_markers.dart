@@ -12,32 +12,36 @@ extension MapCardLocationMarkers on MapCardState {
   Future<Uint8List> _createLocationPinBytes(String label) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    const width = 120.0;
-    const height = 100.0;
+    final hasLabel = label.trim().isNotEmpty;
+    final width = hasLabel ? 120.0 : 80.0;
+    final height = hasLabel ? 100.0 : 80.0;
     final paint = Paint()..color = Colors.black;
 
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(10, 5, 100, 35),
-        const Radius.circular(8),
-      ),
-      paint,
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(50, 40)
-        ..lineTo(70, 40)
-        ..lineTo(60, 48)
-        ..close(),
-      paint,
-    );
-    _paintMarkerLabel(canvas, label, Colors.white, 11, 35);
+    if (hasLabel) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          const Rect.fromLTWH(10, 5, 100, 35),
+          const Radius.circular(8),
+        ),
+        paint,
+      );
+      canvas.drawPath(
+        Path()
+          ..moveTo(50, 40)
+          ..lineTo(70, 40)
+          ..lineTo(60, 48)
+          ..close(),
+        paint,
+      );
+      _paintMarkerLabel(canvas, label, Colors.white, 11, 35);
+    }
+
     _paintMarkerIcon(
       canvas,
       Icons.location_on,
       Colors.black,
-      32,
-      const Offset(45, 55),
+      hasLabel ? 32 : 44,
+      hasLabel ? const Offset(45, 55) : const Offset(18, 16),
     );
 
     final image = await recorder.endRecording().toImage(
