@@ -1,0 +1,152 @@
+# otp_bottom_sheet.dart
+
+* **File Path:** `apps/mobile/lib/features/auth/presentation/widgets/otp_bottom_sheet.dart`
+* **Type:** `DART`
+
+---
+
+```dart
+
+import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:smart_auth/smart_auth.dart';
+
+import 'otp_input_field.dart';
+import 'otp_bottom_sheet_widgets.dart';
+import 'package:guardian/export.dart';
+class OtpBottomSheet extends StatefulWidget {
+  const OtpBottomSheet({super.key});
+
+  @override
+  State<OtpBottomSheet> createState() => _OtpBottomSheetState();
+}
+
+class _OtpBottomSheetState extends State<OtpBottomSheet> {
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
+  int _seconds = 30;
+  Timer? _timer;
+  late final AuthBloc _authBloc;
+  late final SmsRetrieverImpl _smsRetriever;
+
+  @override
+  void initState() {
+    super.initState();
+    _authBloc = context.read<AuthBloc>();
+    _smsRetriever = SmsRetrieverImpl(SmartAuth.instance);
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _seconds = 30;
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (mounted && _seconds > 0) {
+        setState(() => _seconds--);
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pinController.dispose();
+    _pinFocusNode.dispose();
+    _smsRetriever.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return StreamBuilder<AuthState>(
+      stream: _authBloc.stream,
+      initialData: _authBloc.state,
+      builder: (context, snapshot) {
+        final state = snapshot.data ?? _authBloc.state;
+        final masked = maskPhone(state.dialCode, state.phoneNumber);
+
+        return Container(
+          margin: EdgeInsets.symmetric(
+            horizontal: AdaptiveLayout.padding(context, 20),
+            vertical: AdaptiveLayout.padding(context, 16),
+          ),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF13131A) : Colors.white,
+            borderRadius: BorderRadius.circular(32),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          padding: EdgeInsets.all(AdaptiveLayout.padding(context, 24)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const OtpBottomSheetHeader(),
+              SizedBox(height: AdaptiveLayout.h(context, 1)),
+              Text(
+                "Check your messages",
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: AdaptiveLayout.sp(context, 20),
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              OtpBottomSheetSubtitle(maskedPhone: masked),
+              SizedBox(height: AdaptiveLayout.h(context, 24)),
+              OtpInputField(
+                controller: _pinController,
+                focusNode: _pinFocusNode,
+                smsRetriever: _smsRetriever,
+                onCompleted: (pin) =>
+                    _authBloc.add(SubmitVerificationCode(pin)),
+              ),
+              SizedBox(height: AdaptiveLayout.h(context, 24)),
+              OtpTimerText(
+                seconds: _seconds,
+                onResend: () {
+                  _startTimer();
+                  _pinController.clear();
+                  _authBloc.add(const SubmitPhoneNumber());
+                },
+              ),
+              SizedBox(height: AdaptiveLayout.h(context, 16)),
+              GestureDetector(
+                onTap: () async {
+                  final Uri emailLaunchUri = Uri(
+                    scheme: 'mailto',
+                    path: 'guardian@gmail.com',
+                  );
+                  try {
+                    await launchUrl(emailLaunchUri);
+                  } catch (e) {
+                    debugPrint('Could not launch email: $e');
+                  }
+                },
+                child: Text(
+                  "Having trouble? Contact support",
+                  style: TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: AdaptiveLayout.sp(context, 13),
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+```

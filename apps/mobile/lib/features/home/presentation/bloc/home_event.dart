@@ -43,3 +43,18 @@ class LeaveCircle extends HomeEvent {
   @override
   List<Object?> get props => [circleId];
 }
+
+class UpdateWeatherAndLocation extends HomeEvent {
+  final double latitude;
+  final double longitude;
+  final String weatherGreeting;
+
+  const UpdateWeatherAndLocation({
+    required this.latitude,
+    required this.longitude,
+    required this.weatherGreeting,
+  });
+
+  @override
+  List<Object?> get props => [latitude, longitude, weatherGreeting];
+}

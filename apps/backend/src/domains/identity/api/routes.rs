@@ -13,6 +13,7 @@ pub fn router() -> Router<AppState> {
         .route("/refresh", post(handlers::refresh_token))
         .route("/me", get(handlers::get_me))
         .route("/sessions", get(handlers::get_sessions))
+        .route("/devices", post(handlers::register_device))
         .route(
             "/sessions/{hash}",
             axum::routing::delete(handlers::revoke_session),

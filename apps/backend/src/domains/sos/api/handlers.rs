@@ -39,6 +39,10 @@ pub async fn trigger_sos(
         ));
     }
 
+    let user = state.user_repo.find_by_id(user_id).await?
+        .ok_or_else(|| AppError::NotFound("Triggering user not found".into()))?;
+    let user_name = user.name.unwrap_or_else(|| "Someone".into());
+
     let broadcast = state
         .sos_repo
         .create(
@@ -46,9 +50,39 @@ pub async fn trigger_sos(
             body.circle_id,
             body.latitude,
             body.longitude,
-            body.address,
+            body.address.clone(),
         )
         .await?;
+
+    // Fetch FCM tokens of other members in this circle to notify them
+    let other_members_tokens: Vec<String> = sqlx::query_scalar(
+        "SELECT dt.fcm_token 
+         FROM device_tokens dt
+         JOIN circle_memberships cm ON cm.user_id = dt.user_id
+         WHERE cm.circle_id = $1 AND cm.user_id != $2"
+    )
+    .bind(body.circle_id)
+    .bind(user_id)
+    .fetch_all(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Internal(format!("DB fetch FCM tokens: {e}")))?;
+
+    let title = format!("EMERGENCY: {} triggered SOS!", user_name);
+    let body_text = format!(
+        "Address: {}. Tap to open live tracking.",
+        body.address.as_deref().unwrap_or("Unknown location")
+    );
+
+    for token in &other_members_tokens {
+        crate::infrastructure::push_notifications::send_push_notification(token, &title, &body_text).await;
+    }
+
+    tracing::info!(
+        "SOS triggered by user {} for circle {}. Push notifications dispatched to {} devices.",
+        user_id,
+        body.circle_id,
+        other_members_tokens.len()
+    );
 
     Ok(Json(SosActionResponse {
         id: broadcast.id.to_string(),

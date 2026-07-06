@@ -53,13 +53,13 @@ export 'package:guardian/features/auth/presentation/widgets/login_bottom_sheet.d
 export 'package:guardian/features/auth/presentation/widgets/shared/auth_shared.dart';
 export 'package:guardian/core/services/api_service.dart';
 
-export 'package:guardian/features/auth/presentation/widgets/circle_ready_sheet.dart';
+export 'package:guardian/features/circles/presentation/widgets/circle_ready_sheet.dart';
 export 'package:guardian/core/security/token_manager.dart';
 export 'package:bloc/bloc.dart';
 
 export 'package:guardian/features/auth/presentation/widgets/onboarding_step_screen.dart';
 
-export 'package:guardian/features/auth/presentation/widgets/you_are_in_sheet.dart';
+export 'package:guardian/features/circles/presentation/widgets/you_are_in_sheet.dart';
 export 'package:guardian/core/utils/adaptive_layout.dart';
 export 'package:guardian/core/utils/phone_number_utils.dart';
 export 'package:guardian/features/auth/presentation/screens/login_screen.dart';
@@ -68,3 +68,4 @@ export 'package:guardian/features/settings/presentation/bloc/settings_state.dart
 export 'package:guardian/features/location/presentation/widgets/sos_broadcasts_section.dart';
 export 'package:guardian/features/location/presentation/screens/sos_broadcasts_screen.dart';
 export 'package:guardian/core/config/env_config.dart';
+export 'package:guardian/features/location/presentation/widgets/live_map/you_are_live_bottom_sheet.dart';

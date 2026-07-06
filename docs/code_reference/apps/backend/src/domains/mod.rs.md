@@ -1,0 +1,27 @@
+# mod.rs
+
+* **File Path:** `apps/backend/src/domains/mod.rs`
+* **Type:** `RUST`
+
+---
+
+```rust
+pub mod identity;
+pub mod users;
+pub mod circles;
+pub mod location;
+pub mod journey;
+pub mod sos;
+pub mod notifications;
+pub mod geofencing;
+pub mod smart_alerts;
+pub mod device_recovery;
+pub mod subscriptions;
+pub mod billing;
+pub mod analytics;
+pub mod support;
+pub mod admin;
+pub mod audit;
+pub mod blockchain_audit;
+
+```

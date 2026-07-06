@@ -30,51 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
         listener: (context, state) {
           if (state.errorMessage != null &&
               (ModalRoute.of(context)?.isCurrent ?? false)) {
-            final rawMsg = state.errorMessage!;
-            final msg = rawMsg.contains(':')
-                ? rawMsg.substring(rawMsg.lastIndexOf(':') + 1).trim()
-                : rawMsg;
-
-            if (Theme.of(context).platform == TargetPlatform.iOS) {
-              toastification.show(
-                context: context,
-                style: ToastificationStyle.minimal,
-                title: const Text(
-                  'Something went wrong',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-                description: Text(
-                  msg,
-                  softWrap: true,
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                alignment: Alignment.topCenter,
-                autoCloseDuration: const Duration(seconds: 4),
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(msg),
-                  backgroundColor: Colors.redAccent,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  margin: const EdgeInsets.all(16),
-                ),
-              );
-            }
+            AuthFeedback.showError(context, state.errorMessage!);
           }
         },
         child: GestureDetector(

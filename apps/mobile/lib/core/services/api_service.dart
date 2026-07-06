@@ -25,6 +25,8 @@ class ApiService {
   static Future<List<dynamic>> getSessions() => AuthApiService.getSessions();
   static Future<bool> revokeSession(String hash) =>
       AuthApiService.revokeSession(hash);
+  static Future<bool> registerDevice(String fcmToken, String platform) =>
+      AuthApiService.registerDevice(fcmToken, platform);
 
   // ── Circles Endpoints ───────────────────────────────────────────────────────
   static Future<Map<String, dynamic>> createCircle(String name) =>
@@ -39,6 +41,19 @@ class ApiService {
       CirclesApiService.checkCircleHasMembers(code);
   static Future<List<dynamic>> getSosBroadcasts(String circleId) =>
       SosApiService.getSosBroadcasts(circleId);
+  static Future<Map<String, dynamic>> triggerSos({
+    required String circleId,
+    double? latitude,
+    double? longitude,
+    String? address,
+  }) => SosApiService.triggerSos(
+    circleId: circleId,
+    latitude: latitude,
+    longitude: longitude,
+    address: address,
+  );
+  static Future<bool> dismissSos(String broadcastId) =>
+      SosApiService.dismissSos(broadcastId);
   static Future<bool> leaveCircle(String circleId) =>
       CirclesApiService.leaveCircle(circleId);
   static Future<bool> startJourney({
@@ -46,10 +61,12 @@ class ApiService {
     required String destination,
     required String duration,
   }) => JourneyApiService.startJourney(
-        circleId: circleId,
-        destination: destination,
-        duration: duration,
-      );
+    circleId: circleId,
+    destination: destination,
+    duration: duration,
+  );
+  static Future<bool> stopJourney({required String circleId}) =>
+      JourneyApiService.stopJourney(circleId: circleId);
 
   // ── Location Endpoints ──────────────────────────────────────────────────────
   static Future<void> updateLocation({
@@ -60,17 +77,18 @@ class ApiService {
     double? heading,
     double? speed,
   }) => LocationApiService.updateLocation(
-        circleId: circleId,
-        latitude: latitude,
-        longitude: longitude,
-        accuracy: accuracy,
-        heading: heading,
-        speed: speed,
-      );
+    circleId: circleId,
+    latitude: latitude,
+    longitude: longitude,
+    accuracy: accuracy,
+    heading: heading,
+    speed: speed,
+  );
 
   static Future<List<dynamic>> getCircleMemberLocations(String circleId) =>
       LocationApiService.getCircleMemberLocations(circleId);
 
-  static Future<Map<String, dynamic>?> getNearestMemberLocation(String circleId) =>
-      LocationApiService.getNearestMemberLocation(circleId);
+  static Future<Map<String, dynamic>?> getNearestMemberLocation(
+    String circleId,
+  ) => LocationApiService.getNearestMemberLocation(circleId);
 }

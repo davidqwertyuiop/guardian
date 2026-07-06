@@ -1,0 +1,36 @@
+# journey_event.dart
+
+* **File Path:** `apps/mobile/lib/features/journey/presentation/bloc/journey_event.dart`
+* **Type:** `DART`
+
+---
+
+```dart
+import 'package:equatable/equatable.dart';
+
+abstract class JourneyEvent extends Equatable {
+  const JourneyEvent();
+  @override
+  List<Object?> get props => [];
+}
+
+class StartJourney extends JourneyEvent {
+  final String circleId;
+  final String destination;
+  final String duration;
+
+  const StartJourney({
+    required this.circleId,
+    required this.destination,
+    required this.duration,
+  });
+
+  @override
+  List<Object?> get props => [circleId, destination, duration];
+}
+
+class EndJourney extends JourneyEvent {
+  const EndJourney();
+}
+
+```

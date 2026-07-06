@@ -210,3 +210,40 @@ fn pad_base64(input: &str) -> String {
     }
     s
 }
+
+// ── POST /api/v1/auth/devices ──────────────────────────────────────────────
+
+pub async fn register_device(
+    State(state): State<AppState>,
+    AuthUser(claims): AuthUser,
+    Json(body): Json<RegisterDeviceRequest>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let user_id: uuid::Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
+
+    let platform = body.platform.to_lowercase();
+    if platform != "ios" && platform != "android" {
+        return Err(AppError::InvalidInput("Platform must be 'ios' or 'android'".into()));
+    }
+
+    sqlx::query(
+        "INSERT INTO device_tokens (user_id, fcm_token, platform, updated_at)
+         VALUES ($1, $2, $3, NOW())
+         ON CONFLICT (user_id, platform)
+         DO UPDATE SET fcm_token = EXCLUDED.fcm_token, updated_at = NOW()",
+    )
+    .bind(user_id)
+    .bind(body.fcm_token)
+    .bind(platform)
+    .execute(&state.db_pool)
+    .await
+    .map_err(|e| AppError::Internal(format!("DB register device error: {}", e)))?;
+
+    Ok(Json(serde_json::json!({
+        "success": true,
+        "message": "Device token registered successfully"
+    })))
+}
+

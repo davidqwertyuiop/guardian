@@ -1,0 +1,74 @@
+# codemagic.yaml
+
+* **File Path:** `codemagic.yaml`
+* **Type:** `YAML`
+
+---
+
+```yaml
+workflows:
+  ios-testflight-workflow:
+    name: iOS TestFlight Build & Publish
+    working_directory: apps/mobile
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Siji
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.sijibomi.guardian
+      vars:
+        XCODE_WORKSPACE: "ios/Runner.xcworkspace"
+        XCODE_SCHEME: "Runner"
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+
+    scripts:
+      - name: Initialize keychain
+        script: |
+          keychain initialize
+      - name: Add certificates to keychain
+        script: |
+          keychain add-certificates
+      - name: Get Flutter dependencies
+        script: |
+          flutter packages pub get
+      - name: Set up code signing settings
+        script: |
+          xcode-project use-profiles
+          # Find the installed provisioning profile name and inject into ExportOptions.plist
+          PROFILE_PATH=$(find ~/Library/MobileDevice/Provisioning\ Profiles -name "*.mobileprovision" | head -1)
+          PROFILE_NAME=$(security cms -D -i "$PROFILE_PATH" | plutil -extract Name raw -)
+          echo "Using provisioning profile: $PROFILE_NAME"
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:com.sijibomi.guardian $PROFILE_NAME" ios/ExportOptions.plist
+      - name: Build IPA for App Store
+        script: |
+          flutter build ipa --release \
+            --build-name=0.0.1 \
+            --build-number=$BUILD_NUMBER \
+            --export-options-plist=ios/ExportOptions.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+
+    publishing:
+      email:
+        recipients:
+          - davidqwertyuiop39@gmail.com
+        notify:
+          success: true
+          failure: true
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
+```

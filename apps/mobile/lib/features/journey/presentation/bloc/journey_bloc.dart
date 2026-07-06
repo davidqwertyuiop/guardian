@@ -14,10 +14,14 @@ class JourneyBloc extends Bloc<JourneyEvent, JourneyState> {
           duration: event.duration,
         );
         if (success) {
+          final int durMinutes = _parseDuration(event.duration);
           emit(
             JourneyState(
               status: JourneyStatus.active,
               destination: event.destination,
+              circleId: event.circleId,
+              startTime: DateTime.now(),
+              durationMinutes: durMinutes,
             ),
           );
         } else {
@@ -37,8 +41,22 @@ class JourneyBloc extends Bloc<JourneyEvent, JourneyState> {
         );
       }
     });
+
     on<EndJourney>((event, emit) {
       emit(const JourneyState(status: JourneyStatus.completed));
     });
+  }
+
+  int _parseDuration(String duration) {
+    final clean = duration.toLowerCase().trim();
+    final digitsOnly = clean.replaceAll(RegExp(r'[^0-9]'), '');
+    final val = int.tryParse(digitsOnly);
+
+    if (val != null) {
+      if (clean.contains('min')) return val;
+      if (clean.contains('hr') || clean.contains('hour')) return val * 60;
+      return val;
+    }
+    return 30;
   }
 }

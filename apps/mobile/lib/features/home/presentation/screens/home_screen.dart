@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guardian/core/services/notification_service.dart';
 import 'package:guardian/export.dart';
 
 /// The parent screen managing unified iOS/Android tabs using HomeBloc.
@@ -18,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = context.read<HomeBloc>();
     _homeBloc.add(const LoadHomeData());
+    NotificationService.registerDeviceToken();
   }
 
   @override

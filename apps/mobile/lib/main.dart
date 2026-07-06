@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:guardian/core/services/notification_service.dart';
+import 'package:guardian/core/services/background_trigger_service.dart';
 import 'export.dart';
 
 void main() async {
@@ -12,6 +14,12 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Initialize notifications
+  await NotificationService.initialize();
+
+  // Start background gesture trigger listener
+  BackgroundTriggerService().startListening();
 
   // Initialize dependency injection and get initial auth step
   final initialStep = await initDependencies();

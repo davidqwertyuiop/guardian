@@ -36,4 +36,31 @@ abstract class JourneyApiService {
       ApiBase.rethrowNetworkError(e);
     }
   }
+
+  /// POST /api/v1/journey/stop (requires Bearer token)
+  static Future<bool> stopJourney({
+    required String circleId,
+  }) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/journey/stop');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'circle_id': circleId,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(ApiBase.extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
 }

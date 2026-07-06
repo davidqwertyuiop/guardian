@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:guardian/export.dart';
 import '../../domain/models/live_map_models.dart';
+import '../widgets/live_map/broadcast_circle_card.dart';
+import '../widgets/live_map/broadcast_controls.dart';
 import '../widgets/live_map/map_card.dart';
+import '../widgets/live_map/place_suggestions_overlay.dart';
 import '../widgets/live_map/top_bar.dart';
 import '../widgets/live_map/welcome_header.dart';
 import '../widgets/live_map/circle_card.dart';
@@ -187,6 +190,20 @@ class _LiveMapScreenState extends State<LiveMapScreen>
     _fullAnim.forward();
   }
 
+  void _showStopBroadcastSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) =>
+          const YouAreLiveBottomSheet(destination: '', isConfirmStop: true),
+    );
+  }
+
+  void _showSosSheet() {
+    Navigator.push(context, FadeRoute(page: const EmergencyScreen()));
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<HomeBloc, HomeState>(
@@ -211,8 +228,8 @@ class _LiveMapScreenState extends State<LiveMapScreen>
         bloc: _bloc,
         builder: (context, state) {
           final isFull = state.mapDisplayState == MapDisplayState.full;
-          final isDark = Theme.of(context).brightness == Brightness.dark;
-
+          final isCompact = state.mapDisplayState == MapDisplayState.compact;
+          final isExpanded = state.mapDisplayState == MapDisplayState.expanded;
           return Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: SafeArea(
@@ -228,99 +245,163 @@ class _LiveMapScreenState extends State<LiveMapScreen>
                           ? const NeverScrollableScrollPhysics()
                           : const AlwaysScrollableScrollPhysics(),
                       padding: EdgeInsets.only(bottom: isFull ? 0 : 120),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          AnimatedBuilder(
-                            animation: _mapAnim,
-                            builder: (context, child) {
-                              final val = _mapAnim.value;
-                              return SizedBox(
-                                height: context.w(100) * (1.0 - val),
-                              );
-                            },
-                          ),
-                          AnimatedBuilder(
-                            animation: _mapAnim,
-                            builder: (context, child) {
-                              final val = _mapAnim.value;
-                              final opacity = (1.0 - val).clamp(0.0, 1.0);
-                              return Opacity(
-                                opacity: opacity,
-                                child: Align(
-                                  alignment: Alignment.topLeft,
-                                  heightFactor: 1.0 - val,
-                                  child: child,
-                                ),
-                              );
-                            },
-                            child: WelcomeHeader(
-                              userName: state.userName,
-                              weatherGreeting: state.weatherGreeting,
-                              isLoading: state.status == HomeStatus.loading,
-                            ),
-                          ),
-                          AnimatedBuilder(
-                            animation: _mapAnim,
-                            builder: (context, child) {
-                              final val = _mapAnim.value;
-                              return SizedBox(height: 8.0 * (1.0 - val));
-                            },
-                          ),
-                          MapCard(
-                            mapState: state.mapDisplayState,
-                            mapAnim: _mapAnim,
-                            fullAnim: _fullAnim,
-                            onTap: _toggleMap,
-                            onOpenMap: _openFullMap,
-                            onSosTap: () => Navigator.push(
-                              context,
-                              FadeRoute(page: const EmergencyScreen()),
-                            ),
-                            members: state.members,
-                            userLatitude: state.userLatitude,
-                            userLongitude: state.userLongitude,
-                            circleId: state.circleId,
-                            selectedPlace: _selectedPlace,
-                            onClearSearch: () {
-                              _searchController.clear();
-                              setState(() {
-                                _selectedPlace = null;
-                                _suggestions = [];
-                                _isSearching = false;
-                              });
-                            },
-                          ),
-
-                          const SizedBox(height: 16),
-                          CircleCard(
-                            circleName: state.circleName,
-                            members: state.members,
-                            isLoading: state.status == HomeStatus.loading,
-                          ),
-                          const SizedBox(height: 16),
-                          HeadingOutButton(
-                            circleId: state.circleId,
-                            circleName: state.circleName,
-                            members: state.members,
-                          ),
-                          const SizedBox(height: 28),
-                          SosBroadcastsSection(
-                            broadcasts: state.sosBroadcasts,
-                            onSeeAllTap: () {
-                              if (state.circleId.isNotEmpty) {
-                                Navigator.push(
-                                  context,
-                                  FadeRoute(
-                                    page: SosBroadcastsScreen(
-                                      circleId: state.circleId,
+                      child: BlocBuilder<JourneyBloc, JourneyState>(
+                        builder: (context, journeyState) {
+                          final isActive =
+                              journeyState.status == JourneyStatus.active;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              AnimatedBuilder(
+                                animation: _mapAnim,
+                                builder: (context, child) {
+                                  final val = _mapAnim.value;
+                                  return SizedBox(
+                                    height: context.w(100) * (1.0 - val),
+                                  );
+                                },
+                              ),
+                              AnimatedBuilder(
+                                animation: _mapAnim,
+                                builder: (context, child) {
+                                  final val = _mapAnim.value;
+                                  final opacity = (1.0 - val).clamp(0.0, 1.0);
+                                  return Opacity(
+                                    opacity: opacity,
+                                    child: Align(
+                                      alignment: Alignment.topLeft,
+                                      heightFactor: 1.0 - val,
+                                      child: child,
                                     ),
+                                  );
+                                },
+                                child: isActive
+                                    ? const SizedBox.shrink()
+                                    : WelcomeHeader(
+                                        userName: state.userName,
+                                        weatherGreeting: state.weatherGreeting,
+                                        isLoading:
+                                            state.status == HomeStatus.loading,
+                                      ),
+                              ),
+                              AnimatedBuilder(
+                                animation: _mapAnim,
+                                builder: (context, child) {
+                                  final val = _mapAnim.value;
+                                  return SizedBox(height: 8.0 * (1.0 - val));
+                                },
+                              ),
+                              if (isActive && isCompact) ...[
+                                BroadcastControls(
+                                  journeyState: journeyState,
+                                  onStopPressed: _showStopBroadcastSheet,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: context.w(20),
                                   ),
-                                );
-                              }
-                            },
-                          ),
-                        ],
+                                ),
+                                const SizedBox(height: 16),
+                              ],
+                              MapCard(
+                                mapState: state.mapDisplayState,
+                                mapAnim: _mapAnim,
+                                fullAnim: _fullAnim,
+                                onTap: _toggleMap,
+                                onOpenMap: _openFullMap,
+                                onSosTap: _showSosSheet,
+                                members: state.members,
+                                userLatitude: state.userLatitude,
+                                userLongitude: state.userLongitude,
+                                circleId: state.circleId,
+                                selectedPlace: _selectedPlace,
+                                onClearSearch: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _selectedPlace = null;
+                                    _suggestions = [];
+                                    _isSearching = false;
+                                  });
+                                },
+                              ),
+
+                              const SizedBox(height: 16),
+                              if (isActive && isExpanded) ...[
+                                BroadcastControls(
+                                  journeyState: journeyState,
+                                  onStopPressed: _showStopBroadcastSheet,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: context.w(20),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                BroadcastCircleCard(
+                                  circleName: state.circleName,
+                                  members: state.members,
+                                  onSeeMore: () {
+                                    _bloc.add(
+                                      const ChangeMapState(
+                                        MapDisplayState.compact,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                SizedBox(
+                                  height:
+                                      MediaQuery.paddingOf(context).bottom + 8,
+                                ),
+                              ] else if (isActive) ...[
+                                CircleCard(
+                                  circleName: state.circleName,
+                                  members: state.members,
+                                  isLoading: state.status == HomeStatus.loading,
+                                ),
+                                const SizedBox(height: 28),
+                                SosBroadcastsSection(
+                                  broadcasts: state.sosBroadcasts,
+                                  onSeeAllTap: () {
+                                    if (state.circleId.isNotEmpty) {
+                                      Navigator.push(
+                                        context,
+                                        FadeRoute(
+                                          page: SosBroadcastsScreen(
+                                            circleId: state.circleId,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ] else ...[
+                                CircleCard(
+                                  circleName: state.circleName,
+                                  members: state.members,
+                                  isLoading: state.status == HomeStatus.loading,
+                                ),
+                                const SizedBox(height: 16),
+                                HeadingOutButton(
+                                  circleId: state.circleId,
+                                  circleName: state.circleName,
+                                  members: state.members,
+                                ),
+                                const SizedBox(height: 28),
+                                SosBroadcastsSection(
+                                  broadcasts: state.sosBroadcasts,
+                                  onSeeAllTap: () {
+                                    if (state.circleId.isNotEmpty) {
+                                      Navigator.push(
+                                        context,
+                                        FadeRoute(
+                                          page: SosBroadcastsScreen(
+                                            circleId: state.circleId,
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -336,10 +417,7 @@ class _LiveMapScreenState extends State<LiveMapScreen>
                         right: 0,
                         child: LiveMapTopBar(
                           showSearch: displayState != MapDisplayState.compact,
-                          onSosTap: () => Navigator.push(
-                            context,
-                            FadeRoute(page: const EmergencyScreen()),
-                          ),
+                          onSosTap: _showSosSheet,
                           latitude: state.userLatitude,
                           longitude: state.userLongitude,
                           searchController: _searchController,
@@ -358,66 +436,13 @@ class _LiveMapScreenState extends State<LiveMapScreen>
                     },
                   ),
 
-                  // Autocomplete suggestions overlay
-                  if (state.mapDisplayState != MapDisplayState.compact &&
-                      _isSearching &&
-                      _suggestions.isNotEmpty)
-                    Positioned(
-                      top: MediaQuery.paddingOf(context).top + 10 + 48 + 8,
-                      left: 20,
-                      right: 20,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1E1E24)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.15),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        constraints: const BoxConstraints(maxHeight: 220),
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          shrinkWrap: true,
-                          itemCount: _suggestions.length,
-                          separatorBuilder: (_, _) => Divider(
-                            height: 1,
-                            color: isDark ? Colors.white10 : Colors.black12,
-                          ),
-                          itemBuilder: (context, idx) {
-                            final suggestion = _suggestions[idx];
-                            return ListTile(
-                              leading: const Icon(
-                                Icons.location_on_rounded,
-                                color: AppColors.primary,
-                              ),
-                              title: Text(
-                                suggestion.name,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white : Colors.black,
-                                ),
-                              ),
-                              subtitle: suggestion.address.isNotEmpty
-                                  ? Text(
-                                      suggestion.address,
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 12,
-                                      ),
-                                    )
-                                  : null,
-                              onTap: () => _selectPlace(suggestion),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
+                  PlaceSuggestionsOverlay(
+                    isVisible:
+                        state.mapDisplayState != MapDisplayState.compact &&
+                        _isSearching,
+                    suggestions: _suggestions,
+                    onSuggestionTap: _selectPlace,
+                  ),
                 ],
               ),
             ),

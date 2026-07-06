@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:guardian/export.dart';
 import 'member_avatar_row.dart';
-import 'you_are_live_bottom_sheet.dart';
 
 class HeadingOutBottomSheet extends StatefulWidget {
   final String initialCircleId;
@@ -128,7 +127,9 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
         } else if (journeyState.status == JourneyStatus.failure) {
           toastification.show(
             context: context,
-            title: Text(journeyState.errorMessage ?? 'Failed to start broadcast.'),
+            title: Text(
+              journeyState.errorMessage ?? 'Failed to start broadcast.',
+            ),
             type: ToastificationType.error,
             autoCloseDuration: const Duration(seconds: 3),
           );
@@ -151,7 +152,10 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 24,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +175,11 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                                   : const Color(0xFFF2F2F7),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.close, size: 20, color: textColor),
+                            child: Icon(
+                              Icons.close,
+                              size: 20,
+                              color: textColor,
+                            ),
                           ),
                         ),
                         Expanded(
@@ -181,7 +189,7 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                                 "I'm heading out",
                                 style: TextStyle(
                                   fontFamily: 'Inter',
-                                  fontSize: 18,
+                                  fontSize: context.sp(20),
                                   fontWeight: FontWeight.w700,
                                   color: textColor,
                                 ),
@@ -193,7 +201,9 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                                   fontFamily: 'Inter',
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
-                                  color: isDark ? Colors.white60 : Colors.black54,
+                                  color: isDark
+                                      ? Colors.white60
+                                      : Colors.black54,
                                 ),
                               ),
                             ],
@@ -222,7 +232,9 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                       textColor: textColor,
                       isDark: isDark,
                       onChanged: (val) {
-                        if (val != null) setState(() => _selectedDestination = val);
+                        if (val != null) {
+                          setState(() => _selectedDestination = val);
+                        }
                       },
                     ),
                     if (_selectedDestination == 'Custom') ...[
@@ -240,7 +252,9 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.primary),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
@@ -265,7 +279,9 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                       textColor: textColor,
                       isDark: isDark,
                       onChanged: (val) {
-                        if (val != null) setState(() => _selectedDuration = val);
+                        if (val != null) {
+                          setState(() => _selectedDuration = val);
+                        }
                       },
                     ),
                     if (_selectedDuration == 'Custom') ...[
@@ -283,7 +299,9 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: AppColors.primary),
+                            borderSide: const BorderSide(
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
@@ -302,7 +320,8 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                     const SizedBox(height: 16),
 
                     // Circle Selector List
-                    if (circles.isEmpty && homeState.status == HomeStatus.loading)
+                    if (circles.isEmpty &&
+                        homeState.status == HomeStatus.loading)
                       const Center(child: CircularProgressIndicator())
                     else if (circles.isEmpty)
                       const Text("No circles found.")
@@ -318,13 +337,17 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                             final c = circles[index];
                             final isSelected = c['id'] == selectedCircleId;
                             // members can be fetched on SelectCircle, or fallback to widgets list
-                            final members = isSelected ? homeState.members : (c['members'] ?? []);
+                            final members = isSelected
+                                ? homeState.members
+                                : (c['members'] ?? []);
                             return _buildCircleCard(
                               name: c['name'] ?? '',
                               members: members,
                               isSelected: isSelected,
                               onTap: () {
-                                context.read<HomeBloc>().add(SelectCircle(c['id']));
+                                context.read<HomeBloc>().add(
+                                  SelectCircle(c['id']),
+                                );
                               },
                             );
                           },
@@ -336,14 +359,19 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                     // Bottom Button
                     BlocBuilder<JourneyBloc, JourneyState>(
                       builder: (context, journeyState) {
-                        final isBroadcastingLoading = journeyState.status == JourneyStatus.loading;
+                        final isBroadcastingLoading =
+                            journeyState.status == JourneyStatus.loading;
                         return SizedBox(
                           width: double.infinity,
                           height: 56,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark ? Colors.white : Colors.black,
-                              foregroundColor: isDark ? Colors.black : Colors.white,
+                              backgroundColor: isDark
+                                  ? Colors.white
+                                  : Colors.black,
+                              foregroundColor: isDark
+                                  ? Colors.black
+                                  : Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(16),
                               ),
@@ -352,29 +380,37 @@ class _HeadingOutBottomSheetState extends State<HeadingOutBottomSheet> {
                             onPressed: isBroadcastingLoading
                                 ? null
                                 : () {
-                                    final destination = _selectedDestination == 'Custom'
+                                    final destination =
+                                        _selectedDestination == 'Custom'
                                         ? _customDestController.text
                                         : _selectedDestination;
-                                    final duration = _selectedDuration == 'Custom'
+                                    final duration =
+                                        _selectedDuration == 'Custom'
                                         ? _customDurController.text
                                         : _selectedDuration;
 
                                     if (selectedCircleId.isEmpty) {
                                       toastification.show(
                                         context: context,
-                                        title: const Text('Please select a circle to broadcast to.'),
+                                        title: const Text(
+                                          'Please select a circle to broadcast to.',
+                                        ),
                                         type: ToastificationType.warning,
                                       );
                                       return;
                                     }
 
                                     context.read<JourneyBloc>().add(
-                                          StartJourney(
-                                            circleId: selectedCircleId,
-                                            destination: destination.isEmpty ? "unknown location" : destination,
-                                            duration: duration.isEmpty ? "30 Mins" : duration,
-                                          ),
-                                        );
+                                      StartJourney(
+                                        circleId: selectedCircleId,
+                                        destination: destination.isEmpty
+                                            ? "unknown location"
+                                            : destination,
+                                        duration: duration.isEmpty
+                                            ? "30 Mins"
+                                            : duration,
+                                      ),
+                                    );
                                   },
                             child: isBroadcastingLoading
                                 ? const SizedBox(

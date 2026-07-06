@@ -45,17 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             current.status == AuthStatus.failure,
         listener: (context, state) {
           if (state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: Colors.redAccent,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                margin: const EdgeInsets.all(16),
-              ),
-            );
+            AuthFeedback.showError(context, state.errorMessage!);
           }
         },
         child: Scaffold(

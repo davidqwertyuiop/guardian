@@ -12,3 +12,8 @@ pub struct StartJourneyRequest {
 pub struct StayJourneyRequest {
     pub circle_id: Uuid,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct StopJourneyRequest {
+    pub circle_id: Uuid,
+}

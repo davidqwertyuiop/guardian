@@ -25,7 +25,8 @@ class MapCard extends StatefulWidget {
   final SelectedLivePlace? selectedPlace;
   final VoidCallback onClearSearch;
 
-  const MapCard({super.key, 
+  const MapCard({
+    super.key,
     required this.mapState,
     required this.mapAnim,
     required this.fullAnim,
@@ -1002,7 +1003,8 @@ class MapCardState extends State<MapCard> {
             final lng = member['longitude'] as double? ?? 0.0;
             final name = member['name'] ?? 'Member';
 
-            am.BitmapDescriptor? icon = _appleMarkersCache[uid] ?? _amAvatarTopMarker;
+            am.BitmapDescriptor? icon =
+                _appleMarkersCache[uid] ?? _amAvatarTopMarker;
 
             if (icon != null) {
               amAnnotations.add(
@@ -1308,8 +1310,8 @@ class MapCardState extends State<MapCard> {
                                       Text(
                                         widget.selectedPlace!.name,
                                         style: TextStyle(
-                                          fontFamily: 'Outfit',
-                                          fontWeight: FontWeight.w800,
+                                          fontFamily: 'Inter',
+                                          fontWeight: FontWeight.w700,
                                           fontSize: 16,
                                           color: isDark
                                               ? Colors.white

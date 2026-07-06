@@ -1,0 +1,21 @@
+# mod.rs
+
+* **File Path:** `apps/backend/src/infrastructure/database/mod.rs`
+* **Type:** `RUST`
+
+---
+
+```rust
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
+use std::time::Duration;
+
+pub async fn establish_connection(database_url: &str) -> Result<PgPool, sqlx::Error> {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .acquire_timeout(Duration::from_secs(3))
+        .connect(database_url)
+        .await
+}
+
+```

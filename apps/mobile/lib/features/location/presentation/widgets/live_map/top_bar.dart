@@ -11,7 +11,8 @@ class LiveMapTopBar extends StatelessWidget {
   final VoidCallback onClearSearch;
   final FocusNode searchFocusNode;
 
-  const LiveMapTopBar({super.key, 
+  const LiveMapTopBar({
+    super.key,
     required this.showSearch,
     required this.onSosTap,
     required this.latitude,
@@ -50,11 +51,15 @@ class LiveMapTopBar extends StatelessWidget {
                 AppAssets.phBell,
                 width: context.w(20),
                 height: context.w(20),
-                color: isDark ? Colors.white : const Color(0xFF1C1C24),
+                color: isDark
+                    ? const Color(0xFFD7D7DE)
+                    : const Color(0xFF1C1C24),
                 errorBuilder: (_, _, _) => Icon(
                   Icons.notifications_none_rounded,
                   size: context.w(20),
-                  color: isDark ? Colors.white : const Color(0xFF1C1C24),
+                  color: isDark
+                      ? const Color(0xFFD7D7DE)
+                      : const Color(0xFF1C1C24),
                 ),
               ),
             ),
@@ -170,7 +175,7 @@ class LiveMapTopBar extends StatelessWidget {
                     Text(
                       'SOS',
                       style: TextStyle(
-                        fontFamily: 'Outfit',
+                        fontFamily: 'Inter',
                         fontSize: context.sp(14),
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFFFF3380),

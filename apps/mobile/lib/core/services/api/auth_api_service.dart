@@ -213,4 +213,30 @@ abstract class AuthApiService {
       ApiBase.rethrowNetworkError(e);
     }
   }
+
+  /// POST /api/v1/auth/devices (requires Bearer token)
+  static Future<bool> registerDevice(String fcmToken, String platform) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/auth/devices');
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'fcm_token': fcmToken,
+          'platform': platform,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(ApiBase.extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
 }

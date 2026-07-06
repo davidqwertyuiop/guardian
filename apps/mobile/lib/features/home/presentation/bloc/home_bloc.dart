@@ -20,6 +20,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<ChangeMapState>(_onChangeMapState);
     on<SelectCircle>(_onSelectCircle);
     on<LeaveCircle>(_onLeaveCircle);
+    on<UpdateWeatherAndLocation>(_onUpdateWeatherAndLocation);
   }
 
   void _onChangeTab(ChangeTab event, Emitter<HomeState> emit) {
@@ -40,7 +41,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     final prefs = locator<SharedPreferences>();
     final localUsername = prefs.getString('username') ?? 'User';
 
-    String name = state.userName.isNotEmpty && state.userName != 'User' ? state.userName : localUsername;
+    String name = state.userName.isNotEmpty && state.userName != 'User'
+        ? state.userName
+        : localUsername;
     String avatar = state.avatarUrl;
     String activeCircleName = state.circleName;
     String activeCircleId = state.circleId;
@@ -69,8 +72,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       log('Failed to fetch profile from API, fallback to local username: $e');
       final errMsg = e.toString();
-      if (errMsg.contains('ExpiredSignature') || errMsg.contains('Invalid or expired token')) {
-        log('Token signature expired or invalid. Clearing tokens and resetting auth state.');
+      if (errMsg.contains('ExpiredSignature') ||
+          errMsg.contains('Invalid or expired token')) {
+        log(
+          'Token signature expired or invalid. Clearing tokens and resetting auth state.',
+        );
         await TokenManager().clearTokens();
         await prefs.setBool('onboarding_completed', false);
         await prefs.remove('username');
@@ -86,7 +92,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       loadedCircles = await ApiService.getCircles();
       if (loadedCircles.isNotEmpty) {
         // If current activeCircleId is not in the loaded circles list, reset it to the first circle
-        final activeCircleExists = loadedCircles.any((c) => c['id'] == activeCircleId);
+        final activeCircleExists = loadedCircles.any(
+          (c) => c['id'] == activeCircleId,
+        );
         if (!activeCircleExists) {
           final firstCircle = loadedCircles.first as Map<String, dynamic>;
           activeCircleName = firstCircle['name'] as String? ?? '';
@@ -111,8 +119,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       log('Failed to fetch circles/members from API: $e');
       final errMsg = e.toString();
-      if (errMsg.contains('ExpiredSignature') || errMsg.contains('Invalid or expired token')) {
-        log('Token signature expired or invalid on circle load. Clearing tokens and resetting auth state.');
+      if (errMsg.contains('ExpiredSignature') ||
+          errMsg.contains('Invalid or expired token')) {
+        log(
+          'Token signature expired or invalid on circle load. Clearing tokens and resetting auth state.',
+        );
         await TokenManager().clearTokens();
         await prefs.setBool('onboarding_completed', false);
         await prefs.remove('username');
@@ -122,17 +133,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
-    // 2. Fetch dynamic weather greeting based on GPS coordinates
-    String weatherGreeting = "Lovely weather we're having today...";
-    double lat = 9.0578;
-    double lon = 7.4951;
-    try {
-      final gps = GpsService();
-      final loc = await gps.getCurrentLocation();
-      lat = loc['latitude'] ?? 9.0578;
-      lon = loc['longitude'] ?? 7.4951;
-      weatherGreeting = await WeatherService.getWeatherGreeting(lat, lon);
-    } catch (_) {}
+    // Use current state values or defaults
+    final double initialLat = state.userLatitude != 0.0
+        ? state.userLatitude
+        : 9.0578;
+    final double initialLon = state.userLongitude != 0.0
+        ? state.userLongitude
+        : 7.4951;
+    final String initialGreeting = state.weatherGreeting.isNotEmpty
+        ? state.weatherGreeting
+        : "Lovely weather we're having today...";
 
     emit(
       state.copyWith(
@@ -142,16 +152,41 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         circleId: activeCircleId,
         members: circleMembers,
         sosBroadcasts: sosBroadcasts,
-        weatherGreeting: weatherGreeting,
-        userLatitude: lat,
-        userLongitude: lon,
+        weatherGreeting: initialGreeting,
+        userLatitude: initialLat,
+        userLongitude: initialLon,
         status: HomeStatus.success,
         circles: loadedCircles,
       ),
     );
+
+    // Trigger background async load of weather and location without blocking
+    GpsService()
+        .getCurrentLocation()
+        .then((loc) {
+          final double lat = loc['latitude'] ?? 9.0578;
+          final double lon = loc['longitude'] ?? 7.4951;
+          WeatherService.getWeatherGreeting(lat, lon)
+              .then((greeting) {
+                if (!isClosed) {
+                  add(
+                    UpdateWeatherAndLocation(
+                      latitude: lat,
+                      longitude: lon,
+                      weatherGreeting: greeting,
+                    ),
+                  );
+                }
+              })
+              .catchError((_) {});
+        })
+        .catchError((_) {});
   }
 
-  Future<void> _onSelectCircle(SelectCircle event, Emitter<HomeState> emit) async {
+  Future<void> _onSelectCircle(
+    SelectCircle event,
+    Emitter<HomeState> emit,
+  ) async {
     emit(state.copyWith(status: HomeStatus.loading));
     try {
       final circle = state.circles.firstWhere((c) => c['id'] == event.circleId);
@@ -171,11 +206,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
     } catch (e) {
       log('Failed to select circle: $e');
-      emit(state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 
-  Future<void> _onLeaveCircle(LeaveCircle event, Emitter<HomeState> emit) async {
+  Future<void> _onLeaveCircle(
+    LeaveCircle event,
+    Emitter<HomeState> emit,
+  ) async {
     emit(state.copyWith(status: HomeStatus.loading));
     try {
       await ApiService.leaveCircle(event.circleId);
@@ -183,7 +223,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       add(const LoadHomeData());
     } catch (e) {
       log('Failed to leave circle: $e');
-      emit(state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()));
+      emit(
+        state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()),
+      );
     }
+  }
+
+  void _onUpdateWeatherAndLocation(
+    UpdateWeatherAndLocation event,
+    Emitter<HomeState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        userLatitude: event.latitude,
+        userLongitude: event.longitude,
+        weatherGreeting: event.weatherGreeting,
+      ),
+    );
   }
 }

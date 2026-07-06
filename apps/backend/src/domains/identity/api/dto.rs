@@ -68,3 +68,10 @@ pub struct SessionResponse {
     pub last_active_at: DateTime<Utc>,
     pub created_at: DateTime<Utc>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct RegisterDeviceRequest {
+    pub fcm_token: String,
+    pub platform: String,
+}
+

@@ -57,7 +57,9 @@ class CircleCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          isLoading && members.isEmpty ? 'Fetching...' : '$count members',
+                          isLoading && members.isEmpty
+                              ? 'Fetching...'
+                              : '$count members',
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: context.sp(12),
@@ -69,11 +71,13 @@ class CircleCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          circleName.isNotEmpty ? circleName : (isLoading ? "Loading..." : "No Circle"),
+                          circleName.isNotEmpty
+                              ? circleName
+                              : (isLoading ? "Loading..." : "No Circle"),
                           style: TextStyle(
-                            fontFamily: 'Outfit',
+                            fontFamily: 'Inter',
                             fontSize: context.sp(20),
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                             color: isDark
                                 ? Colors.white
                                 : const Color(0xFF1C1C24),

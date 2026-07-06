@@ -1,0 +1,63 @@
+# render.yaml
+
+* **File Path:** `render.yaml`
+* **Type:** `YAML`
+
+---
+
+```yaml
+services:
+  - type: web
+    name: guardian-backend
+    env: docker
+    dockerContext: apps/backend
+    dockerfilePath: Dockerfile
+    plan: free
+    numInstances: 1
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: guardian-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: OTP_TTL_SECONDS
+        value: "300"
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: "60"
+      - key: PORT
+        value: "8080"
+      - key: RUST_LOG
+        value: "info"
+      - key: FIREBASE_PROJECT_ID
+        value: "guardian-821b6"
+      - key: INVITE_BASE_URL
+        value: "https://guardian.shadowchat.xyz/invite"
+      - key: APPLE_TEAM_ID
+        value: "5NWP5R6G3P"
+      - key: ANDROID_SHA256_CERT_FINGERPRINT
+        value: "8c:38:8b:fa:70:43:87:5d:7b:7a:f6:85:8d:49:d8:41:09:7b:23:0b:b0:0f:94:26:fb:07:cb:5d:09:5f:d0:98"
+      - key: APP_STORE_LINK
+        value: "https://apps.apple.com/app/guardian"
+      - key: PLAY_STORE_LINK
+        value: "https://play.google.com/store/apps/details?id=com.sijibomi.guardian"
+      - key: MAPS_API_KEY_ANDROID
+        value: "AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q"
+      - key: MAPS_API_KEY_IOS
+        value: "AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs"
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_REGION
+        sync: false
+
+databases:
+  - name: guardian-db
+    databaseName: guardian_db
+    user: guardian_user
+    plan: free
+
+```

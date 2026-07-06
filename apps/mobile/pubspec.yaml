@@ -61,6 +61,12 @@ dependencies:
   intl: ^0.20.2
   apple_maps_flutter: ^1.4.0
   flutter_dotenv: ^6.0.1
+  firebase_messaging: any
+  awesome_notifications: any
+  sensors_plus: any
+  vibration: any
+
+
 
 dev_dependencies:
   flutter_test:
