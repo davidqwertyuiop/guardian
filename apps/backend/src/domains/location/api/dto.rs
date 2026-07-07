@@ -16,6 +16,8 @@ pub struct UpdateLocationRequest {
     pub heading: Option<f32>,
     /// Ground speed in m/s (optional).
     pub speed: Option<f32>,
+    pub battery_level: Option<i32>,
+    pub connectivity_type: Option<String>,
 }
 
 // ── Responses ───────────────────────────────────────────────────────────────
@@ -35,5 +37,7 @@ pub struct MemberLocationResponse {
     pub latitude: f64,
     pub longitude: f64,
     pub accuracy: Option<f32>,
+    pub battery_level: Option<i32>,
+    pub connectivity_type: Option<String>,
     pub updated_at: DateTime<Utc>,
 }

@@ -19,6 +19,8 @@ pub trait LocationRepository: Send + Sync {
         accuracy: Option<f32>,
         heading: Option<f32>,
         speed: Option<f32>,
+        battery_level: Option<i32>,
+        connectivity_type: Option<String>,
     ) -> Result<MemberLocation, AppError>;
 
     /// Return the latest known location for every member of a circle,

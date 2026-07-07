@@ -28,6 +28,9 @@ class AppAssets {
       'assets/icons/stopbroadcastingicon.png';
   static const String appCirclesIcon = 'assets/icons/android/group-icon.png';
   static const String appCenterHomeIcon = 'assets/icons/App_icon.png';
+  static const String circlesIconSvg = 'assets/animations/circlesicon.svg';
+  static const String circlesIconPng = 'assets/animations/circlesicon.png';
+  static const String mappeopleIcon = 'assets/icons/mappeopleicon.png';
 
   // Local Avatars
   static const String avatarTop = 'assets/images/avatar1.png';

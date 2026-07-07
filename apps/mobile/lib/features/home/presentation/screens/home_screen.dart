@@ -12,6 +12,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   late final HomeBloc _homeBloc;
+  bool _showNavigation = true;
 
   @override
   void initState() {
@@ -39,7 +40,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final List<Widget> pages = [
       const LiveMapScreen(),
-      const FamilyCircleScreen(),
+      FamilyCircleScreen(
+        onNavigationVisibilityChanged: (visible) {
+          if (_showNavigation == visible) return;
+          setState(() => _showNavigation = visible);
+        },
+      ),
       const SettingsScreen(),
     ];
 
@@ -57,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             _homeBloc.add(ChangeTab(index));
           },
           profileImageUrl: state.avatarUrl.isNotEmpty ? state.avatarUrl : null,
+          showNavigation: _showNavigation,
           body: IndexedStack(index: state.currentIndex, children: pages),
         );
       },

@@ -13,6 +13,8 @@ pub struct MemberLocation {
     pub accuracy: Option<f32>,
     pub heading: Option<f32>,
     pub speed: Option<f32>,
+    pub battery_level: Option<i32>,
+    pub connectivity_type: Option<String>,
     pub recorded_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -26,5 +28,7 @@ pub struct MemberLocationWithProfile {
     pub latitude: f64,
     pub longitude: f64,
     pub accuracy: Option<f32>,
+    pub battery_level: Option<i32>,
+    pub connectivity_type: Option<String>,
     pub updated_at: DateTime<Utc>,
 }

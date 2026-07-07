@@ -184,4 +184,70 @@ abstract class CirclesApiService {
       ApiBase.rethrowNetworkError(e);
     }
   }
+
+  /// GET /api/v1/circles/{id}/invite (requires Bearer token)
+  static Future<Map<String, dynamic>> getCircleInvite(String circleId) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/circles/$circleId/invite');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } else {
+        throw Exception(ApiBase.extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
+
+  /// DELETE /api/v1/circles/{id} (requires Bearer token)
+  static Future<bool> deleteCircle(String circleId) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/circles/$circleId');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(ApiBase.extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
+
+  /// DELETE /api/v1/circles/{id}/members/{memberId} (requires Bearer token)
+  static Future<bool> removeMember(String circleId, String memberId) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/circles/$circleId/members/$memberId');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(ApiBase.extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
 }

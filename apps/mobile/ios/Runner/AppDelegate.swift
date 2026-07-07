@@ -1,9 +1,12 @@
 import Flutter
 import UIKit
 import GoogleMaps
+import CoreTelephony
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+  private let radioInfo = CTTelephonyNetworkInfo()
+
   private func readMapsKey(from path: String, names: [String]) -> String? {
     guard let content = try? String(contentsOfFile: path, encoding: .utf8) else {
       return nil
@@ -75,11 +78,51 @@ import GoogleMaps
     } else {
       NSLog("Guardian: missing Google Maps iOS API key. Map tiles will not load.")
     }
-    
+    if let controller = window?.rootViewController as? FlutterViewController {
+      let channel = FlutterMethodChannel(
+        name: "guardian/radio_type",
+        binaryMessenger: controller.binaryMessenger
+      )
+      channel.setMethodCallHandler { [weak self] call, result in
+        if call.method == "mobileRadioType" {
+          result(self?.mobileRadioType() ?? "Cellular")
+        } else {
+          result(FlutterMethodNotImplemented)
+        }
+      }
+    }
+
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+  }
+
+  private func mobileRadioType() -> String {
+    let technologies = radioInfo.serviceCurrentRadioAccessTechnology?.values
+      ?? [radioInfo.currentRadioAccessTechnology].compactMap { $0 }
+    if technologies.contains(CTRadioAccessTechnologyNR) ||
+       technologies.contains(CTRadioAccessTechnologyNRNSA) {
+      return "5G"
+    }
+    if technologies.contains(CTRadioAccessTechnologyLTE) {
+      return "LTE"
+    }
+    if technologies.contains(CTRadioAccessTechnologyWCDMA) ||
+       technologies.contains(CTRadioAccessTechnologyHSDPA) ||
+       technologies.contains(CTRadioAccessTechnologyHSUPA) ||
+       technologies.contains(CTRadioAccessTechnologyCDMAEVDORev0) ||
+       technologies.contains(CTRadioAccessTechnologyCDMAEVDORevA) ||
+       technologies.contains(CTRadioAccessTechnologyCDMAEVDORevB) ||
+       technologies.contains(CTRadioAccessTechnologyeHRPD) {
+      return "3G"
+    }
+    if technologies.contains(CTRadioAccessTechnologyGPRS) ||
+       technologies.contains(CTRadioAccessTechnologyEdge) ||
+       technologies.contains(CTRadioAccessTechnologyCDMA1x) {
+      return "2G"
+    }
+    return "Cellular"
   }
 }

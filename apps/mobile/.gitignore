@@ -44,5 +44,14 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# dotenv / local config
+.env
+.env.*
+!.env.example
+local.properties
+secrets.properties
 
-.env.*\n# dotenv\n.env
+# Firebase / Google platform credentials
+**/google-services.json
+**/GoogleService-Info.plist
+**/GoogleService-Info*.plist

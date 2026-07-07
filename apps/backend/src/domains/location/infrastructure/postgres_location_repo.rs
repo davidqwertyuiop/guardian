@@ -25,23 +25,27 @@ impl LocationRepository for PostgresLocationRepository {
         accuracy: Option<f32>,
         heading: Option<f32>,
         speed: Option<f32>,
+        battery_level: Option<i32>,
+        connectivity_type: Option<String>,
     ) -> Result<MemberLocation, AppError> {
         sqlx::query_as::<_, MemberLocation>(
             r#"
             INSERT INTO member_locations
-                (user_id, circle_id, latitude, longitude, accuracy, heading, speed, recorded_at, updated_at)
+                (user_id, circle_id, latitude, longitude, accuracy, heading, speed, battery_level, connectivity_type, recorded_at, updated_at)
             VALUES
-                ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+                ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
             ON CONFLICT (user_id, circle_id) DO UPDATE
-                SET latitude    = EXCLUDED.latitude,
-                    longitude   = EXCLUDED.longitude,
-                    accuracy    = EXCLUDED.accuracy,
-                    heading     = EXCLUDED.heading,
-                    speed       = EXCLUDED.speed,
-                    recorded_at = EXCLUDED.recorded_at,
-                    updated_at  = NOW()
+                SET latitude          = EXCLUDED.latitude,
+                    longitude         = EXCLUDED.longitude,
+                    accuracy          = EXCLUDED.accuracy,
+                    heading           = EXCLUDED.heading,
+                    speed             = EXCLUDED.speed,
+                    battery_level     = EXCLUDED.battery_level,
+                    connectivity_type = EXCLUDED.connectivity_type,
+                    recorded_at       = EXCLUDED.recorded_at,
+                    updated_at        = NOW()
             RETURNING id, user_id, circle_id, latitude, longitude,
-                      accuracy, heading, speed, recorded_at, updated_at
+                      accuracy, heading, speed, battery_level, connectivity_type, recorded_at, updated_at
             "#,
         )
         .bind(user_id)
@@ -51,6 +55,8 @@ impl LocationRepository for PostgresLocationRepository {
         .bind(accuracy)
         .bind(heading)
         .bind(speed)
+        .bind(battery_level)
+        .bind(connectivity_type)
         .fetch_one(&self.pool)
         .await
         .map_err(|e| AppError::Internal(format!("DB upsert location: {e}")))
@@ -70,6 +76,8 @@ impl LocationRepository for PostgresLocationRepository {
                    ml.latitude,
                    ml.longitude,
                    ml.accuracy,
+                   ml.battery_level,
+                   ml.connectivity_type,
                    ml.updated_at
             FROM member_locations ml
             JOIN users u ON u.id = ml.user_id
@@ -92,7 +100,7 @@ impl LocationRepository for PostgresLocationRepository {
         sqlx::query_as::<_, MemberLocation>(
             r#"
             SELECT id, user_id, circle_id, latitude, longitude,
-                   accuracy, heading, speed, recorded_at, updated_at
+                   accuracy, heading, speed, battery_level, connectivity_type, recorded_at, updated_at
             FROM member_locations
             WHERE user_id = $1 AND circle_id = $2
             "#,

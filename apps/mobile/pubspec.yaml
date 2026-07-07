@@ -39,6 +39,7 @@ dependencies:
   shared_preferences: ^2.5.5
   url_launcher: ^6.3.2
   http: ^1.6.0
+  crypto: ^3.0.7
   get_it: ^9.2.1
   flutter_secure_storage: ^10.3.1
   intl_phone_number_field: ^0.2.1
@@ -66,6 +67,9 @@ dependencies:
   awesome_notifications: any
   sensors_plus: any
   vibration: any
+  flutter_svg: ^2.3.0
+  connectivity_plus: ^7.2.0
+  battery_plus: ^7.1.0
 
 
 
@@ -122,6 +126,28 @@ flutter:
         - asset: assets/fonts/inter/Inter-SemiBold.ttf
           weight: 600
         - asset: assets/fonts/inter/Inter-Bold.ttf
+          weight: 700
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter/Inter-Light.ttf
+          weight: 300
+        - asset: assets/fonts/inter/Inter-Regular.ttf
+        - asset: assets/fonts/inter/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/inter/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/inter/Inter-Bold.ttf
+          weight: 700
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist/static/Geist-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Geist/static/Geist-Regular.ttf
+        - asset: assets/fonts/Geist/static/Geist-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Geist/static/Geist-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Geist/static/Geist-Bold.ttf
           weight: 700
 
   # An image asset can refer to one or more resolution-specific "variants", see

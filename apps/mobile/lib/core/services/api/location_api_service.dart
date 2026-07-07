@@ -20,6 +20,8 @@ abstract class LocationApiService {
     double? accuracy,
     double? heading,
     double? speed,
+    int? batteryLevel,
+    String? connectivityType,
   }) async {
     final token = await TokenManager().getAccessToken();
     final url = Uri.parse('$baseUrl/api/v1/location');
@@ -28,9 +30,11 @@ abstract class LocationApiService {
         'circle_id': circleId,
         'latitude': latitude,
         'longitude': longitude,
-        'accuracy': ?accuracy,
-        'heading': ?heading,
-        'speed': ?speed,
+        'accuracy': accuracy,
+        'heading': heading,
+        'speed': speed,
+        'battery_level': batteryLevel,
+        'connectivity_type': connectivityType,
       };
       final response = await http.put(
         url,

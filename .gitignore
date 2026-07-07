@@ -1,1 +1,22 @@
+*.env
+.env
+.env.*
+!.env.example
+
+# Backend secrets
 apps/backend/.env
+apps/backend/firebase-service-account.json
+firebase-service-account.json
+**/firebase-service-account*.json
+**/service-account*.json
+
+# Firebase / Google platform credentials
+**/google-services.json
+**/GoogleService-Info.plist
+**/GoogleService-Info*.plist
+
+# Local secret files
+Secrets.toml
+Secrets.dev.toml
+secrets.properties
+local.properties

@@ -1,4 +1,5 @@
 import 'package:guardian/export.dart';
+import 'package:guardian/features/family/di/family_injection.dart';
 
 final locator = GetIt.instance;
 
@@ -9,6 +10,7 @@ Future<AuthStep> initDependencies() async {
 
   const secureStorage = FlutterSecureStorage();
   locator.registerSingleton<FlutterSecureStorage>(secureStorage);
+  initFamilyInjection(locator);
 
   // Determine initial onboarding/authentication step
   final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;

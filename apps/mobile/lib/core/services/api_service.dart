@@ -56,6 +56,12 @@ class ApiService {
       SosApiService.dismissSos(broadcastId);
   static Future<bool> leaveCircle(String circleId) =>
       CirclesApiService.leaveCircle(circleId);
+  static Future<Map<String, dynamic>> getCircleInvite(String circleId) =>
+      CirclesApiService.getCircleInvite(circleId);
+  static Future<bool> deleteCircle(String circleId) =>
+      CirclesApiService.deleteCircle(circleId);
+  static Future<bool> removeMember(String circleId, String memberId) =>
+      CirclesApiService.removeMember(circleId, memberId);
   static Future<bool> startJourney({
     required String circleId,
     required String destination,
@@ -76,6 +82,8 @@ class ApiService {
     double? accuracy,
     double? heading,
     double? speed,
+    int? batteryLevel,
+    String? connectivityType,
   }) => LocationApiService.updateLocation(
     circleId: circleId,
     latitude: latitude,
@@ -83,6 +91,8 @@ class ApiService {
     accuracy: accuracy,
     heading: heading,
     speed: speed,
+    batteryLevel: batteryLevel,
+    connectivityType: connectivityType,
   );
 
   static Future<List<dynamic>> getCircleMemberLocations(String circleId) =>

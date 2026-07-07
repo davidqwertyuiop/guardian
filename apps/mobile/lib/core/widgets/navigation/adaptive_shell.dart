@@ -27,6 +27,7 @@ class AdaptiveShell extends StatelessWidget {
     required this.currentIndex,
     required this.onTabChanged,
     this.profileImageUrl,
+    this.showNavigation = true,
   });
 
   /// The page content displayed above the nav bar.
@@ -41,6 +42,9 @@ class AdaptiveShell extends StatelessWidget {
   /// Optional profile image URL passed through to [IosTabBar].
   final String? profileImageUrl;
 
+  /// Allows child flows such as circle details to temporarily own the screen.
+  final bool showNavigation;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,22 +53,23 @@ class AdaptiveShell extends StatelessWidget {
       body: Stack(
         children: [
           body,
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Platform.isIOS
-                ? IosTabBar(
-                    currentIndex: currentIndex,
-                    onTap: onTabChanged,
-                    profileImageUrl: profileImageUrl,
-                  )
-                : AndroidNavBar(
-                    currentIndex: currentIndex,
-                    onTap: onTabChanged,
-                    profileImageUrl: profileImageUrl,
-                  ),
-          ),
+          if (showNavigation)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Platform.isIOS
+                  ? IosTabBar(
+                      currentIndex: currentIndex,
+                      onTap: onTabChanged,
+                      profileImageUrl: profileImageUrl,
+                    )
+                  : AndroidNavBar(
+                      currentIndex: currentIndex,
+                      onTap: onTabChanged,
+                      profileImageUrl: profileImageUrl,
+                    ),
+            ),
         ],
       ),
     );

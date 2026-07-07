@@ -9,11 +9,7 @@ extension MapCardGoogleMarkers on MapCardState {
         icon:
             _userLocationMarker ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        onTap: () => selectMarkerLocation(
-          _currentLocationLabel ??
-              widget.activeSosAddress ??
-              'Current location',
-        ),
+        onTap: () => selectMarkerLocation('You'),
       ),
     };
 
@@ -63,9 +59,7 @@ extension MapCardGoogleMarkers on MapCardState {
             _sosMarker ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
         zIndexInt: 20,
-        onTap: () => selectMarkerLocation(
-          widget.activeSosAddress ?? _currentLocationLabel ?? 'SOS active',
-        ),
+        onTap: () => selectMarkerLocation('Your SOS'),
       );
     }
 
@@ -92,22 +86,24 @@ extension MapCardGoogleMarkers on MapCardState {
             _sosMarker ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
         zIndexInt: 19,
-        onTap: () => selectMarkerLocation(
-          json['address']?.toString() ??
-              '${json['name'] ?? json['user_name'] ?? 'Member'} SOS',
-        ),
+        onTap: () => selectMarkerLocation(_sosLocationLabel(json)),
       );
     }
   }
 
   String _memberLocationLabel(Map<dynamic, dynamic> member) {
-    final address = member['address']?.toString();
-    if (address != null && address.isNotEmpty) return address;
-
     final name = member['name']?.toString();
     if (name != null && name.isNotEmpty) return name;
 
     return 'Member location';
+  }
+
+  String _sosLocationLabel(Map<dynamic, dynamic> broadcast) {
+    final name =
+        broadcast['name']?.toString() ?? broadcast['user_name']?.toString();
+    if (name != null && name.isNotEmpty) return '$name SOS';
+
+    return 'Member SOS';
   }
 
   double? _readCoordinate(dynamic value) {

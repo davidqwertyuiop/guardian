@@ -1,7 +1,6 @@
 use chrono::Utc;
 use jsonwebtoken::{EncodingKey, Header};
 use serde::{Deserialize, Serialize};
-use std::fs;
 
 #[derive(Deserialize)]
 struct ServiceAccount {
@@ -63,25 +62,10 @@ async fn get_google_access_token(
 }
 
 /// Send a push notification via Firebase Cloud Messaging (FCM) HTTP v1 API.
-/// If `firebase-service-account.json` is missing, it falls back to mock tracing logs.
+/// In production, the service account JSON must be injected through
+/// `FIREBASE_SERVICE_ACCOUNT_JSON` or `FCM_SERVICE_ACCOUNT_JSON`.
 pub async fn send_push_notification(token: &str, title: &str, body: &str) {
-    // 1. Try to load the service account file
-    let paths_to_try = [
-        "firebase-service-account.json",
-        "apps/backend/firebase-service-account.json",
-    ];
-
-    let mut sa_data = None;
-    for path in &paths_to_try {
-        if let Ok(content) = fs::read_to_string(path) {
-            if let Ok(sa) = serde_json::from_str::<ServiceAccount>(&content) {
-                sa_data = Some(sa);
-                break;
-            }
-        }
-    }
-
-    let sa = match sa_data {
+    let sa = match load_service_account() {
         Some(s) => s,
         None => {
             tracing::warn!(
@@ -172,5 +156,64 @@ pub async fn send_push_notification(token: &str, title: &str, body: &str) {
                 e
             );
         }
+    }
+}
+
+fn load_service_account() -> Option<ServiceAccount> {
+    std::env::var("FIREBASE_SERVICE_ACCOUNT_JSON")
+        .or_else(|_| std::env::var("FCM_SERVICE_ACCOUNT_JSON"))
+        .ok()
+        .and_then(|content| parse_service_account(&content))
+        .or_else(load_local_service_account)
+}
+
+fn parse_service_account(content: &str) -> Option<ServiceAccount> {
+    serde_json::from_str::<ServiceAccount>(content).ok()
+}
+
+#[cfg(debug_assertions)]
+fn load_local_service_account() -> Option<ServiceAccount> {
+    let paths_to_try = [
+        "firebase-service-account.json",
+        "apps/backend/firebase-service-account.json",
+    ];
+
+    paths_to_try.iter().find_map(|path| {
+        std::fs::read_to_string(path)
+            .ok()
+            .and_then(|content| parse_service_account(&content))
+    })
+}
+
+#[cfg(not(debug_assertions))]
+fn load_local_service_account() -> Option<ServiceAccount> {
+    None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_service_account;
+
+    #[test]
+    fn parses_service_account_json() {
+        let content = r#"{
+            "project_id": "guardian-test",
+            "private_key": "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n",
+            "client_email": "firebase@guardian-test.iam.gserviceaccount.com"
+        }"#;
+
+        let account = parse_service_account(content).expect("valid service account");
+
+        assert_eq!(account.project_id, "guardian-test");
+        assert_eq!(
+            account.client_email,
+            "firebase@guardian-test.iam.gserviceaccount.com"
+        );
+        assert!(account.private_key.contains("BEGIN PRIVATE KEY"));
+    }
+
+    #[test]
+    fn rejects_invalid_service_account_json() {
+        assert!(parse_service_account("{\"project_id\":\"missing fields\"}").is_none());
     }
 }

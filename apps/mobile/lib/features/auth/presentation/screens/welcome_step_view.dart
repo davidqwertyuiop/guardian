@@ -43,7 +43,7 @@ class WelcomeStepView extends StatelessWidget {
             ),
             child: (isLandscape || isShort)
                 ? SingleChildScrollView(
-                    child: SizedBox(height: 440, child: content),
+                    child: content,
                   )
                 : content,
           ),

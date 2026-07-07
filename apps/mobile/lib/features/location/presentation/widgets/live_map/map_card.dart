@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:guardian/export.dart';
+import 'package:battery_plus/battery_plus.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'map_distance_badge.dart';
 import 'map_card/directions_panel.dart';

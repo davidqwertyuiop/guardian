@@ -40,6 +40,8 @@ pub async fn update_location(
             body.accuracy,
             body.heading,
             body.speed,
+            body.battery_level,
+            body.connectivity_type,
         )
         .await?;
 
@@ -84,6 +86,8 @@ pub async fn get_circle_locations(
             latitude: loc.latitude,
             longitude: loc.longitude,
             accuracy: loc.accuracy,
+            battery_level: loc.battery_level,
+            connectivity_type: loc.connectivity_type,
             updated_at: loc.updated_at,
         })
         .collect();

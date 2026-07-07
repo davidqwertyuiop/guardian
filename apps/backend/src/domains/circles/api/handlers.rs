@@ -343,3 +343,155 @@ pub async fn leave_circle(
         "message": "Successfully left the circle"
     })))
 }
+
+// ── DELETE /api/v1/circles/:id ──────────────────────────────────────────────
+
+pub async fn delete_circle(
+    State(state): State<AppState>,
+    AuthUser(claims): AuthUser,
+    Path(circle_id): Path<Uuid>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
+
+    // Check if circle exists
+    let circle = state
+        .circle_repo
+        .find_by_id(circle_id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Circle not found".into()))?;
+
+    // Only owner can delete the circle
+    if circle.owner_id != user_id {
+        return Err(AppError::Unauthorized(
+            "Only the owner can delete the circle.".into(),
+        ));
+    }
+
+    // Delete the circle (cascades to memberships, locations, invites, etc.)
+    sqlx::query("DELETE FROM circles WHERE id = $1")
+        .bind(circle_id)
+        .execute(&state.db_pool)
+        .await
+        .map_err(|e| AppError::Internal(format!("DB delete circle: {e}")))?;
+
+    Ok(Json(serde_json::json!({
+        "message": "Successfully deleted the circle"
+    })))
+}
+
+// ── GET /api/v1/circles/:id/invite ──────────────────────────────────────────
+
+pub async fn get_invite_details(
+    State(state): State<AppState>,
+    AuthUser(claims): AuthUser,
+    Path(circle_id): Path<Uuid>,
+) -> Result<Json<InviteResponse>, AppError> {
+    use rand::Rng;
+
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
+
+    // Must be a member of the circle to get the invite
+    if !state.circle_repo.is_member(circle_id, user_id).await? {
+        return Err(AppError::Unauthorized(
+            "You are not a member of this circle.".into(),
+        ));
+    }
+
+    // Find latest active invite token (expires in the future)
+    let invite =
+        sqlx::query_as::<_, crate::domains::circles::domain::entities::invite_token::InviteToken>(
+            "SELECT id, circle_id, code, token, created_by,
+                code_expires_at, link_expires_at,
+                used_count, max_uses, created_at
+         FROM invite_tokens
+         WHERE circle_id = $1 AND code_expires_at > NOW() AND link_expires_at > NOW()
+         ORDER BY created_at DESC
+         LIMIT 1",
+        )
+        .bind(circle_id)
+        .fetch_optional(&state.db_pool)
+        .await
+        .map_err(|e| AppError::Internal(format!("DB get invite: {e}")))?;
+
+    let invite = match invite {
+        Some(inv) => inv,
+        None => {
+            // Generate a new one
+            let code: String = rand::thread_rng()
+                .sample_iter(rand::distributions::Alphanumeric)
+                .take(4)
+                .map(|c| (c as char).to_ascii_uppercase())
+                .collect();
+            let bytes: Vec<u8> = (0..6).map(|_| rand::thread_rng().gen()).collect();
+            let token = hex::encode(bytes);
+
+            state
+                .invite_repo
+                .create(circle_id, user_id, &code, &token)
+                .await?
+        }
+    };
+
+    Ok(Json(InviteResponse {
+        code: invite.code,
+        invite_link: format!("{}/{}", state.config.invite_base_url, invite.token),
+        code_expires_at: invite.code_expires_at,
+        link_expires_at: invite.link_expires_at,
+    }))
+}
+
+// ── DELETE /api/v1/circles/:id/members/:member_id ───────────────────────────
+
+pub async fn remove_circle_member(
+    State(state): State<AppState>,
+    AuthUser(claims): AuthUser,
+    Path((circle_id, member_id)): Path<(Uuid, Uuid)>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let user_id: Uuid = claims
+        .sub
+        .parse()
+        .map_err(|_| AppError::InvalidInput("Invalid user id in token".into()))?;
+
+    // Check if circle exists
+    let circle = state
+        .circle_repo
+        .find_by_id(circle_id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("Circle not found".into()))?;
+
+    // Only owner can remove members
+    if circle.owner_id != user_id {
+        return Err(AppError::Unauthorized(
+            "Only the owner can remove members.".into(),
+        ));
+    }
+
+    // Cannot remove yourself (you should leave the circle instead, or delete it)
+    if member_id == user_id {
+        return Err(AppError::InvalidInput(
+            "You cannot remove yourself from the circle. Leave or delete the circle instead."
+                .into(),
+        ));
+    }
+
+    // Check if member is in the circle
+    if !state.circle_repo.is_member(circle_id, member_id).await? {
+        return Err(AppError::NotFound("Member not found in this circle".into()));
+    }
+
+    // Remove the member
+    state
+        .circle_repo
+        .remove_member(circle_id, member_id)
+        .await?;
+
+    Ok(Json(serde_json::json!({
+        "message": "Successfully removed member from the circle"
+    })))
+}

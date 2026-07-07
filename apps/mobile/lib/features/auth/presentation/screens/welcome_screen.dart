@@ -57,7 +57,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return BlocListener<AuthBloc, AuthState>(
       bloc: context.read<AuthBloc>(),
       listener: (context, state) => _handleStepTransition(state),
-      child: const WelcomeStepView(),
+      child: _currentStep == AuthStep.splash
+          ? const SplashStepView()
+          : const WelcomeStepView(),
     );
   }
 }

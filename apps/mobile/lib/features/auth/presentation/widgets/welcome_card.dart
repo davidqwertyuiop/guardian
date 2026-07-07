@@ -10,8 +10,18 @@ class WelcomeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final screenH = MediaQuery.sizeOf(context).height;
-    // Always 58% of screen height — naturally adaptive on every device size.
-    final cardHeight = screenH * 0.58;
+    final isCompact = screenH < 720 || AdaptiveLayout.isLandscape(context);
+    final cardHeight = isCompact ? 520.0 : screenH * 0.58;
+    final cardPadding = isCompact ? 24.0 : AdaptiveLayout.padding(context, 24);
+    final headlineSize = isCompact
+        ? 44.0
+        : AdaptiveLayout.sp(context, 52).clamp(44.0, 58.0);
+    final bodySize = isCompact
+        ? 15.0
+        : AdaptiveLayout.sp(context, 18).clamp(15.0, 20.0);
+    final imageWidth = isCompact
+        ? 240.0
+        : AdaptiveLayout.w(context, 300).clamp(240.0, 340.0);
 
     return Container(
       width: double.infinity,
@@ -39,7 +49,7 @@ class WelcomeCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(AdaptiveLayout.padding(context, 24)),
+              padding: EdgeInsets.all(cardPadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -48,7 +58,7 @@ class WelcomeCard extends StatelessWidget {
                     "Know\nthey're\nsafe.",
                     style: TextStyle(
                       fontFamily: 'Inter',
-                      fontSize: AdaptiveLayout.sp(context, 52),
+                      fontSize: headlineSize,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                       height: 1.0,
@@ -60,7 +70,7 @@ class WelcomeCard extends StatelessWidget {
                     "The simplest way to share your location with the people who matter most.",
                     style: TextStyle(
                       fontFamily: 'Inter',
-                      fontSize: AdaptiveLayout.sp(context, 18),
+                      fontSize: bodySize,
                       fontWeight: FontWeight.w400,
                       color: Colors.white.withValues(alpha: 0.8),
                       height: 1.5,
@@ -70,8 +80,8 @@ class WelcomeCard extends StatelessWidget {
                   Center(
                     child: Image.asset(
                       AppAssets.line2,
-                      width: AdaptiveLayout.w(context, 300),
-                      height: cardHeight * 0.16,
+                      width: imageWidth,
+                      height: cardHeight * (isCompact ? 0.12 : 0.16),
                       fit: BoxFit.contain,
                     ),
                   ),
