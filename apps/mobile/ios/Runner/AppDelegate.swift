@@ -100,8 +100,12 @@ import CoreTelephony
   }
 
   private func mobileRadioType() -> String {
-    let technologies = radioInfo.serviceCurrentRadioAccessTechnology?.values
-      ?? [radioInfo.currentRadioAccessTechnology].compactMap { $0 }
+    let technologies: [String]
+    if let serviceTechs = radioInfo.serviceCurrentRadioAccessTechnology?.values {
+      technologies = Array(serviceTechs)
+    } else {
+      technologies = [radioInfo.currentRadioAccessTechnology].compactMap { $0 }
+    }
     if technologies.contains(CTRadioAccessTechnologyNR) ||
        technologies.contains(CTRadioAccessTechnologyNRNSA) {
       return "5G"
