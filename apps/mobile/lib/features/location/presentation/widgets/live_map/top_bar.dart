@@ -7,6 +7,7 @@ import 'top_bar/top_bar_sos_button.dart';
 
 class LiveMapTopBar extends StatelessWidget {
   final VoidCallback onSosTap;
+  final VoidCallback? onNotificationTap;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
   final bool isSosActive;
@@ -15,6 +16,7 @@ class LiveMapTopBar extends StatelessWidget {
   const LiveMapTopBar({
     super.key,
     required this.onSosTap,
+    this.onNotificationTap,
     this.showBackButton = false,
     this.onBackPressed,
     this.isSosActive = false,
@@ -34,6 +36,7 @@ class LiveMapTopBar extends StatelessWidget {
             size: buttonSize,
             showBackButton: showBackButton,
             onBackPressed: onBackPressed,
+            onNotificationPressed: onNotificationTap,
           ),
           TopBarCenter(showIcon: showCenterIcon),
           TopBarSosButton(

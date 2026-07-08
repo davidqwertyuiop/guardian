@@ -1,4 +1,1 @@
-// Apple APNs / Firebase Cloud Messaging push dispatch
-pub async fn send_push_notification(_token: &str, _title: &str, _body: &str) {
-    // Dispatch logic here
-}
+pub use crate::infrastructure::push_notifications::send_push_notification;

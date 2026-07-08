@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart';
+import 'invite_share_button.dart';
 
 class InviteLinkSection extends StatelessWidget {
   const InviteLinkSection({
@@ -14,6 +14,11 @@ class InviteLinkSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const copyTextStyle = TextStyle(
+      fontFamily: 'Inter',
+      fontWeight: FontWeight.w700,
+      color: Colors.white,
+    );
     return Column(
       children: [
         Row(
@@ -28,34 +33,30 @@ class InviteLinkSection extends StatelessWidget {
             const SizedBox(width: 8),
             ElevatedButton(
               onPressed: link == null ? null : () => _copy(context, link!),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-              child: const Text(
-                'Copy link',
-                style: TextStyle(color: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.black,
+                disabledForegroundColor: Colors.white70,
+                textStyle: copyTextStyle,
               ),
+              child: const Text('Copy link', style: copyTextStyle),
             ),
           ],
         ),
         const SizedBox(height: 14),
         Row(
           children: [
-            Expanded(child: _shareButton('WhatsApp')),
+            Expanded(
+              child: InviteShareButton(label: 'WhatsApp', shareText: shareText),
+            ),
             const SizedBox(width: 10),
-            Expanded(child: _shareButton('Other')),
+            Expanded(
+              child: InviteShareButton(label: 'Other', shareText: shareText),
+            ),
           ],
         ),
       ],
-    );
-  }
-
-  Widget _shareButton(String label) {
-    return ElevatedButton(
-      onPressed: shareText.isEmpty
-          ? null
-          : () => SharePlus.instance.share(
-              ShareParams(text: 'Join my Guardian circle! $shareText'),
-            ),
-      child: Text(label),
     );
   }
 

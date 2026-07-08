@@ -4,6 +4,8 @@ import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:guardian/core/services/notification_service.dart';
 import 'package:guardian/core/services/background_trigger_service.dart';
+import 'package:guardian/features/notifications/data/notification_repository.dart';
+import 'package:guardian/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'export.dart';
 
 void main() async {
@@ -75,6 +77,9 @@ class GuardianApp extends StatelessWidget {
         RepositoryProvider<FirebaseAuthService>(
           create: (context) => FirebaseAuthService(),
         ),
+        RepositoryProvider<NotificationRepository>(
+          create: (context) => locator<NotificationRepository>(),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -87,6 +92,11 @@ class GuardianApp extends StatelessWidget {
             create: (context) => HomeBloc(authBloc: context.read<AuthBloc>()),
           ),
           BlocProvider<SettingsBloc>(create: (context) => SettingsBloc()),
+          BlocProvider<NotificationBloc>(
+            create: (context) => NotificationBloc(
+              repository: context.read<NotificationRepository>(),
+            )..add(const NotificationsStarted()),
+          ),
         ],
         child: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {

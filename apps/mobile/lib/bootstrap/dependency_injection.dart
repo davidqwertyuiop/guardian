@@ -1,5 +1,6 @@
 import 'package:guardian/export.dart';
 import 'package:guardian/features/family/di/family_injection.dart';
+import 'package:guardian/features/notifications/data/notification_repository.dart';
 
 final locator = GetIt.instance;
 
@@ -10,6 +11,9 @@ Future<AuthStep> initDependencies() async {
 
   const secureStorage = FlutterSecureStorage();
   locator.registerSingleton<FlutterSecureStorage>(secureStorage);
+  locator.registerLazySingleton<NotificationRepository>(
+    () => NotificationRepository(),
+  );
   initFamilyInjection(locator);
 
   // Determine initial onboarding/authentication step

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/features/family/presentation/bloc/family_circle_bloc.dart';
 import 'package:guardian/features/family/presentation/bloc/family_circle_event.dart';
 import 'package:guardian/features/family/presentation/bloc/family_circle_state.dart';
+import 'family_back_button.dart';
 
 class FamilyDetailsHeader extends StatelessWidget {
   const FamilyDetailsHeader({super.key, required this.state});
@@ -15,14 +16,13 @@ class FamilyDetailsHeader extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(25, 20, 24, 12),
           child: Row(
             children: [
-              IconButton.filledTonal(
+              FamilyBackButton(
                 onPressed: () => context.read<FamilyCircleBloc>().add(
                   const FamilyOverviewRequested(),
                 ),
-                icon: const Icon(Icons.arrow_back_rounded),
               ),
               const Spacer(),
               Text(state.selectedCircleName ?? 'Circle', style: _title(isDark)),

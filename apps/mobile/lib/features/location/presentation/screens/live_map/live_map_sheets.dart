@@ -1,6 +1,40 @@
 part of '../live_map_screen.dart';
 
 extension _LiveMapSheets on _LiveMapScreenState {
+  Future<void> showNotificationsCenter() async {
+    final bloc = context.read<NotificationBloc>()
+      ..add(const NotificationsRefreshRequested());
+    if (Theme.of(context).platform == TargetPlatform.iOS) {
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: Colors.black.withValues(alpha: 0.18),
+        builder: (_) => BlocProvider.value(
+          value: bloc,
+          child: NotificationsSheet(
+            onNotificationTap: (notification) {
+              bloc.add(NotificationOpened(notification));
+            },
+          ),
+        ),
+      );
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: bloc,
+          child: NotificationsScreen(
+            onNotificationTap: (notification) {
+              bloc.add(NotificationOpened(notification));
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   void showStopBroadcastSheet() {
     showModalBottomSheet(
       context: context,
@@ -67,7 +101,7 @@ extension _LiveMapSheets on _LiveMapScreenState {
       case MapDisplayState.expanded:
         if (_fullAnim.value > 0.0) _fullAnim.reverse();
         if (_mapAnim.value < 1.0) _mapAnim.forward();
-        break;  
+        break;
       case MapDisplayState.full:
         if (_mapAnim.value < 1.0) _mapAnim.forward();
         if (_fullAnim.value < 1.0) _fullAnim.forward();

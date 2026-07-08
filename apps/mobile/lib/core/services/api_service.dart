@@ -1,9 +1,10 @@
 import 'api/api_base.dart';
 import 'api/auth_api_service.dart';
 import 'api/circles_api_service.dart';
-import 'api/sos_api_service.dart';
-import 'api/location_api_service.dart';
 import 'api/journey_api_service.dart';
+import 'api/location_api_service.dart';
+import 'api/notifications_api_service.dart';
+import 'api/sos_api_service.dart';
 
 /// Guardian API Service Facade
 /// delegates calls to modular, domain-specific api sub-services.
@@ -101,4 +102,12 @@ class ApiService {
   static Future<Map<String, dynamic>?> getNearestMemberLocation(
     String circleId,
   ) => LocationApiService.getNearestMemberLocation(circleId);
+
+  // ── Notifications Endpoints ────────────────────────────────────────────────
+  static Future<Map<String, dynamic>> getNotifications({int limit = 50}) =>
+      NotificationsApiService.getNotifications(limit: limit);
+  static Future<void> markNotificationRead(String id) =>
+      NotificationsApiService.markRead(id);
+  static Future<void> markAllNotificationsRead() =>
+      NotificationsApiService.markAllRead();
 }

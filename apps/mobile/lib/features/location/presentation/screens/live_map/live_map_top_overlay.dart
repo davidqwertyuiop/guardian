@@ -13,6 +13,7 @@ extension _LiveMapTopOverlay on _LiveMapScreenState {
           right: 0,
           child: LiveMapTopBar(
             onSosTap: showSosSheet,
+            onNotificationTap: showNotificationsCenter,
             showBackButton: displayState == MapDisplayState.full,
             onBackPressed: closeFullMap,
             isSosActive: _isLocalSosActive,

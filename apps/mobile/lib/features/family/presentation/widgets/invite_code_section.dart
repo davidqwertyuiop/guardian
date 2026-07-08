@@ -52,9 +52,6 @@ class InviteCodeSection extends StatelessWidget {
 
   void _copy(BuildContext context, String text) {
     Clipboard.setData(ClipboardData(text: text));
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Copied.')));
   }
 
   TextStyle _title(Color color) => TextStyle(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/features/family/presentation/bloc/family_circle_bloc.dart';
 import 'package:guardian/features/family/presentation/bloc/family_circle_event.dart';
+import 'leave_circle_actions.dart';
 
 class LeaveCircleSheet extends StatelessWidget {
   const LeaveCircleSheet({
@@ -52,16 +53,15 @@ class LeaveCircleSheet extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: TextButton(
+                    child: LeaveCircleActionButton(
+                      label: 'Leave circle',
                       onPressed: () => _leave(context),
-                      child: const Text('Leave circle'),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: ElevatedButton(
+                    child: StayCircleActionButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Stay'),
                     ),
                   ),
                 ],

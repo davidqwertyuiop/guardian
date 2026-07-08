@@ -1,4 +1,5 @@
 use super::dto::{SosActionResponse, SosBroadcastResponse, TriggerSosRequest};
+use crate::domains::notifications::service::create_notifications;
 use crate::infrastructure::push_notifications::send_push_notification;
 use crate::routes::AppState;
 use crate::shared::{errors::AppError, middleware::auth::AuthUser};
@@ -7,6 +8,7 @@ use axum::{
     Json,
 };
 use serde::Deserialize;
+use sqlx::Row;
 use uuid::Uuid;
 
 // ── Query params ─────────────────────────────────────────────────────────────
@@ -63,23 +65,44 @@ pub async fn trigger_sos(
         .await?;
 
     // Fetch FCM tokens of other members in this circle to notify them
-    let other_members_tokens: Vec<String> = sqlx::query_scalar(
-        "SELECT dt.fcm_token
-         FROM device_tokens dt
-         JOIN circle_memberships cm ON cm.user_id = dt.user_id
+    let recipients = sqlx::query(
+        "SELECT cm.user_id, dt.fcm_token
+         FROM circle_memberships cm
+         LEFT JOIN device_tokens dt ON dt.user_id = cm.user_id
          WHERE cm.circle_id = $1 AND cm.user_id != $2",
     )
     .bind(body.circle_id)
     .bind(user_id)
     .fetch_all(&state.db_pool)
     .await
-    .map_err(|e| AppError::Internal(format!("DB fetch FCM tokens: {e}")))?;
-
+    .map_err(|e| AppError::Internal(format!("DB fetch recipients: {e}")))?;
+    let recipient_ids: Vec<Uuid> = recipients.iter().map(|row| row.get("user_id")).collect();
+    let other_members_tokens: Vec<String> = recipients
+        .iter()
+        .filter_map(|row| row.try_get("fcm_token").ok())
+        .collect();
     let title = format!("EMERGENCY: {} triggered SOS!", user_name);
     let body_text = format!(
         "Address: {}. Tap to open live tracking.",
         body.address.as_deref().unwrap_or("Unknown location")
     );
+
+    let data = serde_json::json!({
+        "circle_id": body.circle_id,
+        "broadcast_id": broadcast.id,
+        "route": "sos",
+        "address": body.address
+    });
+    create_notifications(
+        &state.db_pool,
+        &recipient_ids,
+        Some(user_id),
+        "sos_active",
+        &title,
+        &body_text,
+        data,
+    )
+    .await?;
 
     for token in &other_members_tokens {
         crate::infrastructure::push_notifications::send_push_notification(
@@ -192,20 +215,41 @@ pub async fn dismiss_sos(
         .ok_or_else(|| AppError::NotFound("Triggering user not found".into()))?;
     let user_name = user.name.unwrap_or_else(|| "Someone".into());
 
-    let other_members_tokens: Vec<String> = sqlx::query_scalar(concat!(
-        "SELECT dt.fcm_token ",
-        "FROM device_tokens dt ",
-        "JOIN circle_memberships cm ON cm.user_id = dt.user_id ",
-        "WHERE cm.circle_id = $1 AND cm.user_id != $2",
-    ))
+    let recipients = sqlx::query(
+        "SELECT cm.user_id, dt.fcm_token
+         FROM circle_memberships cm
+         LEFT JOIN device_tokens dt ON dt.user_id = cm.user_id
+         WHERE cm.circle_id = $1 AND cm.user_id != $2",
+    )
     .bind(broadcast.circle_id)
     .bind(user_id)
     .fetch_all(&state.db_pool)
     .await
-    .map_err(|e| AppError::Internal(format!("DB fetch FCM tokens: {e}")))?;
+    .map_err(|e| AppError::Internal(format!("DB fetch recipients: {e}")))?;
+    let recipient_ids: Vec<Uuid> = recipients.iter().map(|row| row.get("user_id")).collect();
+    let other_members_tokens: Vec<String> = recipients
+        .iter()
+        .filter_map(|row| row.try_get("fcm_token").ok())
+        .collect();
 
     let title = format!("{} is safe", user_name);
     let body_text = "Their SOS has been cancelled. They marked themselves safe.";
+    let data = serde_json::json!({
+        "circle_id": broadcast.circle_id,
+        "broadcast_id": broadcast.id,
+        "route": "sos",
+        "status": "dismissed"
+    });
+    create_notifications(
+        &state.db_pool,
+        &recipient_ids,
+        Some(user_id),
+        "sos_cancelled",
+        &title,
+        body_text,
+        data,
+    )
+    .await?;
 
     for token in &other_members_tokens {
         send_push_notification(token, &title, body_text).await;

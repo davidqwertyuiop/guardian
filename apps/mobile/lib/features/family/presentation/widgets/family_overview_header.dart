@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:guardian/export.dart';
 
 class FamilyOverviewHeader extends StatelessWidget {
@@ -15,7 +14,7 @@ class FamilyOverviewHeader extends StatelessWidget {
           padding: EdgeInsets.only(
             left: context.w(20),
             right: context.w(20),
-            top: context.w(20),
+            top: context.w(40),
             bottom: context.w(12),
           ),
           child: Row(
@@ -54,7 +53,7 @@ class FamilyOverviewHeader extends StatelessWidget {
   }
 
   Widget _topIcon(BuildContext context) => Container(
-    width: context.w(80),
+    width: context.w(60),
     height: context.w(40),
     decoration: BoxDecoration(
       color: AppColors.primary.withValues(alpha: 0.15),
