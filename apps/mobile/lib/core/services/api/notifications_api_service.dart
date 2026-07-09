@@ -8,7 +8,7 @@ abstract class NotificationsApiService {
 
   static Future<Map<String, dynamic>> getNotifications({int limit = 50}) async {
     final token = await TokenManager().getAccessToken();
-    final url = Uri.parse('$baseUrl/api/v1/notifications?limit=$limit');
+    final url = Uri.parse('$baseUrl/api/v1/notifications/?limit=$limit');
     try {
       final response = await http.get(
         url,

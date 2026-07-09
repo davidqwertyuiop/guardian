@@ -11,7 +11,10 @@ pub struct SetupProfileRequest {
 #[derive(Debug, Deserialize)]
 pub struct UpdatePreferencesRequest {
     pub location_enabled: bool,
-    pub notifications_enabled: bool,
+    pub notify_sos: bool,
+    pub notify_broadcast: bool,
+    pub notify_new_member: bool,
+    pub location_paused_until: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -47,7 +50,10 @@ pub struct ProfileResponse {
     pub avatar_url: Option<String>,
     pub is_profile_complete: bool,
     pub location_enabled: bool,
-    pub notifications_enabled: bool,
+    pub notify_sos: bool,
+    pub notify_broadcast: bool,
+    pub notify_new_member: bool,
+    pub location_paused_until: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -58,6 +64,7 @@ pub struct RefreshTokenResponse {
 
 #[derive(Debug, Serialize)]
 pub struct SessionResponse {
+    pub id: String,
     pub device_name: String,
     pub device_model: Option<String>,
     pub platform: String,

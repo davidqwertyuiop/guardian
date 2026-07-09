@@ -4,7 +4,6 @@ import 'package:guardian/export.dart';
 import 'package:guardian/features/notifications/data/models/app_notification.dart';
 import 'package:guardian/features/notifications/presentation/bloc/notification_bloc.dart';
 
-/// The parent screen managing unified iOS/Android tabs using HomeBloc.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -35,6 +34,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _homeBloc.add(const LoadHomeData());
+      NotificationService.registerDeviceToken();
+      context.read<NotificationBloc>().add(const NotificationsRefreshRequested());
     }
   }
 

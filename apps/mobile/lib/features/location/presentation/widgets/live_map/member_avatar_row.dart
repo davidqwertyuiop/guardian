@@ -24,6 +24,9 @@ class MemberAvatarRow extends StatelessWidget {
     final displayCount = members.length.clamp(1, 4);
     final double avatarSize = context.w(32);
     final double overlap = context.w(10);
+    final borderColor = AppColors.isDark(context)
+        ? const Color(0xFF2D2D34)
+        : Colors.white;
 
     return SizedBox(
       height: avatarSize,
@@ -48,7 +51,7 @@ class MemberAvatarRow extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: fallbackColor,
-                border: Border.all(color: Colors.white, width: 2),
+                border: Border.all(color: borderColor, width: 2),
                 image: DecorationImage(
                   image: hasUrl
                       ? NetworkImage(url) as ImageProvider

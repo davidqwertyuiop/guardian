@@ -77,6 +77,7 @@ class MemberStatusTile extends StatelessWidget {
                 memberMetric('Network', network, isDark),
                 if (state.isOwner && !isMe)
                   removeMemberButton(
+                    context,
                     () => context.read<FamilyCircleBloc>().add(
                       FamilyRemoveMemberSubmitted(id),
                     ),

@@ -4,24 +4,18 @@ import 'package:guardian/features/notifications/presentation/bloc/notification_b
 
 class TopBarLeadingButton extends StatelessWidget {
   const TopBarLeadingButton({
-    super.key,
-    required this.size,
-    required this.showBackButton,
-    this.onBackPressed,
-    this.onNotificationPressed,
+    super.key, required this.size, required this.showBackButton,
+    this.onBackPressed, this.onNotificationPressed,
   });
 
-  final double size;
-  final bool showBackButton;
-  final VoidCallback? onBackPressed;
-  final VoidCallback? onNotificationPressed;
+  final double size; final bool showBackButton;
+  final VoidCallback? onBackPressed, onNotificationPressed;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final iconColor = isDark ? Colors.white : const Color(0xFF1C1C24);
     final surfaceColor = isDark ? const Color(0xFF23232A) : Colors.white;
-
     return GestureDetector(
       onTap: showBackButton ? onBackPressed : onNotificationPressed,
       child: Stack(

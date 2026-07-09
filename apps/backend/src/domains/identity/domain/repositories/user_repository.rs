@@ -22,6 +22,15 @@ pub trait UserRepository: Send + Sync {
         &self,
         id: Uuid,
         location_enabled: bool,
-        notifications_enabled: bool,
+        notify_sos: bool,
+        notify_broadcast: bool,
+        notify_new_member: bool,
+        location_paused_until: Option<chrono::DateTime<chrono::Utc>>,
     ) -> Result<User, AppError>;
+
+    /// Permanently delete a user account.
+    async fn delete(&self, id: Uuid) -> Result<(), AppError>;
+
+    /// Update the stored avatar URL for a user.
+    async fn update_avatar_url(&self, id: Uuid, avatar_url: &str) -> Result<User, AppError>;
 }

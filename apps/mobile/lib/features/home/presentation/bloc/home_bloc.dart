@@ -22,6 +22,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<LeaveCircle>(_onLeaveCircle);
     on<UpdateWeatherAndLocation>(_onUpdateWeatherAndLocation);
     on<UpdateUserLocation>(_onUpdateUserLocation);
+    on<UpdateAvatarUrl>(
+      (event, emit) => emit(state.copyWith(avatarUrl: event.avatarUrl)),
+    );
   }
 
   void _onChangeTab(ChangeTab event, Emitter<HomeState> emit) {

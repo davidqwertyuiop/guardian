@@ -70,6 +70,7 @@ dependencies:
   flutter_svg: ^2.3.0
   connectivity_plus: ^7.2.0
   battery_plus: ^7.1.0
+  image_picker: ^1.1.2
 
 
 
@@ -182,3 +183,4 @@ flutter_launcher_icons:
   min_sdk_android: 21
   adaptive_icon_background: "#E5DEFF"
   adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
+  remove_alpha_ios: true

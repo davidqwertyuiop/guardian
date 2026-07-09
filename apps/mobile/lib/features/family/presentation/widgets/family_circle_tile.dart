@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/features/family/presentation/bloc/family_circle_bloc.dart';
 import 'package:guardian/features/family/presentation/bloc/family_circle_event.dart';
 import 'member_avatar_stack.dart';
@@ -24,8 +25,9 @@ class FamilyCircleTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF16161A) : Colors.white,
+          color: AppColors.surface(context),
           borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: AppColors.border(context)),
         ),
         child: Row(
           children: [

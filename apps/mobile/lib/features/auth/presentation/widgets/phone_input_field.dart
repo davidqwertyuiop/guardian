@@ -12,8 +12,8 @@ class StripLeadingZeroFormatter extends TextInputFormatter {
       return TextEditingValue(
         text: newText,
         selection: TextSelection.collapsed(
-          offset: newValue.selection.baseOffset > 0 
-              ? newValue.selection.baseOffset - 1 
+          offset: newValue.selection.baseOffset > 0
+              ? newValue.selection.baseOffset - 1
               : 0,
         ),
       );
@@ -123,7 +123,12 @@ class PhoneInputField extends StatelessWidget {
                           color: isDark ? Colors.white38 : Colors.grey[400],
                           fontSize: 15,
                         ),
+                        filled: false,
+                        fillColor: Colors.transparent,
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
                       ),

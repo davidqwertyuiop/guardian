@@ -9,7 +9,7 @@ use crate::domains::location::domain::repositories::location_repository::Locatio
 use crate::domains::sos::domain::repositories::sos_repository::SosRepository;
 use axum::{extract::State, routing::get, Router};
 use sqlx::PgPool;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
 /// Central application state — cloned into every request handler.
 #[derive(Clone)]
@@ -26,6 +26,9 @@ pub struct AppState {
     pub location_repo: Arc<dyn LocationRepository>,
     // SOS domain
     pub sos_repo: Arc<dyn SosRepository>,
+    // File storage
+    pub uploads_dir: PathBuf,
+    pub public_base_url: String,
 }
 
 /// Build the complete Axum router with all domain routes nested.

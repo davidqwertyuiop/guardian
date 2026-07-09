@@ -11,7 +11,10 @@ pub struct User {
     pub avatar_url: Option<String>,
     pub is_profile_complete: bool,
     pub location_enabled: bool,
-    pub notifications_enabled: bool,
+    pub notify_sos: bool,
+    pub notify_broadcast: bool,
+    pub notify_new_member: bool,
+    pub location_paused_until: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'api/api_base.dart';
 import 'api/auth_api_service.dart';
 import 'api/circles_api_service.dart';
@@ -18,8 +19,12 @@ class ApiService {
   ) => AuthApiService.firebaseExchange(phone, idToken);
   static Future<bool> updateProfile(String name) =>
       AuthApiService.updateProfile(name);
-  static Future<bool> updatePreferences(bool location, bool notifications) =>
-      AuthApiService.updatePreferences(location, notifications);
+  static Future<bool> updatePreferences(
+          bool location, bool sos, bool broadcast, bool newMember,
+          [DateTime? locationPausedUntil]) =>
+      AuthApiService.updatePreferences(
+          location, sos, broadcast, newMember, locationPausedUntil);
+  static Future<bool> deleteAccount() => AuthApiService.deleteAccount();
   static Future<String> refreshToken(String token) =>
       AuthApiService.refreshToken(token);
   static Future<Map<String, dynamic>> getMe() => AuthApiService.getMe();
@@ -28,6 +33,8 @@ class ApiService {
       AuthApiService.revokeSession(hash);
   static Future<bool> registerDevice(String fcmToken, String platform) =>
       AuthApiService.registerDevice(fcmToken, platform);
+  static Future<String> uploadAvatar(File imageFile) =>
+      AuthApiService.uploadAvatar(imageFile);
 
   // ── Circles Endpoints ───────────────────────────────────────────────────────
   static Future<Map<String, dynamic>> createCircle(String name) =>

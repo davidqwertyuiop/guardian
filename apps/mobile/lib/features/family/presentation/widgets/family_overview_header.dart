@@ -39,11 +39,16 @@ class FamilyOverviewHeader extends StatelessWidget {
                   ).copyWith(height: 1.1),
                 ),
               ),
-              Image.asset(
-                AppAssets.circlesIconPng,
+              Container(
                 width: context.w(96),
                 height: context.w(96),
-                fit: BoxFit.contain,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.92)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(context.w(28)),
+                ),
+                child: Image.asset(AppAssets.circlesIconPng, fit: BoxFit.contain),
               ),
             ],
           ),

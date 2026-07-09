@@ -3,13 +3,15 @@ use axum::{extract::State, Json};
 use crate::domains::identity::{
     api::dto::*,
     application::{
-        firebase_exchange::FirebaseExchangeUseCase, get_profile::GetProfileUseCase,
-        refresh_token::RefreshTokenUseCase, setup_profile::SetupProfileUseCase,
+        delete_account::DeleteAccountUseCase, firebase_exchange::FirebaseExchangeUseCase,
+        get_profile::GetProfileUseCase, refresh_token::RefreshTokenUseCase,
+        setup_profile::SetupProfileUseCase, update_avatar::UpdateAvatarUseCase,
         update_preferences::UpdatePreferencesUseCase,
     },
 };
 use crate::routes::AppState;
 use crate::shared::{errors::AppError, middleware::auth::AuthUser};
+use axum::extract::Multipart;
 
 // ── PATCH /api/v1/auth/profile ─────────────────────────────────────────────
 
@@ -29,7 +31,10 @@ pub async fn setup_profile(
         avatar_url: user.avatar_url,
         is_profile_complete: user.is_profile_complete,
         location_enabled: user.location_enabled,
-        notifications_enabled: user.notifications_enabled,
+        notify_sos: user.notify_sos,
+        notify_broadcast: user.notify_broadcast,
+        notify_new_member: user.notify_new_member,
+        location_paused_until: user.location_paused_until,
         created_at: user.created_at,
     }))
 }
@@ -48,7 +53,10 @@ pub async fn update_preferences(
         .execute(
             &claims.sub,
             body.location_enabled,
-            body.notifications_enabled,
+            body.notify_sos,
+            body.notify_broadcast,
+            body.notify_new_member,
+            body.location_paused_until,
         )
         .await?;
     Ok(Json(ProfileResponse {
@@ -58,7 +66,10 @@ pub async fn update_preferences(
         avatar_url: user.avatar_url,
         is_profile_complete: user.is_profile_complete,
         location_enabled: user.location_enabled,
-        notifications_enabled: user.notifications_enabled,
+        notify_sos: user.notify_sos,
+        notify_broadcast: user.notify_broadcast,
+        notify_new_member: user.notify_new_member,
+        location_paused_until: user.location_paused_until,
         created_at: user.created_at,
     }))
 }
@@ -96,9 +107,25 @@ pub async fn get_me(
         avatar_url: user.avatar_url,
         is_profile_complete: user.is_profile_complete,
         location_enabled: user.location_enabled,
-        notifications_enabled: user.notifications_enabled,
+        notify_sos: user.notify_sos,
+        notify_broadcast: user.notify_broadcast,
+        notify_new_member: user.notify_new_member,
+        location_paused_until: user.location_paused_until,
         created_at: user.created_at,
     }))
+}
+
+// ── DELETE /api/v1/auth/account ────────────────────────────────────────────
+
+pub async fn delete_account(
+    State(state): State<AppState>,
+    AuthUser(claims): AuthUser,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let use_case = DeleteAccountUseCase {
+        user_repo: state.user_repo.clone(),
+    };
+    use_case.execute(&claims.sub).await?;
+    Ok(Json(serde_json::json!({ "success": true })))
 }
 
 // ── GET /api/v1/auth/sessions ──────────────────────────────────────────────
@@ -117,6 +144,7 @@ pub async fn get_sessions(
     let resp = sessions
         .into_iter()
         .map(|s| SessionResponse {
+            id: s.refresh_token_hash,
             device_name: s.device_name,
             device_model: s.device_model,
             platform: s.platform,
@@ -247,4 +275,61 @@ pub async fn register_device(
         "success": true,
         "message": "Device token registered successfully"
     })))
+}
+
+// ── POST /api/v1/auth/avatar ───────────────────────────────────────────────
+
+pub async fn update_avatar(
+    State(state): State<AppState>,
+    AuthUser(claims): AuthUser,
+    mut multipart: Multipart,
+) -> Result<Json<ProfileResponse>, AppError> {
+    let mut filename = String::new();
+    let mut bytes = Vec::new();
+
+    loop {
+        match multipart.next_field().await.map_err(|e| {
+            AppError::InvalidInput(format!("Multipart error: {e}"))
+        })? {
+            None => break,
+            Some(field) => {
+                if field.name() == Some("avatar") {
+                    filename = field.file_name().unwrap_or("avatar.jpg").to_string();
+                    bytes = field
+                        .bytes()
+                        .await
+                        .map_err(|e| AppError::InvalidInput(format!("Read error: {e}")))?
+                        .to_vec();
+                    break;
+                }
+            }
+        }
+    }
+
+    if bytes.is_empty() {
+        return Err(AppError::InvalidInput(
+            "No 'avatar' field in multipart body".into(),
+        ));
+    }
+
+    let use_case = UpdateAvatarUseCase {
+        user_repo: state.user_repo.clone(),
+        uploads_dir: state.uploads_dir.clone(),
+        public_base_url: state.public_base_url.clone(),
+    };
+
+    let user = use_case.execute(&claims.sub, &filename, bytes).await?;
+    Ok(Json(ProfileResponse {
+        user_id: user.id.to_string(),
+        phone: user.phone,
+        name: user.name,
+        avatar_url: user.avatar_url,
+        is_profile_complete: user.is_profile_complete,
+        location_enabled: user.location_enabled,
+        notify_sos: user.notify_sos,
+        notify_broadcast: user.notify_broadcast,
+        notify_new_member: user.notify_new_member,
+        location_paused_until: user.location_paused_until,
+        created_at: user.created_at,
+    }))
 }

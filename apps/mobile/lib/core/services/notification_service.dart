@@ -27,6 +27,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class NotificationService {
   static final _messageController = StreamController<RemoteMessage>.broadcast();
+  static bool _tokenRefreshListenerAttached = false;
 
   static Stream<RemoteMessage> get foregroundMessages =>
       _messageController.stream;
@@ -133,23 +134,38 @@ class NotificationService {
         return;
       }
 
-      // 2. Retrieve FCM token
-      String? token = await FirebaseMessaging.instance.getToken();
-      if (token != null) {
-        debugPrint("FCM Registration Token: $token");
-        final platform = Platform.isIOS ? 'ios' : 'android';
-        await ApiService.registerDevice(token, platform);
+      final token = await _getReadyFcmToken();
+      if (token == null) {
+        debugPrint("FCM token is not ready yet; skipping upload for now.");
+        return;
       }
 
-      // 3. Listen to token refresh events
-      FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
-        debugPrint("FCM Registration Token Refreshed: $token");
-        final platform = Platform.isIOS ? 'ios' : 'android';
-        await ApiService.registerDevice(token, platform);
-      });
+      debugPrint("FCM Registration Token: $token");
+      final platform = Platform.isIOS ? 'ios' : 'android';
+      await ApiService.registerDevice(token, platform);
+
+      if (!_tokenRefreshListenerAttached) {
+        _tokenRefreshListenerAttached = true;
+        FirebaseMessaging.instance.onTokenRefresh.listen((token) async {
+          debugPrint("FCM Registration Token Refreshed: $token");
+          final platform = Platform.isIOS ? 'ios' : 'android';
+          await ApiService.registerDevice(token, platform);
+        });
+      }
     } catch (e) {
       debugPrint("Error registering FCM token: $e");
     }
+  }
+
+  static Future<String?> _getReadyFcmToken() async {
+    if (Platform.isIOS) {
+      for (var attempt = 0; attempt < 5; attempt++) {
+        final apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+        if (apnsToken != null) break;
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+      }
+    }
+    return FirebaseMessaging.instance.getToken();
   }
 
   /// Display a local HUD notification with maximum sound and alert characteristics

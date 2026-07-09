@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guardian/core/constants/app_colors.dart';
 
 class LeaveCircleActionButton extends StatelessWidget {
   const LeaveCircleActionButton({
@@ -12,11 +13,14 @@ class LeaveCircleActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
+    width: 150.5,
     height: 42,
     child: TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        backgroundColor: const Color(0xFFF4F4F5),
+        backgroundColor: AppColors.isDark(context)
+            ? Colors.white.withValues(alpha: 0.10)
+            : const Color(0xFFF4F4F5),
         foregroundColor: const Color(0xFFFF2D7A),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         shape: const StadiumBorder(),
@@ -33,12 +37,17 @@ class StayCircleActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
+    width: 150.5,
     height: 42,
     child: ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.isDark(context)
+            ? Colors.white
+            : Colors.black,
+        foregroundColor: AppColors.isDark(context)
+            ? Colors.black
+            : Colors.white,
         elevation: 0,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         shape: const StadiumBorder(),

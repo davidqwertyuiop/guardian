@@ -18,6 +18,29 @@ ThemeData getLightTheme() {
     cardColor: Colors.white,
     canvasColor: Colors.white,
     dividerColor: AppColors.greyMedium,
+    cardTheme: const CardThemeData(
+      color: Colors.white,
+      surfaceTintColor: Colors.transparent,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      hintStyle: const TextStyle(color: AppColors.greyText),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.borderLight),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: AppColors.primary),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.black,
+        side: const BorderSide(color: AppColors.borderLight),
+      ),
+    ),
     fontFamily: 'Inter',
     textTheme: const TextTheme(
       displayLarge: TextStyle(

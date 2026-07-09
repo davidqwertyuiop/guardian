@@ -38,32 +38,32 @@ class LeaveCircleSheet extends StatelessWidget {
               ),
               Text(
                 'Leave $circleName?',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
               const SizedBox(height: 10),
-              const Text(
+              Text(
                 'Your location will no longer be visible to this circle. You can rejoin with a new invite.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: 'Inter', fontSize: 12),
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : Colors.black54,
+                ),
               ),
               const SizedBox(height: 24),
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    child: LeaveCircleActionButton(
-                      label: 'Leave circle',
-                      onPressed: () => _leave(context),
-                    ),
+                  LeaveCircleActionButton(
+                    label: 'Leave circle',
+                    onPressed: () => _leave(context),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(
-                    child: StayCircleActionButton(
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
+                  StayCircleActionButton(onPressed: () => Navigator.pop(context)),
                 ],
               ),
             ],

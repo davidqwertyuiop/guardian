@@ -141,7 +141,8 @@ Future<void> _syncPreferencesToBackend() async {
     final prefs = locator<SharedPreferences>();
     final location = prefs.getBool('location_enabled') ?? false;
     final notifications = prefs.getBool('notifications_enabled') ?? false;
-    await ApiService.updatePreferences(location, notifications);
+    await ApiService.updatePreferences(
+        location, notifications, notifications, notifications);
   } catch (e) {
     log('Failed to sync preferences to backend: $e');
   }

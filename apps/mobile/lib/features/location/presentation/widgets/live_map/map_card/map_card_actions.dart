@@ -4,7 +4,6 @@ extension MapCardActions on MapCardState {
   void selectMarkerLocation(String label) {
     final trimmedLabel = label.trim();
     if (trimmedLabel.isEmpty) return;
-
     refresh(() => _selectedMarkerLocationLabel = trimmedLabel);
   }
 
@@ -13,7 +12,6 @@ extension MapCardActions on MapCardState {
         '${userLoc.latitude.toStringAsFixed(4)},'
         '${userLoc.longitude.toStringAsFixed(4)}';
     if (_currentLocationKey == key) return;
-
     _currentLocationKey = key;
     (() async {
       try {
@@ -22,13 +20,11 @@ extension MapCardActions on MapCardState {
           userLoc.longitude,
         );
         if (!mounted || placemarks.isEmpty) return;
-
         final label = addressParts(placemarks.first)
             .whereType<String>()
             .where((part) => part.trim().isNotEmpty)
             .join(', ');
         if (label.isEmpty) return;
-
         refresh(() => _currentLocationLabel = label);
       } catch (e) {
         log('Error resolving map location label: $e');
@@ -37,38 +33,7 @@ extension MapCardActions on MapCardState {
   }
 
   List<String?> addressParts(Placemark place) {
-    return [
-      place.subLocality,
-      place.locality,
-      place.administrativeArea,
-    ];
-  }
-
-  void preloadMemberMarker(dynamic member) {
-    final uid = member['user_id'] ?? '';
-    final url = member['avatar_url'] ?? '';
-    final name = member['name'] ?? 'Member';
-    if (uid.isEmpty || _loadingAvatars.containsKey(uid)) return;
-
-    _loadingAvatars[uid] = true;
-    (() async {
-      try {
-        final image = url.isNotEmpty ? await _loadNetworkImage(url) : null;
-        final fallbackAsset = _fallbackAvatarAsset(uid);
-        final googleMarker = await _createAvatarPinMarker(
-          name,
-          assetPath: image == null ? fallbackAsset : null,
-          avatarImage: image,
-        );
-        if (mounted) {
-          refresh(() {
-            _googleMarkersCache[uid] = googleMarker;
-          });
-        }
-      } catch (e) {
-        log('Error creating member marker for $name: $e');
-      }
-    })();
+    return [place.subLocality, place.locality, place.administrativeArea];
   }
 
   void handleMapCardUpdate(MapCard oldWidget) {
@@ -79,8 +44,7 @@ extension MapCardActions on MapCardState {
     _currentLatitude = widget.userLatitude;
     _currentLongitude = widget.userLongitude;
     final target = LatLng(widget.userLatitude, widget.userLongitude);
-
-    _controller?.animateCamera(
+    safeAnimateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
           target: target,
@@ -99,12 +63,10 @@ extension MapCardActions on MapCardState {
       '${routePlace.coordinates.latitude},'
       '${routePlace.coordinates.longitude}',
     );
-
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
       return;
     }
-
     toastification.show(
       title: const Text('Navigation Error'),
       description: const Text('Could not open map navigation application.'),

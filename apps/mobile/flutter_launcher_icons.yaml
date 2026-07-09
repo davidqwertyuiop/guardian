@@ -1,19 +1,8 @@
 flutter_launcher_icons:
-  # Use the existing 1024px icon already in the iOS appiconset
-  image_path: "ios/Runner/Assets.xcassets/AppIcon.appiconset/1024.png"
-
-  android: true
+  android: "launcher_icon"
   ios: true
-
-  # ── iOS ──────────────────────────────────────────────────────────────
-  # Writes to ios/Runner/Assets.xcassets/AppIcon.appiconset/
-  # (overwrites every size with a properly-resized version)
-  remove_alpha_ios: true
-
-  # ── Android ──────────────────────────────────────────────────────────
-  # Adaptive icon (API 26+ / One UI / stock Android)
-  adaptive_icon_background: "#FFFFFF"          # white background layer
-  adaptive_icon_foreground: "ios/Runner/Assets.xcassets/AppIcon.appiconset/1024.png"
-
-  # Also generate legacy mipmap PNGs for pre-API-26 devices
+  image_path: "assets/images/app_icon_1024.png"
   min_sdk_android: 21
+  adaptive_icon_background: "#E5DEFF"
+  adaptive_icon_foreground: "assets/images/app_icon_foreground.png"
+  remove_alpha_ios: true

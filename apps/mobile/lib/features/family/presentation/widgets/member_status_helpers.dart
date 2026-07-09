@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guardian/core/constants/app_colors.dart';
 
 String memberJoinedText(Map<String, dynamic> member, bool isMe) {
   if (isMe) return member['role'] == 'owner' ? 'You  •  Admin' : 'You';
@@ -47,14 +48,26 @@ TextStyle memberStatusStyle(bool sharing) => TextStyle(
   color: sharing ? const Color(0xFF22C55E) : Colors.grey,
 );
 
-Widget removeMemberButton(VoidCallback onPressed) => SizedBox(
-  width: double.infinity,
-  child: ElevatedButton(
-    onPressed: onPressed,
-    style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-    child: const Text(
-      'Remove from circle',
-      style: TextStyle(fontFamily: 'Geist', color: Colors.white),
+Widget removeMemberButton(BuildContext context, VoidCallback onPressed) {
+  final dark = AppColors.isDark(context);
+  return SizedBox(
+    width: double.infinity,
+    height: 42,
+    child: ElevatedButton(
+      onPressed: onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: dark ? Colors.white : Colors.black,
+        foregroundColor: dark ? Colors.black : Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      child: Text(
+        'Remove from circle',
+        style: TextStyle(
+          fontFamily: 'Geist',
+          color: dark ? Colors.black : Colors.white,
+        ),
+      ),
     ),
-  ),
-);
+  );
+}

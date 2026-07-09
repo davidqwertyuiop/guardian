@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/core/security/token_manager.dart';
-import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'api_base.dart';
 
@@ -16,14 +16,17 @@ abstract class AuthApiService {
   ) async {
     try {
       String? deviceModel;
+      String deviceName = 'Device';
       try {
         final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
         if (Platform.isAndroid) {
           final androidInfo = await deviceInfo.androidInfo;
           deviceModel = androidInfo.model;
+          deviceName = androidInfo.manufacturer;
         } else if (Platform.isIOS) {
           final iosInfo = await deviceInfo.iosInfo;
           deviceModel = iosInfo.utsname.machine;
+          deviceName = 'Apple';
         }
       } catch (e) {
         // Ignore device info errors
@@ -37,7 +40,7 @@ abstract class AuthApiService {
           'id_token': idToken,
           'platform': Platform.isIOS ? 'ios' : 'android',
           'device_model': deviceModel,
-          'device_name': 'Guardian App',
+          'device_name': deviceName,
         }),
       );
       if (response.statusCode == 200) {
@@ -97,8 +100,11 @@ abstract class AuthApiService {
   /// PATCH /api/v1/auth/preferences  (requires Bearer token)
   static Future<bool> updatePreferences(
     bool locationEnabled,
-    bool notificationsEnabled,
-  ) async {
+    bool notifySos,
+    bool notifyBroadcast,
+    bool notifyNewMember, [
+    DateTime? locationPausedUntil,
+  ]) async {
     final tokenMgr = TokenManager();
     final token = await tokenMgr.getAccessToken();
 
@@ -112,7 +118,11 @@ abstract class AuthApiService {
         },
         body: jsonEncode({
           'location_enabled': locationEnabled,
-          'notifications_enabled': notificationsEnabled,
+          'notify_sos': notifySos,
+          'notify_broadcast': notifyBroadcast,
+          'notify_new_member': notifyNewMember,
+          if (locationPausedUntil != null)
+            'location_paused_until': locationPausedUntil.toUtc().toIso8601String(),
         }),
       );
 
@@ -121,6 +131,25 @@ abstract class AuthApiService {
       } else {
         throw Exception(ApiBase.extractErrorMessage(response.body));
       }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
+
+  /// DELETE /api/v1/auth/account  (requires Bearer token)
+  static Future<bool> deleteAccount() async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/auth/account');
+    try {
+      final response = await http.delete(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) return true;
+      throw Exception(ApiBase.extractErrorMessage(response.body));
     } catch (e) {
       ApiBase.rethrowNetworkError(e);
     }
@@ -235,6 +264,30 @@ abstract class AuthApiService {
       } else {
         throw Exception(ApiBase.extractErrorMessage(response.body));
       }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
+
+  /// POST /api/v1/auth/avatar (multipart, requires Bearer token)
+  static Future<String> uploadAvatar(File imageFile) async {
+    final token = await TokenManager().getAccessToken();
+    final url = Uri.parse('$baseUrl/api/v1/auth/avatar');
+    try {
+      final request = http.MultipartRequest('POST', url)
+        ..headers.addAll({
+          if (token != null) 'Authorization': 'Bearer $token',
+        })
+        ..files.add(
+          await http.MultipartFile.fromPath('avatar', imageFile.path),
+        );
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return data['avatar_url'] as String? ?? '';
+      }
+      throw Exception(ApiBase.extractErrorMessage(response.body));
     } catch (e) {
       ApiBase.rethrowNetworkError(e);
     }

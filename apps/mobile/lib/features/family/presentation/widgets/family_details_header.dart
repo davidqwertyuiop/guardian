@@ -47,7 +47,13 @@ class FamilyDetailsHeader extends StatelessWidget {
                     const FamilyInviteRequested(),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
+                    backgroundColor: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.black,
+                    side: BorderSide(
+                      color: isDark ? Colors.white70 : Colors.transparent,
+                    ),
+                    elevation: 0,
                     shape: const StadiumBorder(),
                   ),
                   child: const Text(

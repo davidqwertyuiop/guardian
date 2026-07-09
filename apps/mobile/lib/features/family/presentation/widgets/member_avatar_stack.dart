@@ -21,12 +21,17 @@ class MemberAvatarStack extends StatelessWidget {
       child: Stack(
         children: [
           if (shown.isEmpty)
-            Positioned(bottom: 0, left: 0, child: _avatar('U', null, 34)),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              child: _avatar(context, 'U', null, 34),
+            ),
           if (shown.isNotEmpty)
             Positioned(
               top: 0,
               right: 14,
               child: _avatar(
+                context,
                 '${shown[0]['name'] ?? 'U'}',
                 shown[0]['avatar_url'] as String?,
                 36,
@@ -37,6 +42,7 @@ class MemberAvatarStack extends StatelessWidget {
               bottom: 0,
               left: 0,
               child: _avatar(
+                context,
                 '${shown[1]['name'] ?? 'U'}',
                 shown[1]['avatar_url'] as String?,
                 30,
@@ -47,6 +53,7 @@ class MemberAvatarStack extends StatelessWidget {
               bottom: 0,
               left: 26,
               child: _avatar(
+                context,
                 '${shown[2]['name'] ?? 'U'}',
                 shown[2]['avatar_url'] as String?,
                 30,
@@ -57,14 +64,17 @@ class MemberAvatarStack extends StatelessWidget {
     );
   }
 
-  Widget _avatar(String name, String? url, double size) {
+  Widget _avatar(BuildContext context, String name, String? url, double size) {
+    final border = AppColors.isDark(context)
+        ? const Color(0xFF2D2D34)
+        : Colors.white;
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: AppColors.primary.withValues(alpha: 0.15),
-        border: Border.all(color: Colors.white, width: 2),
+        border: Border.all(color: border, width: 2),
       ),
       child: ClipOval(
         child: url != null && url.isNotEmpty

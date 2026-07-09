@@ -12,10 +12,8 @@ extension MapCardGoogleMarkers on MapCardState {
         onTap: () => selectMarkerLocation('You'),
       ),
     };
-
     markers.addAll(buildGoogleMemberMarkers());
     markers.addAll(buildSosMarkers(userLoc));
-
     if (widget.selectedPlace != null) {
       markers.add(
         Marker(
@@ -26,7 +24,6 @@ extension MapCardGoogleMarkers on MapCardState {
         ),
       );
     }
-
     return markers;
   }
 
@@ -37,15 +34,17 @@ extension MapCardGoogleMarkers on MapCardState {
       final latitude = _readCoordinate(member['latitude']);
       final longitude = _readCoordinate(member['longitude']);
       if (latitude == null || longitude == null) continue;
-
       final icon = _googleMarkersCache[uid] ?? _avatarTopMarker;
       if (icon == null) continue;
-
       yield Marker(
         markerId: MarkerId('member_$uid'),
         position: LatLng(latitude, longitude),
         icon: icon,
-        onTap: () => selectMarkerLocation(_memberLocationLabel(member)),
+        onTap: () => showMemberPopup(
+          userId: uid,
+          latitude: latitude,
+          longitude: longitude,
+        ),
       );
     }
   }
@@ -62,7 +61,6 @@ extension MapCardGoogleMarkers on MapCardState {
         onTap: () => selectMarkerLocation('Your SOS'),
       );
     }
-
     final seenSosUsers = <String>{};
     for (final broadcast in widget.sosBroadcasts) {
       final json = broadcast is Map ? broadcast : const {};
@@ -73,12 +71,10 @@ extension MapCardGoogleMarkers on MapCardState {
         if (userId == _currentUserId) continue;
         if (!seenSosUsers.add(userId)) continue;
       }
-
       final latitude = _readCoordinate(json['latitude']);
       final longitude = _readCoordinate(json['longitude']);
       final id = json['id']?.toString();
       if (latitude == null || longitude == null || id == null) continue;
-
       yield Marker(
         markerId: MarkerId('sos_$id'),
         position: LatLng(latitude, longitude),
@@ -86,24 +82,13 @@ extension MapCardGoogleMarkers on MapCardState {
             _sosMarker ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
         zIndexInt: 19,
-        onTap: () => selectMarkerLocation(_sosLocationLabel(json)),
+        onTap: () => showMemberPopup(
+          userId: userId,
+          latitude: latitude,
+          longitude: longitude,
+        ),
       );
     }
-  }
-
-  String _memberLocationLabel(Map<dynamic, dynamic> member) {
-    final name = member['name']?.toString();
-    if (name != null && name.isNotEmpty) return name;
-
-    return 'Member location';
-  }
-
-  String _sosLocationLabel(Map<dynamic, dynamic> broadcast) {
-    final name =
-        broadcast['name']?.toString() ?? broadcast['user_name']?.toString();
-    if (name != null && name.isNotEmpty) return '$name SOS';
-
-    return 'Member SOS';
   }
 
   double? _readCoordinate(dynamic value) {

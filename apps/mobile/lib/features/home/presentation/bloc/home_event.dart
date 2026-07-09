@@ -68,3 +68,11 @@ class UpdateUserLocation extends HomeEvent {
   @override
   List<Object?> get props => [latitude, longitude];
 }
+
+class UpdateAvatarUrl extends HomeEvent {
+  final String avatarUrl;
+  const UpdateAvatarUrl(this.avatarUrl);
+
+  @override
+  List<Object?> get props => [avatarUrl];
+}
