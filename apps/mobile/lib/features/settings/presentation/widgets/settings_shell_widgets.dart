@@ -40,7 +40,8 @@ class SettingsHeader extends StatelessWidget {
 class SettingsTile extends StatelessWidget {
   const SettingsTile({
     super.key,
-    required this.icon,
+    this.icon,
+    this.assetIcon,
     required this.title,
     this.subtitle,
     this.onTap,
@@ -48,7 +49,8 @@ class SettingsTile extends StatelessWidget {
     this.danger = false,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? assetIcon;
   final String title;
   final String? subtitle;
   final VoidCallback? onTap;
@@ -58,12 +60,26 @@ class SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = danger ? const Color(0xFFFF2D7A) : AppColors.text(context);
+    
+    Widget leadingWidget;
+    if (assetIcon != null) {
+      leadingWidget = Image.asset(
+        assetIcon!,
+        width: 17,
+        height: 17,
+        color: color,
+      );
+    } else if (icon != null) {
+      leadingWidget = Icon(icon!, size: 17, color: color);
+    } else {
+      leadingWidget = const SizedBox(width: 17, height: 17);
+    }
+
     return Material(
-      color: AppColors.surface(context),
-      borderRadius: BorderRadius.circular(14),
+      color: Colors.transparent,
       child: ListTile(
         minLeadingWidth: 12,
-        leading: Icon(icon, size: 17, color: color),
+        leading: leadingWidget,
         title: Text(title, style: _style(color)),
         subtitle: subtitle != null
             ? Text(
@@ -87,6 +103,44 @@ class SettingsTile extends StatelessWidget {
     fontWeight: FontWeight.w600,
     color: color,
   );
+}
+
+class SettingsGroup extends StatelessWidget {
+  const SettingsGroup({super.key, required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.isEmpty) return const SizedBox.shrink();
+
+    final List<Widget> items = [];
+    for (int i = 0; i < children.length; i++) {
+      items.add(children[i]);
+      if (i < children.length - 1) {
+        items.add(
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(
+              height: 1,
+              thickness: 0.5,
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+            ),
+          ),
+        );
+      }
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface(context),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: items,
+      ),
+    );
+  }
 }
 
 class SmallSwitch extends StatelessWidget {

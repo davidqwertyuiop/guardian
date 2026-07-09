@@ -21,38 +21,49 @@ class SettingsAccountPage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
       children: [
         SettingsHeader(title: 'Settings', onBack: onBack),
+        const SizedBox(height: 16),
         const _InviteFriendsBanner(),
         const SizedBox(height: 30),
         const SectionTitle('ACCOUNT'),
-        SettingsTile(
-          icon: Icons.privacy_tip_outlined,
-          title: 'Privacy Policy',
-          onTap: () => onOpen(SettingsPage.privacy),
+        SettingsGroup(
+          children: [
+            SettingsTile(
+              icon: Icons.shield_outlined,
+              title: 'Privacy Policy',
+              onTap: () => onOpen(SettingsPage.privacy),
+            ),
+            SettingsTile(
+              icon: Icons.description_outlined,
+              title: 'Terms of Service',
+              onTap: () => onOpen(SettingsPage.terms),
+            ),
+            SettingsTile(
+              icon: Icons.help_outline_rounded,
+              title: 'Help & Support',
+              onTap: () => onOpen(SettingsPage.help),
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        SettingsTile(
-          icon: Icons.description_outlined,
-          title: 'Terms of Services',
-          onTap: () => onOpen(SettingsPage.privacy),
+        const SizedBox(height: 18),
+        SettingsGroup(
+          children: [
+            SettingsTile(
+              assetIcon: AppAssets.subscriptionIcon,
+              title: 'Manage Subscription',
+              onTap: () {},
+            ),
+          ],
         ),
-        const SizedBox(height: 6),
-        SettingsTile(
-          icon: Icons.support_agent_rounded,
-          title: 'Help & Support',
-          onTap: () => onOpen(SettingsPage.help),
-        ),
-        const SizedBox(height: 6),
-        SettingsTile(
-          icon: Icons.workspace_premium_outlined,
-          title: 'Manage Subscription',
-          onTap: () {},
-        ),
-        const SizedBox(height: 6),
-        SettingsTile(
-          icon: Icons.delete_outline_rounded,
-          title: 'Delete account',
-          danger: true,
-          onTap: onDeleteAccount,
+        const SizedBox(height: 18),
+        SettingsGroup(
+          children: [
+            SettingsTile(
+              icon: Icons.delete_outline_rounded,
+              title: 'Delete account',
+              danger: true,
+              onTap: onDeleteAccount,
+            ),
+          ],
         ),
       ],
     );
@@ -65,7 +76,7 @@ class _InviteFriendsBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFFF9F9F9), Color(0xFFFF3380)],
@@ -84,32 +95,22 @@ class _InviteFriendsBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Invite friends',
-                  style: TextStyle(
-                    fontFamily: 'Geist',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF1E1E1E),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Invite people to download\nand join the application',
-                  style: TextStyle(
-                    fontFamily: 'Inter',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: Color(0xFF6B7280),
-                  ),
-                ),
-              ],
+          Image.asset(
+            AppAssets.inviteFriendsIcon,
+            width: 22,
+            height: 22,
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            'Invite friends',
+            style: TextStyle(
+              fontFamily: 'Geist',
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1E1E1E),
             ),
           ),
+          const Spacer(),
           Image.asset(
             AppAssets.flyingRocket,
             width: 60,

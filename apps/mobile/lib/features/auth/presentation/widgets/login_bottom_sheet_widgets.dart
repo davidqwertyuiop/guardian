@@ -1,6 +1,7 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-
 import 'package:guardian/export.dart';
+import 'package:guardian/features/settings/presentation/widgets/settings_privacy_page.dart';
 
 class LoginBottomSheetHeader extends StatelessWidget {
   const LoginBottomSheetHeader({super.key});
@@ -42,6 +43,23 @@ class LoginBottomSheetTerms extends StatelessWidget {
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
             ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                      body: SafeArea(
+                        child: SettingsPrivacyPage(
+                          onBack: () => Navigator.pop(context),
+                          isTerms: true,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
           ),
           const TextSpan(text: ' and '),
           TextSpan(
@@ -51,6 +69,23 @@ class LoginBottomSheetTerms extends StatelessWidget {
               color: AppColors.primary,
               fontWeight: FontWeight.w600,
             ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                      body: SafeArea(
+                        child: SettingsPrivacyPage(
+                          onBack: () => Navigator.pop(context),
+                          isTerms: false,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
           ),
           const TextSpan(text: '.'),
         ],

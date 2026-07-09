@@ -72,6 +72,10 @@
 		<string>Guardian needs access to your location so your circle knows you are safe.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>Guardian needs access to your location in the background so your circle knows you are safe even when the app is closed.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Guardian needs access to your photo library to select and upload your profile avatar.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Guardian needs access to your camera to take a photo for your profile avatar.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 		<key>CFBundleURLTypes</key>

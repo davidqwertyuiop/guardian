@@ -17,7 +17,7 @@ class TopBar extends StatelessWidget {
 
     // Center icon specs:
     // width: 40, height: 40
-    final double centerIconSize = context.w(40);
+    final double centerIconSize = context.w(90);
 
     // SOS button specs:
     // width: 83, height: 40, padding-top/bottom: 4, padding-left/right: 11, gap: 10

@@ -11,6 +11,7 @@ enum SettingsPage {
   notifications,
   devices,
   privacy,
+  terms,
   help,
   account,
 }
@@ -25,6 +26,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late final SettingsBloc _settingsBloc;
   SettingsPage _page = SettingsPage.profile;
+  final List<SettingsPage> _history = [SettingsPage.profile];
 
   @override
   void initState() {
@@ -58,35 +60,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _body(HomeState homeState, SettingsState settingsState) {
-    return switch (_page) {
+    final Widget child = switch (_page) {
       SettingsPage.profile => SettingsProfileView(
+        key: const ValueKey(SettingsPage.profile),
         homeState: homeState,
         onOpen: _open,
         onLogout: _logout,
       ),
       SettingsPage.details => SettingsDetailsPage(
+        key: const ValueKey(SettingsPage.details),
         userName: homeState.userName,
         avatarUrl: homeState.avatarUrl,
         onBack: _back,
       ),
       SettingsPage.location => SettingsLocationPage(
+        key: const ValueKey(SettingsPage.location),
         state: settingsState,
         onBack: _back,
         onChanged: _updatePreferences,
       ),
       SettingsPage.notifications => SettingsNotificationsPage(
+        key: const ValueKey(SettingsPage.notifications),
         state: settingsState,
         onBack: _back,
         onChanged: _updatePreferences,
       ),
       SettingsPage.devices => SettingsDevicesPage(
+        key: const ValueKey(SettingsPage.devices),
         state: settingsState,
         onBack: _back,
         onRevoke: (hash) => _settingsBloc.add(RevokeSession(hash)),
       ),
-      SettingsPage.privacy => SettingsPrivacyPage(onBack: _back),
-      SettingsPage.help => SettingsHelpPage(onBack: _back),
+      SettingsPage.privacy => SettingsPrivacyPage(
+        key: const ValueKey(SettingsPage.privacy),
+        onBack: _back,
+        isTerms: false,
+      ),
+      SettingsPage.terms => SettingsPrivacyPage(
+        key: const ValueKey(SettingsPage.terms),
+        onBack: _back,
+        isTerms: true,
+      ),
+      SettingsPage.help => SettingsHelpPage(
+        key: const ValueKey(SettingsPage.help),
+        onBack: _back,
+      ),
       SettingsPage.account => SettingsAccountPage(
+        key: const ValueKey(SettingsPage.account),
         onBack: _back,
         onOpen: _open,
         onDeleteAccount: () => showDeleteAccountDialog(
@@ -95,11 +115,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     };
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 180),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: child,
+        );
+      },
+      child: child,
+    );
   }
 
-  void _open(SettingsPage page) => setState(() => _page = page);
+  void _open(SettingsPage page) {
+    setState(() {
+      _history.add(page);
+      _page = page;
+    });
+  }
 
-  void _back() => setState(() => _page = SettingsPage.profile);
+  void _back() {
+    if (_history.length > 1) {
+      setState(() {
+        _history.removeLast();
+        _page = _history.last;
+      });
+    } else {
+      setState(() {
+        _page = SettingsPage.profile;
+      });
+    }
+  }
 
   void _goToLogin() {
     TokenManager().clearTokens().then((_) {

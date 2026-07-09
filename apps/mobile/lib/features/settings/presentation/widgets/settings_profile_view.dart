@@ -48,49 +48,67 @@ class SettingsProfileView extends StatelessWidget {
                 onEditAvatar: () => _pickAndUpload(context),
               ),
               const SizedBox(height: 30),
-              const SectionTitle('Personal'),
-              SettingsTile(
-                icon: Icons.person_outline,
-                title: 'Personal Details',
-                onTap: () => onOpen(SettingsPage.details),
-              ),
-              const SizedBox(height: 6),
-              SettingsTile(
-                icon: Icons.near_me_outlined,
-                title: 'Location Sharing',
-                onTap: () => onOpen(SettingsPage.location),
-              ),
-              const SizedBox(height: 6),
-              SettingsTile(
-                icon: Icons.notifications_none_rounded,
-                title: 'Notifications',
-                onTap: () => onOpen(SettingsPage.notifications),
-              ),
-              const SizedBox(height: 6),
-              SettingsTile(
-                icon: Icons.devices_rounded,
-                title: 'Devices',
-                onTap: () => onOpen(SettingsPage.devices),
-              ),
-              const SizedBox(height: 6),
-              SettingsTile(
-                icon: Icons.settings_outlined,
-                title: 'Account & Settings',
-                onTap: () => onOpen(SettingsPage.account),
+              const SectionTitle('PERSONALIZE'),
+              SettingsGroup(
+                children: [
+                  SettingsTile(
+                    icon: Icons.person_outline,
+                    title: 'Personal Details',
+                    onTap: () => onOpen(SettingsPage.details),
+                  ),
+                  SettingsTile(
+                    icon: Icons.near_me_outlined,
+                    title: 'Location Sharing',
+                    onTap: () => onOpen(SettingsPage.location),
+                  ),
+                  SettingsTile(
+                    icon: Icons.notifications_none_rounded,
+                    title: 'Notifications',
+                    onTap: () => onOpen(SettingsPage.notifications),
+                  ),
+                  SettingsTile(
+                    icon: Icons.devices_rounded,
+                    title: 'Devices',
+                    onTap: () => onOpen(SettingsPage.devices),
+                  ),
+                ],
               ),
               const SizedBox(height: 18),
-              const SectionTitle('Help & Support'),
-              SettingsTile(
-                icon: Icons.help_outline_rounded,
-                title: 'Frequently Asked Questions',
-                onTap: () => onOpen(SettingsPage.help),
+              SettingsGroup(
+                children: [
+                  SettingsTile(
+                    icon: Icons.settings_outlined,
+                    title: 'Settings',
+                    onTap: () => onOpen(SettingsPage.account),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              SettingsTile(
-                icon: Icons.logout_rounded,
-                title: 'Logout',
-                danger: true,
-                onTap: onLogout,
+              const SizedBox(height: 18),
+              const SectionTitle('NEED HELP?'),
+              SettingsGroup(
+                children: [
+                  SettingsTile(
+                    icon: Icons.help_outline_rounded,
+                    title: 'Frequently Asked Questions',
+                    onTap: () => onOpen(SettingsPage.help),
+                  ),
+                  SettingsTile(
+                    icon: Icons.mail_outline_rounded,
+                    title: 'Contact us',
+                    onTap: () => onOpen(SettingsPage.help),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              SettingsGroup(
+                children: [
+                  SettingsTile(
+                    icon: Icons.logout_rounded,
+                    title: 'Logout',
+                    danger: true,
+                    onTap: onLogout,
+                  ),
+                ],
               ),
             ],
           );

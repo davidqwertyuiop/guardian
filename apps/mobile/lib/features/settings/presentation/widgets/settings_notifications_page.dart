@@ -21,28 +21,30 @@ class SettingsNotificationsPage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
       children: [
         SettingsHeader(title: 'Notifications', onBack: onBack),
-        _toggle(
-          context,
-          'SOS alerts',
-          state.notifySos,
-          (value) => onChanged(
-              state.locationEnabled, value, state.notifyBroadcast, state.notifyNewMember),
-        ),
-        const SizedBox(height: 6),
-        _toggle(
-          context,
-          'Broadcast alerts',
-          state.notifyBroadcast,
-          (value) => onChanged(
-              state.locationEnabled, state.notifySos, value, state.notifyNewMember),
-        ),
-        const SizedBox(height: 6),
-        _toggle(
-          context,
-          'New member joined',
-          state.notifyNewMember,
-          (value) => onChanged(
-              state.locationEnabled, state.notifySos, state.notifyBroadcast, value),
+        SettingsGroup(
+          children: [
+            _toggle(
+              context,
+              'SOS alerts',
+              state.notifySos,
+              (value) => onChanged(
+                  state.locationEnabled, value, state.notifyBroadcast, state.notifyNewMember),
+            ),
+            _toggle(
+              context,
+              'Broadcast alerts',
+              state.notifyBroadcast,
+              (value) => onChanged(
+                  state.locationEnabled, state.notifySos, value, state.notifyNewMember),
+            ),
+            _toggle(
+              context,
+              'New member joined',
+              state.notifyNewMember,
+              (value) => onChanged(
+                  state.locationEnabled, state.notifySos, state.notifyBroadcast, value),
+            ),
+          ],
         ),
       ],
     );

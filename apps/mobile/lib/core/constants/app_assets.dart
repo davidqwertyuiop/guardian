@@ -32,6 +32,8 @@ class AppAssets {
   static const String circlesIconPng = 'assets/animations/circlesicon.png';
   static const String mappeopleIcon = 'assets/icons/mappeopleicon.png';
   static const String inviteIcon = 'assets/icons/inviteicon.png';
+  static const String inviteFriendsIcon = 'assets/icons/invite_friends.png';
+  static const String subscriptionIcon = 'assets/icons/subscription.png';
   static const String whatsappIcon = 'assets/icons/whatsapp-icon.png';
 
   // Local Avatars

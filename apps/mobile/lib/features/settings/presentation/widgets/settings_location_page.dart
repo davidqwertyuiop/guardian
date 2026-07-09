@@ -23,26 +23,29 @@ class SettingsLocationPage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
       children: [
         SettingsHeader(title: 'Location', onBack: onBack),
-        SettingsTile(
-          icon: Icons.near_me_outlined,
-          title: 'Sharing with Circle',
-          trailing: SmallSwitch(
-            value: state.locationEnabled,
-            onChanged: (value) => onChanged(value, state.notifySos,
-                state.notifyBroadcast, state.notifyNewMember),
-          ),
-        ),
-        const SizedBox(height: 6),
-        SettingsTile(
-          icon: Icons.pause_circle_outline_rounded,
-          title: 'Pause sharing',
-          onTap: state.locationEnabled
-              ? () => showPauseLocationDialog(
-                    context,
-                    onPause: (pausedUntil) => onChanged(false, state.notifySos,
-                        state.notifyBroadcast, state.notifyNewMember, pausedUntil),
-                  )
-              : null,
+        SettingsGroup(
+          children: [
+            SettingsTile(
+              icon: Icons.near_me_outlined,
+              title: 'Sharing with Circle',
+              trailing: SmallSwitch(
+                value: state.locationEnabled,
+                onChanged: (value) => onChanged(value, state.notifySos,
+                    state.notifyBroadcast, state.notifyNewMember),
+              ),
+            ),
+            SettingsTile(
+              icon: Icons.pause_circle_outline_rounded,
+              title: 'Pause sharing',
+              onTap: state.locationEnabled
+                  ? () => showPauseLocationDialog(
+                        context,
+                        onPause: (pausedUntil) => onChanged(false, state.notifySos,
+                            state.notifyBroadcast, state.notifyNewMember, pausedUntil),
+                      )
+                  : null,
+            ),
+          ],
         ),
         const SizedBox(height: 14),
         Text(
