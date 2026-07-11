@@ -13,21 +13,17 @@ import 'package:aptabase_flutter/aptabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:guardian/core/services/deep_link_service.dart';
 
+import 'package:guardian/core/theme/smooth_page_route.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Set the Bloc Observer to monitor all blocs
   Bloc.observer = AppBlocObserver();
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
-
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Log App Open event to Firebase Analytics
-  await FirebaseAnalytics.instance.logAppOpen();
-
-  // Initialize Crashlytics
+  // Initialize Crashlytics immediately so we can catch any subsequent errors during startup
   await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   PlatformDispatcher.instance.onError = (error, stack) {
@@ -35,8 +31,29 @@ void main() async {
     return true;
   };
 
-  // Initialize Aptabase
-  await Aptabase.init(dotenv.env['APTABASE_APP_KEY'] ?? '');
+  // Load environment variables safely
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // If .env is missing or empty (e.g. on CI/CD build environments), log it without crashing
+    debugPrint('Warning: .env file could not be loaded: $e');
+  }
+
+  // Log App Open event to Firebase Analytics
+  try {
+    await FirebaseAnalytics.instance.logAppOpen();
+  } catch (e, stack) {
+    debugPrint('Warning: Firebase Analytics failed to log app open: $e');
+    FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Firebase Analytics logAppOpen failed');
+  }
+
+  // Initialize Aptabase safely
+  try {
+    await Aptabase.init(dotenv.env['APTABASE_APP_KEY'] ?? '');
+  } catch (e, stack) {
+    debugPrint('Warning: Aptabase failed to initialize: $e');
+    FirebaseCrashlytics.instance.recordError(e, stack, reason: 'Aptabase initialization failed');
+  }
 
   // Prefer the latest Android Maps renderer before any GoogleMap is created.
   await _initializeAndroidMapRenderer();
@@ -84,6 +101,7 @@ class GuardianApp extends StatefulWidget {
 }
 
 class _GuardianAppState extends State<GuardianApp> {
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool _deepLinkInitialized = false;
 
   @override
@@ -121,32 +139,45 @@ class _GuardianAppState extends State<GuardianApp> {
             )..add(const NotificationsStarted()),
           ),
         ],
-        child: Builder(
-          builder: (context) {
-            if (!_deepLinkInitialized) {
-              DeepLinkService().initialize(context.read<AuthBloc>());
-              _deepLinkInitialized = true;
+        child: BlocListener<AuthBloc, AuthState>(
+          listenWhen: (previous, current) => previous.step != current.step,
+          listener: (context, state) {
+            if (state.step == AuthStep.completed) {
+              _navigatorKey.currentState?.pushAndRemoveUntil(
+                SmoothPageRoute(child: const HomeScreen()),
+                (route) => false,
+              );
+            } else if (state.step == AuthStep.welcome) {
+              _navigatorKey.currentState?.pushAndRemoveUntil(
+                SmoothPageRoute(child: const WelcomeScreen()),
+                (route) => false,
+              );
             }
-            return BlocBuilder<AuthBloc, AuthState>(
-              builder: (context, state) {
-                final Widget homeScreen = (state.step == AuthStep.completed)
-                    ? const HomeScreen()
-                    : const WelcomeScreen();
-
-                return MaterialApp(
-                  title: 'Guardian',
-                  theme: AppTheme.lightTheme,
-                  darkTheme: AppTheme.darkTheme,
-                  themeMode: ThemeMode.system,
-                  debugShowCheckedModeBanner: false,
-                  navigatorObservers: [
-                    FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
-                  ],
-                  home: homeScreen,
-                );
-              },
-            );
           },
+          child: Builder(
+            builder: (context) {
+              if (!_deepLinkInitialized) {
+                DeepLinkService().initialize(context.read<AuthBloc>());
+                _deepLinkInitialized = true;
+              }
+              final Widget initialHome = (widget.initialStep == AuthStep.completed)
+                  ? const HomeScreen()
+                  : const WelcomeScreen();
+
+              return MaterialApp(
+                navigatorKey: _navigatorKey,
+                title: 'Guardian',
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: ThemeMode.system,
+                debugShowCheckedModeBanner: false,
+                navigatorObservers: [
+                  FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
+                ],
+                home: initialHome,
+              );
+            },
+          ),
         ),
       ),
     );

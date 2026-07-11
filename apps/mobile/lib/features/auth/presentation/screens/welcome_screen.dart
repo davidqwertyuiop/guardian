@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:guardian/core/theme/smooth_page_route.dart';
-
 import 'auth_onboarding_router.dart';
 import 'welcome_step_view.dart';
 import 'package:guardian/export.dart';
@@ -32,10 +30,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     });
 
     if (newStep == AuthStep.completed) {
-      Navigator.of(context).pushAndRemoveUntil(
-        SmoothPageRoute(child: const HomeScreen()),
-        (route) => false,
-      );
       return;
     }
 

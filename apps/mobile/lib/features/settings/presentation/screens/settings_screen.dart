@@ -153,10 +153,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _goToLogin() {
     TokenManager().clearTokens().then((_) {
       if (!mounted) return;
-      Navigator.of(context).pushAndRemoveUntil(
-        FadeRoute(page: const LoginScreen()),
-        (route) => false,
-      );
+      try {
+        context.read<AuthBloc>().add(const ResetAuth());
+      } catch (_) {}
     });
   }
 
@@ -175,16 +174,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _logout() async {
     await TokenManager().clearTokens();
-    await TokenManager().clearTokens();
     if (!mounted) return;
 
     try {
       context.read<AuthBloc>().add(const ResetAuth());
     } catch (_) {}
-
-    Navigator.of(context).pushAndRemoveUntil(
-      FadeRoute(page: const LoginScreen()),
-      (route) => false,
-    );
   }
 }

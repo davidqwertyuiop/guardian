@@ -26,6 +26,10 @@ class RegisterNameInput extends StatelessWidget {
           hintText: "e.g. non-olem",
           hintStyle: TextStyle(fontFamily: 'Inter', color: Colors.grey[400]),
           border: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          errorBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
         ),
       ),
     );

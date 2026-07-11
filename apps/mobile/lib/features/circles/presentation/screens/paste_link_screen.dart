@@ -119,6 +119,10 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                               ),
                               decoration: InputDecoration(
                                 border: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                                disabledBorder: InputBorder.none,
                                 hintText: 'wa.me/guardian/...',
                                 hintStyle: TextStyle(
                                   fontFamily: 'Inter',

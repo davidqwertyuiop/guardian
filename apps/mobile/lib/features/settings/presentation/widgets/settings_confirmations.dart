@@ -375,6 +375,10 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     ),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
