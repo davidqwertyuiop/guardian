@@ -13,6 +13,7 @@ pub fn router() -> Router<AppState> {
         .route("/profile", patch(handlers::setup_profile))
         .route("/preferences", patch(handlers::update_preferences))
         .route("/avatar", post(handlers::update_avatar))
+        .route("/avatar/{user_id}", get(handlers::serve_avatar))
         .route("/refresh", post(handlers::refresh_token))
         .route("/me", get(handlers::get_me))
         .route("/sessions", get(handlers::get_sessions))

@@ -339,6 +339,7 @@ pub async fn update_avatar(
         aws_secret_access_key: state.config.aws_secret_access_key.clone(),
         s3_bucket: state.s3_bucket.clone(),
         s3_region: state.s3_region.clone(),
+        public_base_url: state.config.invite_base_url.clone(),
     };
 
     let user = use_case.execute(&claims.sub, &filename, bytes).await?;
@@ -416,4 +417,151 @@ pub async fn verify_otp_handler(
         phone: output.phone,
         is_profile_complete: output.is_profile_complete,
     }))
+}
+
+// ── GET /api/v1/auth/avatar/{user_id} ──────────────────────────────────────
+// Public endpoint — proxies the avatar image from private S3 so the bucket
+// doesn't need public-read access.
+
+pub async fn serve_avatar(
+    State(state): State<AppState>,
+    axum::extract::Path(user_id): axum::extract::Path<String>,
+) -> Result<axum::response::Response, AppError> {
+    use axum::response::IntoResponse;
+    use chrono::Utc;
+    use hmac::{Hmac, Mac};
+    use sha2::{Digest, Sha256};
+
+    type HmacSha256 = Hmac<Sha256>;
+
+    let id: uuid::Uuid = user_id
+        .parse()
+        .map_err(|_| AppError::InvalidInput("Invalid user id".into()))?;
+
+    // Look up the user to find their stored avatar_url (contains the S3 key)
+    let user = state
+        .user_repo
+        .find_by_id(id)
+        .await?
+        .ok_or_else(|| AppError::NotFound("User not found".into()))?;
+    let avatar_url = user
+        .avatar_url
+        .as_deref()
+        .unwrap_or("");
+
+    if avatar_url.is_empty() {
+        return Err(AppError::NotFound("No avatar set".into()));
+    }
+
+    // Extract the S3 key from the stored URL.
+    // Stored format: "https://bucket.s3.region.amazonaws.com/avatars/avatar_UUID.ext"
+    // OR the new proxy format: "https://host/api/v1/auth/avatar/UUID" (in which case
+    // we derive the key from the user_id and try common extensions).
+    let bucket = &state.s3_bucket;
+    let region = &state.s3_region;
+    let host = format!("{}.s3.{}.amazonaws.com", bucket, region);
+
+    let s3_key = if avatar_url.contains("s3.") || avatar_url.contains("amazonaws.com") {
+        // Direct S3 URL — extract key after the host
+        avatar_url
+            .rsplit_once(".amazonaws.com/")
+            .map(|(_, key)| key.to_string())
+            .unwrap_or_else(|| format!("avatars/avatar_{}.jpg", id))
+    } else {
+        // Proxy URL or legacy — derive key
+        format!("avatars/avatar_{}.jpg", id)
+    };
+
+    // ── AWS SigV4 for GET ──────────────────────────────────────────────────
+    let now = Utc::now();
+    let amzdate = now.format("%Y%m%dT%H%M%SZ").to_string();
+    let datestamp = now.format("%Y%m%d").to_string();
+    let service = "s3";
+
+    let payload_hash = "UNSIGNED-PAYLOAD";
+
+    let canonical_headers = format!(
+        "host:{}\nx-amz-content-sha256:{}\nx-amz-date:{}\n",
+        host, payload_hash, amzdate
+    );
+    let signed_headers = "host;x-amz-content-sha256;x-amz-date";
+
+    let canonical_request = format!(
+        "GET\n/{}\n\n{}\n{}\n{}",
+        s3_key, canonical_headers, signed_headers, payload_hash
+    );
+
+    let credential_scope = format!("{}/{}/{}/aws4_request", datestamp, region, service);
+    let string_to_sign = format!(
+        "AWS4-HMAC-SHA256\n{}\n{}\n{}",
+        amzdate,
+        credential_scope,
+        hex::encode(Sha256::digest(canonical_request.as_bytes()))
+    );
+
+    // Derive signing key
+    fn hmac_sign(key: &[u8], data: &[u8]) -> Vec<u8> {
+        let mut mac =
+            HmacSha256::new_from_slice(key).expect("HMAC key");
+        mac.update(data);
+        mac.finalize().into_bytes().to_vec()
+    }
+
+    let key_date = hmac_sign(
+        format!("AWS4{}", state.config.aws_secret_access_key).as_bytes(),
+        datestamp.as_bytes(),
+    );
+    let key_region = hmac_sign(&key_date, region.as_bytes());
+    let key_service = hmac_sign(&key_region, service.as_bytes());
+    let signing_key = hmac_sign(&key_service, b"aws4_request");
+
+    let mut mac = HmacSha256::new_from_slice(&signing_key)
+        .map_err(|e| AppError::Internal(format!("HMAC error: {e}")))?;
+    mac.update(string_to_sign.as_bytes());
+    let signature = hex::encode(mac.finalize().into_bytes());
+
+    let authorization = format!(
+        "AWS4-HMAC-SHA256 Credential={}/{}, SignedHeaders={}, Signature={}",
+        state.config.aws_access_key_id, credential_scope, signed_headers, signature
+    );
+
+    let s3_url = format!("https://{}/{}", host, s3_key);
+
+    let resp = state
+        .http_client
+        .get(&s3_url)
+        .header("x-amz-content-sha256", payload_hash)
+        .header("x-amz-date", &amzdate)
+        .header("Authorization", &authorization)
+        .send()
+        .await
+        .map_err(|e| AppError::Internal(format!("S3 GET failed: {e}")))?;
+
+    if !resp.status().is_success() {
+        return Err(AppError::NotFound("Avatar not found in storage".into()));
+    }
+
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("image/jpeg")
+        .to_string();
+
+    let bytes = resp
+        .bytes()
+        .await
+        .map_err(|e| AppError::Internal(format!("Failed to read S3 response: {e}")))?;
+
+    Ok((
+        [
+            (axum::http::header::CONTENT_TYPE, content_type),
+            (
+                axum::http::header::CACHE_CONTROL,
+                "public, max-age=86400".to_string(),
+            ),
+        ],
+        bytes,
+    )
+        .into_response())
 }

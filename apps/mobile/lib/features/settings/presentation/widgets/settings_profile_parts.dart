@@ -38,13 +38,13 @@ class ProfileHero extends StatelessWidget {
                       backgroundColor: Colors.transparent,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : CircleAvatar(
-                      radius: 36,
+                      : CircleAvatar(
+                          radius: 36,
                       backgroundImage: homeState.avatarUrl.isNotEmpty
                           ? NetworkImage(homeState.avatarUrl)
                           : const AssetImage(AppAssets.avatarTop)
                               as ImageProvider,
-                    ),
+                        ),
             ),
             GestureDetector(
               onTap: onEditAvatar,

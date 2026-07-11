@@ -22,6 +22,8 @@ pub struct UpdateAvatarUseCase {
     pub s3_region: String,
     /// e.g. "guardian-123"
     pub s3_bucket: String,
+    /// e.g. "https://guardian.shadowchat.xyz" — used to build the proxy URL
+    pub public_base_url: String,
 }
 
 impl UpdateAvatarUseCase {
@@ -131,9 +133,10 @@ impl UpdateAvatarUseCase {
             )));
         }
 
-        // Permanent public URL
-        let public_url = format!("https://{}/{}", host, s3_key);
-        let user = self.user_repo.update_avatar_url(id, &public_url).await?;
+        // Store the proxy URL so the mobile app fetches through our backend
+        // (the S3 bucket is private — no public-read needed).
+        let proxy_url = format!("{}/api/v1/auth/avatar/{}", self.public_base_url, id);
+        let user = self.user_repo.update_avatar_url(id, &proxy_url).await?;
         Ok(user)
     }
 
