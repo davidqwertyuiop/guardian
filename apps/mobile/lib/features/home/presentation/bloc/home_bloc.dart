@@ -77,7 +77,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final newUri = Uri.tryParse(fetchedAvatar);
         final currentUri = Uri.tryParse(state.avatarUrl);
         if (newUri != null && currentUri != null) {
-          if (newUri.path == currentUri.path) {
+          if (newUri.pathSegments.isNotEmpty && currentUri.pathSegments.isNotEmpty && newUri.pathSegments.last == currentUri.pathSegments.last) {
             // Because backend responses might be cached by CDNs, 
             // if the base path is identical, we trust our local cache-busted URL.
             // This prevents the UI from reverting to an older image after a fresh upload.
