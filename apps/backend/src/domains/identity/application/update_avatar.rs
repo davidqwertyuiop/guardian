@@ -54,7 +54,10 @@ impl UpdateAvatarUseCase {
             _ => "application/octet-stream",
         };
 
-        let s3_key = format!("avatars/avatar_{id}.{ext}");
+        // We MUST save the file as .jpg (or just a fixed key) regardless of the actual format
+        // because the `serve_avatar` proxy route unconditionally looks up `avatar_{id}.jpg`.
+        // The actual image format is determined by the Content-Type header which we set correctly below.
+        let s3_key = format!("avatars/avatar_{id}.jpg");
         let host = format!(
             "{}.s3.{}.amazonaws.com",
             self.s3_bucket, self.s3_region

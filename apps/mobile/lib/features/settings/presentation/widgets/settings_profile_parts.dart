@@ -24,42 +24,74 @@ class ProfileHero extends StatelessWidget {
         Stack(
           alignment: Alignment.bottomRight,
           children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.35),
-                  width: 2.5,
-                ),
-              ),
-              child: avatarUploading
-                  ? const CircleAvatar(
-                      radius: 36,
-                      backgroundColor: Colors.transparent,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : ClipOval(
-                      child: homeState.avatarUrl.isNotEmpty
-                          ? Image.network(
-                              homeState.avatarUrl,
-                              width: 72,
-                              height: 72,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stack) =>
-                                  Image.asset(
-                                    AppAssets.avatarTop,
-                                    width: 72,
-                                    height: 72,
-                                    fit: BoxFit.cover,
-                                  ),
-                            )
-                          : Image.asset(
-                              AppAssets.avatarTop,
-                              width: 72,
-                              height: 72,
-                              fit: BoxFit.cover,
-                            ),
+            GestureDetector(
+              onTap: () {
+                if (homeState.avatarUrl.isEmpty) return;
+                showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                    backgroundColor: Colors.transparent,
+                    insetPadding: const EdgeInsets.all(20),
+                    child: Stack(
+                      alignment: Alignment.topRight,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            homeState.avatarUrl,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ],
                     ),
+                  ),
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    width: 2.5,
+                  ),
+                ),
+                child: avatarUploading
+                    ? const CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Colors.transparent,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : ClipOval(
+                        child: homeState.avatarUrl.isNotEmpty
+                            ? Image.network(
+                                homeState.avatarUrl,
+                                width: 72,
+                                height: 72,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stack) =>
+                                    Image.asset(
+                                      AppAssets.avatarTop,
+                                      width: 72,
+                                      height: 72,
+                                      fit: BoxFit.cover,
+                                    ),
+                              )
+                            : Image.asset(
+                                AppAssets.avatarTop,
+                                width: 72,
+                                height: 72,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+              ),
             ),
             GestureDetector(
               onTap: onEditAvatar,

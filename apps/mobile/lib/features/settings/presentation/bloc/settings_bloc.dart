@@ -18,11 +18,13 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     try {
       final list = await ApiService.getSessions();
       final currentToken = await TokenManager().getRefreshToken();
-      emit(state.copyWith(
-        sessions: list,
-        currentRefreshToken: currentToken ?? '',
-        status: SettingsStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          sessions: list,
+          currentRefreshToken: currentToken ?? '',
+          status: SettingsStatus.success,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(
@@ -42,11 +44,13 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
       await ApiService.revokeSession(event.tokenHash);
       final list = await ApiService.getSessions();
       final currentToken = await TokenManager().getRefreshToken();
-      emit(state.copyWith(
-        sessions: list,
-        currentRefreshToken: currentToken ?? '',
-        status: SettingsStatus.success,
-      ));
+      emit(
+        state.copyWith(
+          sessions: list,
+          currentRefreshToken: currentToken ?? '',
+          status: SettingsStatus.success,
+        ),
+      );
     } catch (e) {
       emit(
         state.copyWith(
@@ -112,8 +116,15 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
   ) async {
     emit(state.copyWith(avatarUploading: true));
     try {
-      final url = await ApiService.uploadAvatar(event.imageFile);
-      emit(state.copyWith(avatarUploading: false, newAvatarUrl: url));
+      final rawUrl = await ApiService.uploadAvatar(event.imageFile);
+      final parsed = Uri.tryParse(rawUrl);
+      String finalUrl = rawUrl;
+      if (parsed != null) {
+        final params = Map<String, String>.from(parsed.queryParameters);
+        params['v'] = DateTime.now().millisecondsSinceEpoch.toString();
+        finalUrl = parsed.replace(queryParameters: params).toString();
+      }
+      emit(state.copyWith(avatarUploading: false, newAvatarUrl: finalUrl));
     } catch (e) {
       emit(
         state.copyWith(
@@ -125,4 +136,3 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
     }
   }
 }
-

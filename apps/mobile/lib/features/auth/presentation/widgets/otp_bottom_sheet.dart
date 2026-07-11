@@ -91,12 +91,15 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
               const SizedBox(height: 4),
               OtpBottomSheetSubtitle(maskedPhone: masked),
               if (state.status == AuthStatus.loading)
-                Center(
-                  child: SizedBox(
-                    height: 100,
-                    child: Lottie.asset(
-                      'assets/animations/loading.json',
-                      fit: BoxFit.contain,
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: AdaptiveLayout.h(context, 16)),
+                  child: Center(
+                    child: SizedBox(
+                      height: 60,
+                      child: Lottie.asset(
+                        'assets/animations/loading.json',
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
                 )

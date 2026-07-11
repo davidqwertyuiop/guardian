@@ -72,7 +72,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         }
         name = localUsername;
       }
-      avatar = profile['avatar_url'] as String? ?? '';
+      String fetchedAvatar = profile['avatar_url'] as String? ?? '';
+      if (fetchedAvatar.isNotEmpty && state.avatarUrl.isNotEmpty) {
+        final newUri = Uri.tryParse(fetchedAvatar);
+        final currentUri = Uri.tryParse(state.avatarUrl);
+        if (newUri != null && currentUri != null) {
+          if (newUri.path == currentUri.path) {
+            // Because backend responses might be cached by CDNs, 
+            // if the base path is identical, we trust our local cache-busted URL.
+            // This prevents the UI from reverting to an older image after a fresh upload.
+            fetchedAvatar = state.avatarUrl;
+          }
+        }
+      }
+      avatar = fetchedAvatar;
     } catch (e) {
       log('Failed to fetch profile from API, fallback to local username: $e');
       final errMsg = e.toString();

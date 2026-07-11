@@ -25,7 +25,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         message.notification?.body ??
         message.data['body'] ??
         'A member of your circle triggered an SOS!',
-    payload: Map<String, String>.from(message.data),
+    payload: message.data.map((key, value) => MapEntry(key, value.toString())),
   );
 }
 
@@ -105,7 +105,9 @@ class NotificationService {
             message.notification?.body ??
             message.data['body'] ??
             'A member of your circle triggered an SOS!',
-        payload: Map<String, String>.from(message.data),
+        payload: message.data.map(
+          (key, value) => MapEntry(key, value.toString()),
+        ),
       );
     });
 
@@ -195,7 +197,7 @@ class NotificationService {
     Map<String, String>? payload,
   }) async {
     final type = payload?['type'];
-    
+
     List<NotificationActionButton>? actionButtons;
     String? largeIcon;
     String? bigPicture;
