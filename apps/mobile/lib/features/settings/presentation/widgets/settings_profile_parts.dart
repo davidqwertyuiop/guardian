@@ -45,12 +45,13 @@ class ProfileHero extends StatelessWidget {
                               width: 72,
                               height: 72,
                               fit: BoxFit.cover,
-                              errorBuilder: (context, error, stack) => Image.asset(
-                                AppAssets.avatarTop,
-                                width: 72,
-                                height: 72,
-                                fit: BoxFit.cover,
-                              ),
+                              errorBuilder: (context, error, stack) =>
+                                  Image.asset(
+                                    AppAssets.avatarTop,
+                                    width: 72,
+                                    height: 72,
+                                    fit: BoxFit.cover,
+                                  ),
                             )
                           : Image.asset(
                               AppAssets.avatarTop,

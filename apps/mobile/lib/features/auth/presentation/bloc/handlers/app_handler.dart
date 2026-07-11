@@ -13,23 +13,29 @@ Future<void> onAppStarted(
 ) async {
   final prefs = locator<SharedPreferences>();
   final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-  final token = await TokenManager().getAccessToken();
+  final refreshToken = await TokenManager().getRefreshToken();
 
-  bool isExpired = true;
-  if (token != null && token.isNotEmpty) {
-    isExpired = AuthTokenInspector.isExpired(token);
+  bool isRefreshExpired = true;
+  if (refreshToken != null && refreshToken.isNotEmpty) {
+    isRefreshExpired = AuthTokenInspector.isExpired(refreshToken);
   }
 
-  if (onboardingCompleted && token != null && token.isNotEmpty && !isExpired) {
-    emit(state.copyWith(step: AuthStep.completed));
-  } else {
-    // Session is invalid/expired. Clean up state and force welcome onboarding.
-    await TokenManager().clearTokens();
-    await prefs.setBool('onboarding_completed', false);
-    await prefs.remove('username');
-    await prefs.remove('user_id');
-    emit(state.copyWith(step: AuthStep.welcome));
+  if (onboardingCompleted && refreshToken != null && refreshToken.isNotEmpty && !isRefreshExpired) {
+    // Attempt to pre-emptively load or refresh access token
+    final token = await TokenManager().getAccessToken();
+    if (token != null && token.isNotEmpty) {
+      emit(state.copyWith(step: AuthStep.completed));
+      return;
+    }
   }
+
+  // Session is invalid/expired (older than 1 month) or onboarding is incomplete.
+  // Clean up state and force welcome onboarding.
+  await TokenManager().clearTokens();
+  await prefs.setBool('onboarding_completed', false);
+  await prefs.remove('username');
+  await prefs.remove('user_id');
+  emit(state.copyWith(step: AuthStep.welcome));
 }
 
 void onResetAuth(ResetAuth event, Emitter<AuthState> emit) {

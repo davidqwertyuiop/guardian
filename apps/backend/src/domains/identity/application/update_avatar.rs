@@ -147,7 +147,8 @@ impl UpdateAvatarUseCase {
                 url.clone()
             }
         };
-        let proxy_url = format!("{}/api/v1/auth/avatar/{}", origin, id);
+        let timestamp = Utc::now().timestamp();
+        let proxy_url = format!("{}/api/v1/auth/avatar/{}?v={}", origin, id, timestamp);
         let user = self.user_repo.update_avatar_url(id, &proxy_url).await?;
         Ok(user)
     }

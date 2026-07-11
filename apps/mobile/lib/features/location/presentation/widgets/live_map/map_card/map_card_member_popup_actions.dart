@@ -41,30 +41,45 @@ extension MapCardMemberPopupActions on MapCardState {
     final connectivity = member['connectivity_type']?.toString() ?? 'Offline';
     final updatedLabel = relativeUpdatedLabel(member['updated_at']?.toString());
     final navigator = Navigator.of(context);
-    final address = await resolveMemberAddress(latitude, longitude);
     final activeSos = activeSosBroadcastForUser(userId);
     final fallbackAsset = _fallbackAvatarAsset(userId);
     if (!mounted) return;
+    
     await navigator.push(
       PageRouteBuilder(
         opaque: false,
         barrierDismissible: false,
-        pageBuilder: (dialogContext, animation, secondaryAnimation) =>
-            buildMemberMapPopup(
-              dialogContext: dialogContext,
-              member: member,
-              name: name,
-              address: address,
-              updatedLabel: updatedLabel,
-              avatarUrl: avatarUrl,
-              fallbackAsset: fallbackAsset,
-              batteryLabel: batteryLabel,
-              connectivity: connectivity,
-              activeSos: activeSos,
-              phone: phone,
-              latitude: latitude,
-              longitude: longitude,
-            ),
+        pageBuilder: (dialogContext, animation, secondaryAnimation) {
+          String currentAddress = 'Loading address...';
+          bool addressLoaded = false;
+          
+          return StatefulBuilder(
+            builder: (context, setState) {
+              if (!addressLoaded) {
+                addressLoaded = true;
+                resolveMemberAddress(latitude, longitude).then((addr) {
+                  if (mounted) setState(() => currentAddress = addr);
+                });
+              }
+              
+              return buildMemberMapPopup(
+                dialogContext: dialogContext,
+                member: member,
+                name: name,
+                address: currentAddress,
+                updatedLabel: updatedLabel,
+                avatarUrl: avatarUrl,
+                fallbackAsset: fallbackAsset,
+                batteryLabel: batteryLabel,
+                connectivity: connectivity,
+                activeSos: activeSos,
+                phone: phone,
+                latitude: latitude,
+                longitude: longitude,
+              );
+            }
+          );
+        },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },

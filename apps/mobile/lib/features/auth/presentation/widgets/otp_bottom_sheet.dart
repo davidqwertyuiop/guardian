@@ -1,6 +1,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 import 'otp_input_field.dart';
 import 'otp_bottom_sheet_widgets.dart';
@@ -89,22 +90,33 @@ class _OtpBottomSheetState extends State<OtpBottomSheet> {
               ),
               const SizedBox(height: 4),
               OtpBottomSheetSubtitle(maskedPhone: masked),
-              SizedBox(height: AdaptiveLayout.h(context, 24)),
-              OtpInputField(
-                controller: _pinController,
-                focusNode: _pinFocusNode,
-                onCompleted: (pin) =>
-                    _authBloc.add(SubmitVerificationCode(pin)),
-              ),
-              SizedBox(height: AdaptiveLayout.h(context, 24)),
-              OtpTimerText(
-                seconds: _seconds,
-                onResend: () {
-                  _startTimer();
-                  _pinController.clear();
-                  _authBloc.add(const SubmitPhoneNumber());
-                },
-              ),
+              if (state.status == AuthStatus.loading)
+                Center(
+                  child: SizedBox(
+                    height: 100,
+                    child: Lottie.asset(
+                      'assets/animations/loading.json',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                )
+              else ...[
+                OtpInputField(
+                  controller: _pinController,
+                  focusNode: _pinFocusNode,
+                  onCompleted: (pin) =>
+                      _authBloc.add(SubmitVerificationCode(pin)),
+                ),
+                SizedBox(height: AdaptiveLayout.h(context, 24)),
+                OtpTimerText(
+                  seconds: _seconds,
+                  onResend: () {
+                    _startTimer();
+                    _pinController.clear();
+                    _authBloc.add(const SubmitPhoneNumber());
+                  },
+                ),
+              ],
               SizedBox(height: AdaptiveLayout.h(context, 16)),
               GestureDetector(
                 onTap: () async {

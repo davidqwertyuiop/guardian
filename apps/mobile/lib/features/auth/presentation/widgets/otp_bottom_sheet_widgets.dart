@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-
+import 'package:lottie/lottie.dart';
 import 'package:guardian/export.dart';
 class OtpBottomSheetHeader extends StatelessWidget {
   const OtpBottomSheetHeader({super.key});
@@ -76,16 +76,33 @@ class OtpTimerText extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: seconds == 0 ? onResend : null,
-      child: Text(
-        seconds > 0
-            ? "Resend code in 0:${seconds.toString().padLeft(2, '0')}"
-            : "Resend code",
-        style: TextStyle(
-          fontFamily: 'Inter',
-          fontSize: AdaptiveLayout.sp(context, 14),
-          color: seconds > 0 ? AppColors.greyText : AppColors.primary,
-          fontWeight: seconds > 0 ? FontWeight.normal : FontWeight.bold,
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            seconds > 0
+                ? "Resend code in 0:${seconds.toString().padLeft(2, '0')}"
+                : "Resend code",
+            style: TextStyle(
+              fontFamily: 'Inter',
+              fontSize: AdaptiveLayout.sp(context, 14),
+              color: seconds > 0 ? AppColors.greyText : AppColors.primary,
+              fontWeight: seconds > 0 ? FontWeight.normal : FontWeight.bold,
+            ),
+          ),
+          if (seconds > 0) ...[
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: Lottie.asset(
+                'assets/animations/loading.json',
+                fit: BoxFit.contain,
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

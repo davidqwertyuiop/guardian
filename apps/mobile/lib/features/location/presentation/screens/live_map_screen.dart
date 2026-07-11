@@ -37,7 +37,7 @@ class _LiveMapScreenState extends State<LiveMapScreen>
   late final AnimationController _fullAnim;
   final ScrollController _scrollController = ScrollController();
 
-  String _mapsApiKey = '';
+  static String _cachedMapsApiKey = '';
   double _broadcastPanelHeight = 260;
   bool _isLocalSosActive = false;
   String? _activeSosBroadcastId;
@@ -48,7 +48,7 @@ class _LiveMapScreenState extends State<LiveMapScreen>
   @override
   void initState() {
     super.initState();
-    _bloc = context.read<HomeBloc>()..add(const LoadHomeData());
+    _bloc = context.read<HomeBloc>();
     _mapAnim = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 380),
