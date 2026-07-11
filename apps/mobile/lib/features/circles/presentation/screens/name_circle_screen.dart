@@ -137,6 +137,7 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
                             Expanded(
                               child: TextField(
                                 controller: _controller,
+                                cursorColor: isDark ? Colors.white : Colors.black,
                                 style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 16,

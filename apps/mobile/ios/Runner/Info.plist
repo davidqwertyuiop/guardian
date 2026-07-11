@@ -70,6 +70,8 @@
 		</array>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>Guardian needs access to your location so your circle knows you are safe.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>Guardian needs access to your location in the background so your circle knows you are safe even when the app is closed.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>Guardian needs access to your location in the background so your circle knows you are safe even when the app is closed.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
@@ -101,5 +103,11 @@
 		</array>
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+			<string>location</string>
+		</array>
 	</dict>
 </plist>

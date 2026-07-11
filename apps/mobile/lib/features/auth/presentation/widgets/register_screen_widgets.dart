@@ -17,6 +17,7 @@ class RegisterNameInput extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: TextField(
         controller: controller,
+        cursorColor: isDark ? Colors.white : Colors.black,
         style: TextStyle(
           fontFamily: 'Inter',
           color: isDark ? Colors.white : Colors.black,
