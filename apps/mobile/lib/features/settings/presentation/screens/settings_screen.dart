@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:guardian/export.dart';
 import '../widgets/settings_detail_pages.dart';
@@ -176,11 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _logout() async {
     await TokenManager().clearTokens();
-    
-    try {
-      await FirebaseAuth.instance.signOut();
-    } catch (_) {}
-
+    await TokenManager().clearTokens();
     if (!mounted) return;
 
     try {

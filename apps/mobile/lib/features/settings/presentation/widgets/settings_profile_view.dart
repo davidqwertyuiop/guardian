@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:toastification/toastification.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/features/home/presentation/bloc/home_bloc.dart';
 import 'package:guardian/features/home/presentation/bloc/home_event.dart';
@@ -29,10 +30,21 @@ class SettingsProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<SettingsBloc, SettingsState>(
       listenWhen: (prev, curr) =>
-          curr.newAvatarUrl.isNotEmpty && curr.newAvatarUrl != prev.newAvatarUrl,
+          (curr.newAvatarUrl.isNotEmpty && curr.newAvatarUrl != prev.newAvatarUrl) ||
+          (curr.status == SettingsStatus.failure && curr.errorMessage != prev.errorMessage),
       listener: (context, state) {
-        // Forward the fresh URL into HomeBloc so map overlays also update.
-        context.read<HomeBloc>().add(UpdateAvatarUrl(state.newAvatarUrl));
+        if (state.status == SettingsStatus.failure && state.errorMessage.isNotEmpty) {
+          toastification.show(
+            context: context,
+            title: Text(state.errorMessage),
+            type: ToastificationType.error,
+            style: ToastificationStyle.flat,
+            autoCloseDuration: const Duration(seconds: 4),
+          );
+        }
+        if (state.newAvatarUrl.isNotEmpty) {
+          context.read<HomeBloc>().add(UpdateAvatarUrl(state.newAvatarUrl));
+        }
       },
       child: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, settingsState) {

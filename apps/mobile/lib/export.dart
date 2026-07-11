@@ -34,7 +34,7 @@ export 'package:guardian/features/journey/presentation/bloc/journey_bloc.dart';
 export 'package:guardian/features/journey/presentation/bloc/journey_event.dart';
 export 'package:guardian/features/journey/presentation/bloc/journey_state.dart';
 export 'package:guardian/features/settings/presentation/bloc/settings_bloc.dart';
-export 'package:guardian/core/services/firebase_auth_service.dart';
+
 
 export 'package:firebase_core/firebase_core.dart';
 export 'package:guardian/firebase_options.dart';

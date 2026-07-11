@@ -9,10 +9,29 @@ import 'api_base.dart';
 abstract class AuthApiService {
   static String get baseUrl => ApiBase.baseUrl;
 
-  /// POST /api/v1/auth/firebase-exchange
-  static Future<Map<String, dynamic>> firebaseExchange(
+  /// POST /api/v1/auth/otp/send
+  static Future<bool> sendOtp(String phone) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/v1/auth/otp/send'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'phone': phone}),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(ApiBase.extractErrorMessage(response.body));
+      }
+    } catch (e) {
+      ApiBase.rethrowNetworkError(e);
+    }
+  }
+
+  /// POST /api/v1/auth/otp/verify
+  static Future<Map<String, dynamic>> verifyOtp(
     String phone,
-    String idToken,
+    String code,
   ) async {
     try {
       String? deviceModel;
@@ -33,11 +52,11 @@ abstract class AuthApiService {
       }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/api/v1/auth/firebase-exchange'),
+        Uri.parse('$baseUrl/api/v1/auth/otp/verify'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'phone': phone,
-          'id_token': idToken,
+          'code': code,
           'platform': Platform.isIOS ? 'ios' : 'android',
           'device_model': deviceModel,
           'device_name': deviceName,

@@ -5,7 +5,12 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource = AuthRemoteDataSource();
 
   @override
-  Future<String> firebaseExchange(String phone, String idToken) async {
-    return await remoteDataSource.firebaseExchange(phone, idToken);
+  Future<bool> sendOtp(String phone) async {
+    return await remoteDataSource.sendOtp(phone);
+  }
+
+  @override
+  Future<Map<String, dynamic>> verifyOtp(String phone, String code) async {
+    return await remoteDataSource.verifyOtp(phone, code);
   }
 }

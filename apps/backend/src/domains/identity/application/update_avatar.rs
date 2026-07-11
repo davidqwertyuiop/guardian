@@ -70,10 +70,10 @@ impl UpdateAvatarUseCase {
 
         // Canonical headers (must be sorted alphabetically by header name)
         let canonical_headers = format!(
-            "content-type:{}\nhost:{}\nx-amz-acl:public-read\nx-amz-content-sha256:{}\nx-amz-date:{}\n",
+            "content-type:{}\nhost:{}\nx-amz-content-sha256:{}\nx-amz-date:{}\n",
             content_type, host, payload_hash, amzdate
         );
-        let signed_headers = "content-type;host;x-amz-acl;x-amz-content-sha256;x-amz-date";
+        let signed_headers = "content-type;host;x-amz-content-sha256;x-amz-date";
 
         let canonical_request = format!(
             "PUT\n/{}\n\n{}\n{}\n{}",
@@ -115,7 +115,6 @@ impl UpdateAvatarUseCase {
             .http_client
             .put(&url)
             .header("Content-Type", content_type)
-            .header("x-amz-acl", "public-read")
             .header("x-amz-content-sha256", &payload_hash)
             .header("x-amz-date", &amzdate)
             .header("Authorization", &authorization)

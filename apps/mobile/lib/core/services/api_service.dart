@@ -12,11 +12,13 @@ import 'api/sos_api_service.dart';
 class ApiService {
   static String get baseUrl => ApiBase.baseUrl;
 
-  // ── Auth Endpoints ──────────────────────────────────────────────────────────
-  static Future<Map<String, dynamic>> firebaseExchange(
+  static Future<bool> sendOtp(String phone) =>
+      AuthApiService.sendOtp(phone);
+
+  static Future<Map<String, dynamic>> verifyOtp(
     String phone,
-    String idToken,
-  ) => AuthApiService.firebaseExchange(phone, idToken);
+    String code,
+  ) => AuthApiService.verifyOtp(phone, code);
   static Future<bool> updateProfile(String name) =>
       AuthApiService.updateProfile(name);
   static Future<bool> updatePreferences(

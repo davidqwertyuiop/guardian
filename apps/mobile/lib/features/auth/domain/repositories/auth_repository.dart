@@ -1,3 +1,4 @@
 abstract class AuthRepository {
-  Future<String> firebaseExchange(String phone, String idToken);
+  Future<bool> sendOtp(String phone);
+  Future<Map<String, dynamic>> verifyOtp(String phone, String code);
 }

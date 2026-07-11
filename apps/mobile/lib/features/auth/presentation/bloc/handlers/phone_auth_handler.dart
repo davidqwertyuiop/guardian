@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:bloc/bloc.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:guardian/core/services/api_service.dart';
 import '../auth_event.dart';
@@ -16,31 +16,13 @@ Future<void> onSubmitPhoneNumber(
   emit(state.copyWith(status: AuthStatus.loading));
   try {
     final fullPhone = '${state.dialCode}${state.phoneNumber}';
-    final completer = Completer<String>();
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: fullPhone,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        // Auto-resolution (Android) — handled by user input flow
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        if (!completer.isCompleted) completer.completeError(e);
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        if (!completer.isCompleted) completer.complete(verificationId);
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        if (!completer.isCompleted) completer.complete(verificationId);
-      },
-    );
-
-    final verificationId = await completer.future;
+    await ApiService.sendOtp(fullPhone);
 
     emit(
       state.copyWith(
         status: AuthStatus.codeSent,
         step: AuthStep.otp,
-        verificationId: verificationId,
       ),
     );
   } catch (e) {
@@ -59,32 +41,11 @@ Future<void> onSubmitVerificationCode(
   AuthState state,
   String Function(dynamic) parseError,
 ) async {
-  if (state.verificationId == null) {
-    emit(
-      state.copyWith(
-        status: AuthStatus.failure,
-        errorMessage: 'Session expired. Please try again.',
-      ),
-    );
-    return;
-  }
-
   emit(state.copyWith(status: AuthStatus.loading));
   try {
     final fullPhone = '${state.dialCode}${state.phoneNumber}';
 
-    final credential = PhoneAuthProvider.credential(
-      verificationId: state.verificationId!,
-      smsCode: event.code,
-    );
-    final userCredential = await FirebaseAuth.instance.signInWithCredential(
-      credential,
-    );
-    final idToken = await userCredential.user?.getIdToken();
-
-    if (idToken == null) throw Exception('Failed to retrieve Firebase ID token.');
-
-    final responseData = await ApiService.firebaseExchange(fullPhone, idToken);
+    final responseData = await ApiService.verifyOtp(fullPhone, event.code);
     final isProfileComplete = responseData['is_profile_complete'] as bool? ?? false;
 
     if (state.isJoiningCircle && state.inviteCode != null) {

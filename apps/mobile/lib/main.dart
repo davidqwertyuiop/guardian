@@ -74,9 +74,6 @@ class GuardianApp extends StatelessWidget {
 
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<FirebaseAuthService>(
-          create: (context) => FirebaseAuthService(),
-        ),
         RepositoryProvider<NotificationRepository>(
           create: (context) => locator<NotificationRepository>(),
         ),

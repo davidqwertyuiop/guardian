@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthErrorParser {
   const AuthErrorParser._();
@@ -20,9 +19,7 @@ class AuthErrorParser {
     if (message.contains('session-expired')) {
       return 'Session expired. Please request a new code.';
     }
-    if (error is FirebaseAuthException) {
-      return error.message ?? 'An authentication error occurred.';
-    }
+
     if (message.startsWith('Exception: ')) {
       return message.substring(11);
     }
