@@ -11,6 +11,15 @@ pub struct AppConfig {
     pub play_store_link: String,
     pub maps_api_key_android: String,
     pub maps_api_key_ios: String,
+    // ── Infobip ─────────────────────────────────────────────────
+    pub infobip_api_key: String,
+    pub infobip_base_url: String,
+    pub infobip_sender: String,
+    // ── AWS S3 ──────────────────────────────────────────────────
+    pub aws_access_key_id: String,
+    pub aws_secret_access_key: String,
+    pub aws_region: String,
+    pub aws_s3_bucket: String,
 }
 
 impl AppConfig {
@@ -45,6 +54,27 @@ impl AppConfig {
         let maps_api_key_ios = std::env::var("MAPS_API_KEY_IOS")
             .unwrap_or_else(|_| "AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs".to_string());
 
+        let infobip_api_key =
+            std::env::var("INFOBIP_API_KEY").expect("INFOBIP_API_KEY must be set");
+
+        let infobip_base_url =
+            std::env::var("INFOBIP_BASE_URL").expect("INFOBIP_BASE_URL must be set");
+
+        let infobip_sender =
+            std::env::var("INFOBIP_SENDER").unwrap_or_else(|_| "ServiceSMS".to_string());
+
+        let aws_access_key_id =
+            std::env::var("AWS_ACCESS_KEY_ID").expect("AWS_ACCESS_KEY_ID must be set");
+
+        let aws_secret_access_key =
+            std::env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY must be set");
+
+        let aws_region =
+            std::env::var("AWS_REGION").unwrap_or_else(|_| "us-west-1".to_string());
+
+        let aws_s3_bucket =
+            std::env::var("AWS_S3_BUCKET").expect("AWS_S3_BUCKET must be set");
+
         Self {
             jwt_secret,
             jwt_refresh_secret,
@@ -56,6 +86,13 @@ impl AppConfig {
             play_store_link,
             maps_api_key_android,
             maps_api_key_ios,
+            infobip_api_key,
+            infobip_base_url,
+            infobip_sender,
+            aws_access_key_id,
+            aws_secret_access_key,
+            aws_region,
+            aws_s3_bucket,
         }
     }
 }

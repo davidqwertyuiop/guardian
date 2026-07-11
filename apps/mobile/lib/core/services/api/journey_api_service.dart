@@ -37,9 +37,10 @@ abstract class JourneyApiService {
     }
   }
 
-  /// POST /api/v1/journey/stop (requires Bearer token)
   static Future<bool> stopJourney({
     required String circleId,
+    bool? arrived,
+    String? lastSeenAddress,
   }) async {
     final token = await TokenManager().getAccessToken();
     final url = Uri.parse('$baseUrl/api/v1/journey/stop');
@@ -52,7 +53,9 @@ abstract class JourneyApiService {
         },
         body: jsonEncode({
           'circle_id': circleId,
-        }),
+          'arrived': arrived,
+          'last_seen_address': lastSeenAddress,
+        }..removeWhere((k, v) => v == null)),
       );
       if (response.statusCode == 200) {
         return true;

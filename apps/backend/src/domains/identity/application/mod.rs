@@ -2,7 +2,9 @@ pub mod delete_account;
 pub mod firebase_exchange;
 pub mod get_profile;
 pub mod refresh_token;
+pub mod send_otp;
 pub mod setup_profile;
 pub mod update_avatar;
 pub mod update_preferences;
+pub mod verify_otp;
 

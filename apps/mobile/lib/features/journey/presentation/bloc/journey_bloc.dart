@@ -42,8 +42,17 @@ class JourneyBloc extends Bloc<JourneyEvent, JourneyState> {
       }
     });
 
-    on<EndJourney>((event, emit) {
+    on<EndJourney>((event, emit) async {
+      final circleId = state.circleId;
       emit(const JourneyState(status: JourneyStatus.completed));
+      if (circleId != null && circleId.isNotEmpty) {
+        try {
+          await ApiService.stopJourney(
+            circleId: circleId,
+            arrived: event.arrived,
+          );
+        } catch (_) {}
+      }
     });
   }
 

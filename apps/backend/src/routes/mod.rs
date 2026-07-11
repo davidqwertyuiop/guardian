@@ -7,9 +7,11 @@ use crate::domains::identity::domain::repositories::{
 };
 use crate::domains::location::domain::repositories::location_repository::LocationRepository;
 use crate::domains::sos::domain::repositories::sos_repository::SosRepository;
+use crate::infrastructure::cache::otp_store::OtpStore;
 use axum::{extract::State, routing::get, Router};
+use reqwest::Client;
 use sqlx::PgPool;
-use std::{path::PathBuf, sync::Arc};
+use std::sync::Arc;
 
 /// Central application state — cloned into every request handler.
 #[derive(Clone)]
@@ -26,9 +28,13 @@ pub struct AppState {
     pub location_repo: Arc<dyn LocationRepository>,
     // SOS domain
     pub sos_repo: Arc<dyn SosRepository>,
-    // File storage
-    pub uploads_dir: PathBuf,
-    pub public_base_url: String,
+    // OTP (Infobip)
+    pub otp_store: Arc<OtpStore>,
+    // Shared HTTP client (used for S3 uploads + Infobip calls)
+    pub http_client: Arc<Client>,
+    // S3 config (used by UpdateAvatarUseCase)
+    pub s3_bucket: String,
+    pub s3_region: String,
 }
 
 /// Build the complete Axum router with all domain routes nested.

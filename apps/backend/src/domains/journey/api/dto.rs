@@ -16,4 +16,6 @@ pub struct StayJourneyRequest {
 #[derive(Debug, Deserialize)]
 pub struct StopJourneyRequest {
     pub circle_id: Uuid,
+    pub arrived: Option<bool>,
+    pub last_seen_address: Option<String>,
 }

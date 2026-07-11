@@ -66,9 +66,10 @@ pub async fn trigger_sos(
 
     // Fetch FCM tokens of other members in this circle to notify them
     let recipients = sqlx::query(
-        "SELECT cm.user_id, dt.fcm_token
+        "SELECT cm.user_id, dt.fcm_token, u.name as user_name
          FROM circle_memberships cm
          LEFT JOIN device_tokens dt ON dt.user_id = cm.user_id
+         LEFT JOIN users u ON u.id = cm.user_id
          WHERE cm.circle_id = $1 AND cm.user_id != $2",
     )
     .bind(body.circle_id)
@@ -83,7 +84,8 @@ pub async fn trigger_sos(
         .collect();
     let title = format!("EMERGENCY: {} triggered SOS!", user_name);
     let body_text = format!(
-        "Address: {}. Tap to open live tracking.",
+        "⚠️ SOS — {} needs help\n{} · just now",
+        user_name,
         body.address.as_deref().unwrap_or("Unknown location")
     );
 
@@ -104,11 +106,26 @@ pub async fn trigger_sos(
     )
     .await?;
 
-    for token in &other_members_tokens {
-        crate::infrastructure::push_notifications::send_push_notification(
-            token, &title, &body_text,
-        )
-        .await;
+    for row in &recipients {
+        if let Ok(token) = row.try_get::<String, _>("fcm_token") {
+            let recipient_name = row.try_get::<Option<String>, _>("user_name")
+                .unwrap_or(None)
+                .unwrap_or_else(|| "Guardian User".into());
+            let personalized_title = format!("Hi {}!", recipient_name);
+            let extra_data = serde_json::json!({
+                "type": "sos",
+                "circle_id": body.circle_id,
+                "broadcast_id": broadcast.id,
+                "route": "sos",
+                "phone": user.phone,
+                "name": user_name,
+                "address": body.address.as_deref().unwrap_or("Unknown location")
+            });
+            crate::infrastructure::push_notifications::send_push_notification(
+                &token, &personalized_title, &body_text, Some(extra_data)
+            )
+            .await;
+        }
     }
 
     tracing::info!(
@@ -216,9 +233,10 @@ pub async fn dismiss_sos(
     let user_name = user.name.unwrap_or_else(|| "Someone".into());
 
     let recipients = sqlx::query(
-        "SELECT cm.user_id, dt.fcm_token
+        "SELECT cm.user_id, dt.fcm_token, u.name as user_name
          FROM circle_memberships cm
          LEFT JOIN device_tokens dt ON dt.user_id = cm.user_id
+         LEFT JOIN users u ON u.id = cm.user_id
          WHERE cm.circle_id = $1 AND cm.user_id != $2",
     )
     .bind(broadcast.circle_id)
@@ -227,10 +245,6 @@ pub async fn dismiss_sos(
     .await
     .map_err(|e| AppError::Internal(format!("DB fetch recipients: {e}")))?;
     let recipient_ids: Vec<Uuid> = recipients.iter().map(|row| row.get("user_id")).collect();
-    let other_members_tokens: Vec<String> = recipients
-        .iter()
-        .filter_map(|row| row.try_get("fcm_token").ok())
-        .collect();
 
     let title = format!("{} is safe", user_name);
     let body_text = "Their SOS has been cancelled. They marked themselves safe.";
@@ -251,15 +265,29 @@ pub async fn dismiss_sos(
     )
     .await?;
 
-    for token in &other_members_tokens {
-        send_push_notification(token, &title, body_text).await;
+    for row in &recipients {
+        if let Ok(token) = row.try_get::<String, _>("fcm_token") {
+            let recipient_name = row.try_get::<Option<String>, _>("user_name")
+                .unwrap_or(None)
+                .unwrap_or_else(|| "Guardian User".into());
+            let personalized_title = format!("Hi {}!", recipient_name);
+            let extra_data = serde_json::json!({
+                "type": "sos_dismissed",
+                "circle_id": broadcast.circle_id,
+                "broadcast_id": broadcast.id,
+                "route": "sos",
+                "status": "dismissed",
+                "name": user_name
+            });
+            send_push_notification(&token, &personalized_title, body_text, Some(extra_data)).await;
+        }
     }
 
     tracing::info!(
         "SOS dismissed by user {} for circle {}. Safety notifications dispatched to {} devices.",
         user_id,
         broadcast.circle_id,
-        other_members_tokens.len()
+        recipients.len()
     );
 
     Ok(Json(SosActionResponse {

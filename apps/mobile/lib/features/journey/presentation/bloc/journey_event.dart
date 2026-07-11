@@ -22,5 +22,9 @@ class StartJourney extends JourneyEvent {
 }
 
 class EndJourney extends JourneyEvent {
-  const EndJourney();
+  final bool arrived;
+  const EndJourney({this.arrived = true});
+
+  @override
+  List<Object?> get props => [arrived];
 }

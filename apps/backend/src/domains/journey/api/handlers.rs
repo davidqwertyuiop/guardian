@@ -34,16 +34,17 @@ pub async fn start_journey(
         .ok_or_else(|| AppError::NotFound("Broadcaster user not found".into()))?;
     let user_name = user.name.unwrap_or_else(|| "Someone".into());
 
-    // 3. Fetch FCM tokens for other circle members
+    // 3. Fetch FCM tokens and names for other circle members
     let title = format!("{} is live!", user_name);
     let body_text = format!(
         "They are heading to {} (ETA: {}).",
         body.destination, body.duration
     );
     let recipients = sqlx::query(
-        "SELECT cm.user_id, dt.fcm_token
+        "SELECT cm.user_id, dt.fcm_token, u.name as user_name
          FROM circle_memberships cm
          LEFT JOIN device_tokens dt ON dt.user_id = cm.user_id
+         LEFT JOIN users u ON u.id = cm.user_id
          WHERE cm.circle_id = $1 AND cm.user_id != $2",
     )
     .bind(body.circle_id)
@@ -72,8 +73,22 @@ pub async fn start_journey(
     )
     .await?;
 
-    for token in &other_members_tokens {
-        send_push_notification(token, &title, &body_text).await;
+    for row in &recipients {
+        if let Ok(token) = row.try_get::<String, _>("fcm_token") {
+            let recipient_name = row.try_get::<Option<String>, _>("user_name")
+                .unwrap_or(None)
+                .unwrap_or_else(|| "Guardian User".into());
+            let personalized_title = format!("Hi {}!", recipient_name);
+            let extra_data = serde_json::json!({
+                "type": "journey_started",
+                "circle_id": body.circle_id,
+                "route": "journey",
+                "destination": body.destination,
+                "duration": body.duration,
+                "name": user_name
+            });
+            send_push_notification(&token, &personalized_title, &body_text, Some(extra_data)).await;
+        }
     }
 
     tracing::info!(
@@ -158,13 +173,22 @@ pub async fn stop_journey(
         .ok_or_else(|| AppError::NotFound("User not found".into()))?;
     let user_name = user.name.unwrap_or_else(|| "Someone".into());
 
-    // 3. Fetch FCM tokens for other circle members
+    // 3. Fetch FCM tokens and names for other circle members
+    let arrived = body.arrived.unwrap_or(false);
+    let last_seen = body.last_seen_address.clone().unwrap_or_else(|| "Surulere, Lagos".to_string());
+    
+    let (notif_type, body_text) = if arrived {
+        ("journey_completed", format!("🏠 {} has arrived home.", user_name))
+    } else {
+        ("journey_stopped", format!("{}'s broadcast has ended. She was last seen in {}.", user_name, last_seen))
+    };
+
     let title = format!("{} stopped broadcasting", user_name);
-    let body_text = "They have safely stopped their journey.";
     let recipients = sqlx::query(
-        "SELECT cm.user_id, dt.fcm_token
+        "SELECT cm.user_id, dt.fcm_token, u.name as user_name
          FROM circle_memberships cm
          LEFT JOIN device_tokens dt ON dt.user_id = cm.user_id
+         LEFT JOIN users u ON u.id = cm.user_id
          WHERE cm.circle_id = $1 AND cm.user_id != $2",
     )
     .bind(body.circle_id)
@@ -173,27 +197,36 @@ pub async fn stop_journey(
     .await
     .map_err(|e| AppError::Internal(format!("DB fetch recipients: {e}")))?;
     let recipient_ids: Vec<Uuid> = recipients.iter().map(|row| row.get("user_id")).collect();
-    let other_members_tokens: Vec<String> = recipients
-        .iter()
-        .filter_map(|row| row.try_get("fcm_token").ok())
-        .collect();
     create_notifications(
         &state.db_pool,
         &recipient_ids,
         Some(user_id),
-        "journey_stopped",
+        if arrived { "journey_completed" } else { "journey_stopped" },
         &title,
-        body_text,
+        &body_text,
         serde_json::json!({
             "circle_id": body.circle_id,
             "route": "journey",
-            "status": "stopped"
+            "status": if arrived { "completed" } else { "stopped" }
         }),
     )
     .await?;
 
-    for token in &other_members_tokens {
-        send_push_notification(token, &title, &body_text).await;
+    for row in &recipients {
+        if let Ok(token) = row.try_get::<String, _>("fcm_token") {
+            let recipient_name = row.try_get::<Option<String>, _>("user_name")
+                .unwrap_or(None)
+                .unwrap_or_else(|| "Guardian User".into());
+            let personalized_title = format!("Hi {}!", recipient_name);
+            let extra_data = serde_json::json!({
+                "type": notif_type,
+                "circle_id": body.circle_id,
+                "route": "journey",
+                "status": if arrived { "completed" } else { "stopped" },
+                "name": user_name
+            });
+            send_push_notification(&token, &personalized_title, &body_text, Some(extra_data)).await;
+        }
     }
 
     tracing::info!(

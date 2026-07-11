@@ -1,8 +1,8 @@
 use axum::Router;
+use reqwest::Client;
 use sqlx::PgPool;
-use std::{path::PathBuf, sync::Arc};
+use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
-use tower_http::services::ServeDir;
 use tower_http::trace::TraceLayer;
 
 use crate::config::AppConfig;
@@ -14,6 +14,7 @@ use crate::domains::identity::infrastructure::{
 };
 use crate::domains::location::infrastructure::postgres_location_repo::PostgresLocationRepository;
 use crate::domains::sos::infrastructure::postgres_sos_repo::PostgresSosRepository;
+use crate::infrastructure::cache::otp_store::OtpStore;
 use crate::routes::{create_router, AppState};
 
 /// Wires together the application: config, repos, gateways → Router.
@@ -25,14 +26,15 @@ pub async fn build_router(pool: PgPool, config: AppConfig) -> Router {
     let location_repo = Arc::new(PostgresLocationRepository { pool: pool.clone() });
     let sos_repo = Arc::new(PostgresSosRepository { pool: pool.clone() });
 
-    // Uploads: write to ./uploads/avatars, serve at <base>/uploads/avatars
-    let uploads_dir = PathBuf::from("uploads/avatars");
-    let public_base_url = format!(
-        "{}/uploads/avatars",
-        config.invite_base_url.trim_end_matches('/')
-    );
+    // Shared HTTP client (used for Infobip + S3)
+    let http_client = Arc::new(Client::new());
+
+    // OTP store
+    let otp_store = Arc::new(OtpStore::new());
 
     let state = AppState {
+        s3_bucket: config.aws_s3_bucket.clone(),
+        s3_region: config.aws_region.clone(),
         config,
         db_pool: pool,
         user_repo,
@@ -41,8 +43,8 @@ pub async fn build_router(pool: PgPool, config: AppConfig) -> Router {
         invite_repo,
         location_repo,
         sos_repo,
-        uploads_dir: uploads_dir.clone(),
-        public_base_url,
+        otp_store,
+        http_client,
     };
 
     let cors = CorsLayer::new()
@@ -51,8 +53,6 @@ pub async fn build_router(pool: PgPool, config: AppConfig) -> Router {
         .allow_headers(Any);
 
     create_router(state)
-        .nest_service("/uploads/avatars", ServeDir::new(&uploads_dir))
         .layer(TraceLayer::new_for_http())
         .layer(cors)
 }
-

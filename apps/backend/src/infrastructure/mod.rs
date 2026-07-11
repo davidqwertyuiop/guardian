@@ -1,7 +1,9 @@
 pub mod analytics;
 pub mod blockchain;
+pub mod cache;
 pub mod postgres;
 pub mod push_notifications;
 pub mod redis;
+pub mod sms;
 pub mod storage;
 pub mod websocket;

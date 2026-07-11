@@ -64,7 +64,12 @@ async fn get_google_access_token(
 /// Send a push notification via Firebase Cloud Messaging (FCM) HTTP v1 API.
 /// In production, the service account JSON must be injected through
 /// `FIREBASE_SERVICE_ACCOUNT_JSON` or `FCM_SERVICE_ACCOUNT_JSON`.
-pub async fn send_push_notification(token: &str, title: &str, body: &str) {
+pub async fn send_push_notification(
+    token: &str,
+    title: &str,
+    body: &str,
+    data: Option<serde_json::Value>,
+) {
     let sa = match load_service_account() {
         Some(s) => s,
         None => {
@@ -93,6 +98,24 @@ pub async fn send_push_notification(token: &str, title: &str, body: &str) {
         sa.project_id
     );
 
+    let mut data_json = serde_json::json!({
+        "title": title,
+        "body": body,
+        "click_action": "FLUTTER_NOTIFICATION_CLICK"
+    });
+
+    if let Some(extra_data) = data {
+        if let serde_json::Value::Object(obj) = extra_data {
+            for (k, v) in obj {
+                let val_str = match v {
+                    serde_json::Value::String(s) => s,
+                    _ => v.to_string(),
+                };
+                data_json.as_object_mut().unwrap().insert(k, serde_json::Value::String(val_str));
+            }
+        }
+    }
+
     let payload = serde_json::json!({
         "message": {
             "token": token,
@@ -100,11 +123,7 @@ pub async fn send_push_notification(token: &str, title: &str, body: &str) {
                 "title": title,
                 "body": body
             },
-            "data": {
-                "title": title,
-                "body": body,
-                "click_action": "FLUTTER_NOTIFICATION_CLICK"
-            },
+            "data": data_json,
             "android": {
                 "priority": "high",
                 "notification": {

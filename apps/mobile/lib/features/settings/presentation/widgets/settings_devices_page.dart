@@ -63,8 +63,12 @@ class SettingsDevicesPage extends StatelessWidget {
       timeAgoText = '$days ${days == 1 ? "day" : "days"} ago';
     }
 
-    final statusText = isActive ? 'active • updated $timeAgoText' : 'updated $timeAgoText';
-    final statusColor = isActive ? const Color(0xFF22C55E) : Colors.grey.shade400;
+    final bool isSessionActive = (hash.isNotEmpty && hash == state.currentRefreshToken) || (minutesAgo <= 15);
+
+    final statusText = isSessionActive
+        ? 'active • updated $timeAgoText'
+        : 'inactive • last logged in $timeAgoText';
+    final statusColor = isSessionActive ? const Color(0xFF22C55E) : Colors.grey.shade400;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

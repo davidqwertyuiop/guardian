@@ -2,16 +2,26 @@ use crate::domains::identity::domain::{
     entities::user::User, repositories::user_repository::UserRepository,
 };
 use crate::shared::errors::AppError;
-use std::path::PathBuf;
+use chrono::Utc;
+use hmac::{Hmac, Mac};
+use reqwest::Client;
+use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use uuid::Uuid;
 
+type HmacSha256 = Hmac<Sha256>;
+
 pub struct UpdateAvatarUseCase {
     pub user_repo: Arc<dyn UserRepository>,
-    /// Base directory where uploaded avatars are written, e.g. "./uploads/avatars"
-    pub uploads_dir: PathBuf,
-    /// Public base URL prefix, e.g. "http://localhost:8080/uploads/avatars"
-    pub public_base_url: String,
+    pub http_client: Arc<Client>,
+    /// AWS access key id
+    pub aws_access_key_id: String,
+    /// AWS secret access key
+    pub aws_secret_access_key: String,
+    /// e.g. "us-west-1"
+    pub s3_region: String,
+    /// e.g. "guardian-123"
+    pub s3_bucket: String,
 }
 
 impl UpdateAvatarUseCase {
@@ -24,8 +34,7 @@ impl UpdateAvatarUseCase {
         if bytes.is_empty() {
             return Err(AppError::InvalidInput("Avatar file is empty".into()));
         }
-        // 5 MB guard
-        if bytes.len() > 5 * 1024 * 1024 {
+        if bytes.len() > 10 * 1024 * 1024 {
             return Err(AppError::InvalidInput(
                 "Avatar must be smaller than 5 MB".into(),
             ));
@@ -36,21 +45,120 @@ impl UpdateAvatarUseCase {
             .parse()
             .map_err(|_| AppError::InvalidInput("Invalid user id".into()))?;
 
-        // Write to disk — filename is deterministic per user so re-upload just
-        // overwrites the previous file with no orphaned data.
-        tokio::fs::create_dir_all(&self.uploads_dir)
-            .await
-            .map_err(|e| AppError::Internal(format!("Cannot create uploads dir: {e}")))?;
+        let content_type = match ext {
+            "jpg" => "image/jpeg",
+            "png" => "image/png",
+            "webp" => "image/webp",
+            _ => "application/octet-stream",
+        };
 
-        let disk_name = format!("avatar_{id}.{ext}");
-        let path = self.uploads_dir.join(&disk_name);
-        tokio::fs::write(&path, &bytes)
-            .await
-            .map_err(|e| AppError::Internal(format!("Failed to write avatar: {e}")))?;
+        let s3_key = format!("avatars/avatar_{id}.{ext}");
+        let host = format!(
+            "{}.s3.{}.amazonaws.com",
+            self.s3_bucket, self.s3_region
+        );
+        let url = format!("https://{}/{}", host, s3_key);
 
-        let url = format!("{}/{}", self.public_base_url.trim_end_matches('/'), disk_name);
-        let user = self.user_repo.update_avatar_url(id, &url).await?;
+        // ── AWS Signature V4 ──────────────────────────────────────────────────
+        let now = Utc::now();
+        let amzdate = now.format("%Y%m%dT%H%M%SZ").to_string();
+        let datestamp = now.format("%Y%m%d").to_string();
+        let service = "s3";
+
+        // Payload hash
+        let payload_hash = hex::encode(Sha256::digest(&bytes));
+
+        // Canonical headers (must be sorted alphabetically by header name)
+        let canonical_headers = format!(
+            "content-type:{}\nhost:{}\nx-amz-acl:public-read\nx-amz-content-sha256:{}\nx-amz-date:{}\n",
+            content_type, host, payload_hash, amzdate
+        );
+        let signed_headers = "content-type;host;x-amz-acl;x-amz-content-sha256;x-amz-date";
+
+        let canonical_request = format!(
+            "PUT\n/{}\n\n{}\n{}\n{}",
+            s3_key, canonical_headers, signed_headers, payload_hash
+        );
+
+        // String to sign
+        let credential_scope = format!(
+            "{}/{}/{}/aws4_request",
+            datestamp, self.s3_region, service
+        );
+        let string_to_sign = format!(
+            "AWS4-HMAC-SHA256\n{}\n{}\n{}",
+            amzdate,
+            credential_scope,
+            hex::encode(Sha256::digest(canonical_request.as_bytes()))
+        );
+
+        // Signing key
+        let signing_key = Self::derive_signing_key(
+            &self.aws_secret_access_key,
+            &datestamp,
+            &self.s3_region,
+            service,
+        )?;
+
+        let mut mac = HmacSha256::new_from_slice(&signing_key)
+            .map_err(|e| AppError::Internal(format!("HMAC error: {e}")))?;
+        mac.update(string_to_sign.as_bytes());
+        let signature = hex::encode(mac.finalize().into_bytes());
+
+        let authorization = format!(
+            "AWS4-HMAC-SHA256 Credential={}/{}, SignedHeaders={}, Signature={}",
+            self.aws_access_key_id, credential_scope, signed_headers, signature
+        );
+
+        // ── Upload via reqwest ────────────────────────────────────────────────
+        let resp = self
+            .http_client
+            .put(&url)
+            .header("Content-Type", content_type)
+            .header("x-amz-acl", "public-read")
+            .header("x-amz-content-sha256", &payload_hash)
+            .header("x-amz-date", &amzdate)
+            .header("Authorization", &authorization)
+            .body(bytes)
+            .send()
+            .await
+            .map_err(|e| AppError::Internal(format!("S3 PUT request failed: {e}")))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status();
+            let body = resp.text().await.unwrap_or_default();
+            return Err(AppError::Internal(format!(
+                "S3 upload failed ({status}): {body}"
+            )));
+        }
+
+        // Permanent public URL
+        let public_url = format!("https://{}/{}", host, s3_key);
+        let user = self.user_repo.update_avatar_url(id, &public_url).await?;
         Ok(user)
+    }
+
+    fn derive_signing_key(
+        secret: &str,
+        datestamp: &str,
+        region: &str,
+        service: &str,
+    ) -> Result<Vec<u8>, AppError> {
+        let key_date = Self::hmac_sign(
+            format!("AWS4{}", secret).as_bytes(),
+            datestamp.as_bytes(),
+        )?;
+        let key_region = Self::hmac_sign(&key_date, region.as_bytes())?;
+        let key_service = Self::hmac_sign(&key_region, service.as_bytes())?;
+        let key_signing = Self::hmac_sign(&key_service, b"aws4_request")?;
+        Ok(key_signing)
+    }
+
+    fn hmac_sign(key: &[u8], data: &[u8]) -> Result<Vec<u8>, AppError> {
+        let mut mac = HmacSha256::new_from_slice(key)
+            .map_err(|e| AppError::Internal(format!("HMAC key error: {e}")))?;
+        mac.update(data);
+        Ok(mac.finalize().into_bytes().to_vec())
     }
 
     fn safe_ext(filename: &str) -> Result<&'static str, AppError> {

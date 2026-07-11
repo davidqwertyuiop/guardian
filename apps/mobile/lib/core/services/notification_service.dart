@@ -7,10 +7,14 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:guardian/core/services/api_service.dart';
 import 'package:guardian/firebase_options.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // Awesome Notifications must be re-initialized in the background isolate
+  // because main() never runs here, so channels are not yet registered.
+  await NotificationService.initializeAwesomeNotifications();
   debugPrint("Handling a background message: ${message.messageId}");
   NotificationService.showLocalNotification(
     title:
@@ -32,19 +36,12 @@ class NotificationService {
   static Stream<RemoteMessage> get foregroundMessages =>
       _messageController.stream;
 
-  static Future<void> initialize() async {
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
-
-    // 1. Initialize Awesome Notifications
+  /// Initializes the Awesome Notifications channel definitions.
+  /// Must be called from BOTH main() and the background isolate handler,
+  /// because the background isolate runs without executing main().
+  static Future<void> initializeAwesomeNotifications() async {
     await AwesomeNotifications().initialize(
-      // We use null to fall back to default launcher icon
+      // null = fall back to the default launcher icon
       null,
       [
         NotificationChannel(
@@ -74,6 +71,20 @@ class NotificationService {
       ],
       debug: true,
     );
+  }
+
+  static Future<void> initialize() async {
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+
+    // 1. Initialize Awesome Notifications channels
+    await initializeAwesomeNotifications();
 
     // 2. Request local notification permissions
     bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
@@ -112,6 +123,15 @@ class NotificationService {
     debugPrint("Notification action received: ${receivedAction.id}");
     // Here we can navigate to the Live Map or details screen.
     // Standard approach: publish to a stream or navigate via GlobalKey navigator.
+    if (receivedAction.buttonKeyPressed == 'CALL') {
+      final phone = receivedAction.payload?['phone'];
+      if (phone != null && phone.isNotEmpty) {
+        final Uri telUri = Uri.parse('tel:$phone');
+        if (await canLaunchUrl(telUri)) {
+          await launchUrl(telUri);
+        }
+      }
+    }
   }
 
   /// Request permissions for FCM and upload device token to our backend
@@ -174,6 +194,52 @@ class NotificationService {
     required String body,
     Map<String, String>? payload,
   }) async {
+    final type = payload?['type'];
+    
+    List<NotificationActionButton>? actionButtons;
+    String? largeIcon;
+    String? bigPicture;
+    NotificationLayout layout = NotificationLayout.Default;
+
+    if (type == 'sos') {
+      final name = payload?['name'] ?? 'Temi';
+      actionButtons = [
+        NotificationActionButton(
+          key: 'OPEN_APP',
+          label: 'Open Guardian',
+          actionType: ActionType.Default,
+        ),
+        NotificationActionButton(
+          key: 'CALL',
+          label: 'Call $name',
+          actionType: ActionType.Default,
+        ),
+      ];
+    } else if (type == 'journey_completed') {
+      largeIcon = 'asset://assets/images/notification_map_route.png';
+      bigPicture = 'asset://assets/images/notification_map_route.png';
+      layout = NotificationLayout.BigPicture;
+    } else if (type == 'journey_started') {
+      largeIcon = 'asset://assets/images/notification_gradient_map.png';
+      bigPicture = 'asset://assets/images/notification_gradient_map.png';
+      layout = NotificationLayout.BigPicture;
+    } else if (type == 'testing_rich') {
+      bigPicture = 'asset://assets/images/notification_gradient_map.png';
+      layout = NotificationLayout.BigPicture;
+      actionButtons = [
+        NotificationActionButton(
+          key: 'SHARE',
+          label: 'Share',
+          actionType: ActionType.Default,
+        ),
+        NotificationActionButton(
+          key: 'DELETE',
+          label: 'Delete',
+          actionType: ActionType.Default,
+        ),
+      ];
+    }
+
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
@@ -184,7 +250,11 @@ class NotificationService {
         fullScreenIntent: true,
         wakeUpScreen: true,
         payload: payload,
+        largeIcon: largeIcon,
+        bigPicture: bigPicture,
+        notificationLayout: layout,
       ),
+      actionButtons: actionButtons,
     );
   }
 }

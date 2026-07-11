@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:guardian/core/constants/app_colors.dart';
 import 'package:guardian/core/utils/fade_route.dart';
+import '../bloc/journey_bloc.dart';
+import '../bloc/journey_event.dart';
+import '../bloc/journey_state.dart';
 import 'completed_journey_screen.dart';
 
 class ActiveJourneyScreen extends StatelessWidget {
@@ -9,9 +13,16 @@ class ActiveJourneyScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
+    return BlocListener<JourneyBloc, JourneyState>(
+      listener: (context, state) {
+        if (state.status == JourneyStatus.completed) {
+          Navigator.of(context).pushReplacement(
+            FadeRoute(page: const CompletedJourneyScreen()),
+          );
+        }
+      },
+      child: Scaffold(
       backgroundColor: isDark
           ? const Color(0xFF0F0F15)
           : const Color(0xFFFAF9FF),
@@ -104,9 +115,7 @@ class ActiveJourneyScreen extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          FadeRoute(page: const CompletedJourneyScreen()),
-                        );
+                        context.read<JourneyBloc>().add(const EndJourney());
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
@@ -131,6 +140,7 @@ class ActiveJourneyScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }

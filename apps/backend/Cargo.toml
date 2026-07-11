@@ -51,3 +51,4 @@ async-trait  = "0.1"
 reqwest = { version = "0.13.4", features = ["json"] }
 firebase-auth = "0.5.1"
 base64 = "0.22.1"
+hmac = "0.12"

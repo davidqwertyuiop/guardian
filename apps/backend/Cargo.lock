@@ -1134,6 +1134,7 @@ dependencies = [
  "dotenvy",
  "firebase-auth",
  "hex",
+ "hmac",
  "jsonwebtoken",
  "password-hash",
  "rand 0.8.6",

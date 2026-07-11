@@ -167,7 +167,7 @@ class YouAreLiveBottomSheet extends StatelessWidget {
                                 onPressed: () {
                                   if (isConfirmStop) {
                                     context.read<JourneyBloc>().add(
-                                      const EndJourney(),
+                                      const EndJourney(arrived: false),
                                     );
                                     Navigator.pop(context);
                                   } else {

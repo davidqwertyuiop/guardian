@@ -79,8 +79,15 @@ class ApiService {
     destination: destination,
     duration: duration,
   );
-  static Future<bool> stopJourney({required String circleId}) =>
-      JourneyApiService.stopJourney(circleId: circleId);
+  static Future<bool> stopJourney({
+    required String circleId,
+    bool? arrived,
+    String? lastSeenAddress,
+  }) => JourneyApiService.stopJourney(
+        circleId: circleId,
+        arrived: arrived,
+        lastSeenAddress: lastSeenAddress,
+      );
 
   // ── Location Endpoints ──────────────────────────────────────────────────────
   static Future<void> updateLocation({

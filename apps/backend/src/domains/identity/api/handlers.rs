@@ -1,17 +1,19 @@
 use axum::{extract::State, Json};
-//use crate::domains::identity::domain::entities::user_session::UserSession;
 use crate::domains::identity::{
     api::dto::*,
     application::{
         delete_account::DeleteAccountUseCase, firebase_exchange::FirebaseExchangeUseCase,
         get_profile::GetProfileUseCase, refresh_token::RefreshTokenUseCase,
-        setup_profile::SetupProfileUseCase, update_avatar::UpdateAvatarUseCase,
-        update_preferences::UpdatePreferencesUseCase,
+        send_otp::SendOtpUseCase, setup_profile::SetupProfileUseCase,
+        update_avatar::UpdateAvatarUseCase, update_preferences::UpdatePreferencesUseCase,
+        verify_otp::VerifyOtpUseCase,
     },
 };
+use crate::infrastructure::sms::infobip::InfobipSmsService;
 use crate::routes::AppState;
 use crate::shared::{errors::AppError, middleware::auth::AuthUser};
 use axum::extract::Multipart;
+use std::sync::Arc;
 
 // ── PATCH /api/v1/auth/profile ─────────────────────────────────────────────
 
@@ -141,7 +143,25 @@ pub async fn get_sessions(
 
     let sessions = state.session_repo.list_for_user(user_id).await?;
 
-    let resp = sessions
+    let mut unique_sessions = Vec::new();
+    let mut seen_devices = std::collections::HashSet::new();
+
+    for s in sessions {
+        let key = format!("{}:{}", s.device_name.to_lowercase(), s.platform.to_lowercase());
+        if seen_devices.contains(&key) {
+            // This is an older duplicate session. Delete it in background to keep DB clean
+            let session_repo = state.session_repo.clone();
+            let token_hash = s.refresh_token_hash.clone();
+            tokio::spawn(async move {
+                let _ = session_repo.delete_by_token_hash(&token_hash).await;
+            });
+        } else {
+            seen_devices.insert(key);
+            unique_sessions.push(s);
+        }
+    }
+
+    let resp = unique_sessions
         .into_iter()
         .map(|s| SessionResponse {
             id: s.refresh_token_hash,
@@ -314,8 +334,11 @@ pub async fn update_avatar(
 
     let use_case = UpdateAvatarUseCase {
         user_repo: state.user_repo.clone(),
-        uploads_dir: state.uploads_dir.clone(),
-        public_base_url: state.public_base_url.clone(),
+        http_client: state.http_client.clone(),
+        aws_access_key_id: state.config.aws_access_key_id.clone(),
+        aws_secret_access_key: state.config.aws_secret_access_key.clone(),
+        s3_bucket: state.s3_bucket.clone(),
+        s3_region: state.s3_region.clone(),
     };
 
     let user = use_case.execute(&claims.sub, &filename, bytes).await?;
@@ -331,5 +354,66 @@ pub async fn update_avatar(
         notify_new_member: user.notify_new_member,
         location_paused_until: user.location_paused_until,
         created_at: user.created_at,
+    }))
+}
+
+// ── POST /api/v1/auth/otp/send ─────────────────────────────────────────────
+
+pub async fn send_otp_handler(
+    State(state): State<AppState>,
+    Json(body): Json<SendOtpRequest>,
+) -> Result<Json<SendOtpResponse>, AppError> {
+    let phone = body.phone.trim().to_string();
+    if phone.is_empty() {
+        return Err(AppError::InvalidInput("Phone number cannot be empty".into()));
+    }
+
+    let sms_service = Arc::new(InfobipSmsService::new(
+        state.config.infobip_base_url.clone(),
+        state.config.infobip_api_key.clone(),
+        state.config.infobip_sender.clone(),
+    ));
+
+    let use_case = SendOtpUseCase {
+        otp_store: state.otp_store.clone(),
+        sms_service,
+    };
+
+    use_case.execute(&phone).await?;
+
+    Ok(Json(SendOtpResponse {
+        message: "OTP sent successfully".into(),
+    }))
+}
+
+// ── POST /api/v1/auth/otp/verify ───────────────────────────────────────────
+
+pub async fn verify_otp_handler(
+    State(state): State<AppState>,
+    Json(body): Json<VerifyOtpRequest>,
+) -> Result<Json<AuthResponse>, AppError> {
+    let use_case = VerifyOtpUseCase {
+        otp_store: state.otp_store.clone(),
+        user_repo: state.user_repo.clone(),
+        session_repo: state.session_repo.clone(),
+        config: state.config.clone(),
+    };
+
+    let output = use_case
+        .execute(
+            body.phone.trim(),
+            body.code.trim(),
+            &body.device_name,
+            body.device_model,
+            &body.platform,
+        )
+        .await?;
+
+    Ok(Json(AuthResponse {
+        access_token: output.access_token,
+        refresh_token: output.refresh_token,
+        user_id: output.user_id,
+        phone: output.phone,
+        is_profile_complete: output.is_profile_complete,
     }))
 }

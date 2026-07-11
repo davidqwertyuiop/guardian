@@ -77,3 +77,24 @@ pub struct RegisterDeviceRequest {
     pub fcm_token: String,
     pub platform: String,
 }
+
+// ── OTP / Infobip Auth ───────────────────────────────────────────────────────
+
+#[derive(Debug, Deserialize)]
+pub struct SendOtpRequest {
+    pub phone: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct SendOtpResponse {
+    pub message: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct VerifyOtpRequest {
+    pub phone: String,
+    pub code: String,
+    pub platform: String,
+    pub device_name: String,
+    pub device_model: Option<String>,
+}
