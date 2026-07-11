@@ -30,7 +30,11 @@ class SettingsProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocListener<SettingsBloc, SettingsState>(
       listenWhen: (prev, curr) =>
+          // Upload just finished
+          (prev.avatarUploading && !curr.avatarUploading && curr.newAvatarUrl.isNotEmpty) ||
+          // New distinct URL
           (curr.newAvatarUrl.isNotEmpty && curr.newAvatarUrl != prev.newAvatarUrl) ||
+          // Error
           (curr.status == SettingsStatus.failure && curr.errorMessage != prev.errorMessage),
       listener: (context, state) {
         if (state.status == SettingsStatus.failure && state.errorMessage.isNotEmpty) {
@@ -43,6 +47,9 @@ class SettingsProfileView extends StatelessWidget {
           );
         }
         if (state.newAvatarUrl.isNotEmpty) {
+          // Evict the old cached image so Flutter reloads it even if the URL
+          // is the same (proxy URL never changes — only the S3 content does).
+          NetworkImage(state.newAvatarUrl).evict();
           context.read<HomeBloc>().add(UpdateAvatarUrl(state.newAvatarUrl));
         }
       },

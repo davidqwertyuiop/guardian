@@ -135,7 +135,19 @@ impl UpdateAvatarUseCase {
 
         // Store the proxy URL so the mobile app fetches through our backend
         // (the S3 bucket is private — no public-read needed).
-        let proxy_url = format!("{}/api/v1/auth/avatar/{}", self.public_base_url, id);
+        // Strip any path suffix from public_base_url to get just the origin
+        // e.g. "https://guardian.shadowchat.xyz/invite" → "https://guardian.shadowchat.xyz"
+        let origin = {
+            let url = &self.public_base_url;
+            if let Some(parsed) = url.split("://").nth(1) {
+                let host = parsed.split('/').next().unwrap_or(parsed);
+                let scheme = url.split("://").next().unwrap_or("https");
+                format!("{}://{}", scheme, host)
+            } else {
+                url.clone()
+            }
+        };
+        let proxy_url = format!("{}/api/v1/auth/avatar/{}", origin, id);
         let user = self.user_repo.update_avatar_url(id, &proxy_url).await?;
         Ok(user)
     }
