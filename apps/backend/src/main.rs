@@ -19,13 +19,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
 
     // Initialize telemetry/tracing
-    tracing_subscriber::registry()
+    let mut registry = tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| "guardian_backend=info,tower_http=info,axum=info".into()),
         )
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+        .with(tracing_subscriber::fmt::layer());
+
+    // Initialize Axiom if token is present
+    if let Ok(axiom_token) = std::env::var("AXIOM_TOKEN") {
+        if let Ok(axiom_dataset) = std::env::var("AXIOM_DATASET") {
+            let axiom_layer = tracing_axiom::builder("guardian-backend")
+                .with_token(axiom_token).expect("Invalid Axiom token")
+                .with_dataset(axiom_dataset).expect("Invalid Axiom dataset")
+                .with_tags(std::iter::once(("env", "production")))
+                .build()
+                .expect("Failed to initialize Axiom layer");
+            
+            // Note: We init using Box dynamic dispatch to support optional layer
+            registry.with(axiom_layer).init();
+        } else {
+            registry.init();
+        }
+    } else {
+        registry.init();
+    }
 
     tracing::info!("🚀 Starting Guardian Backend v2 (Docker/Render)...");
 

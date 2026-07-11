@@ -154,6 +154,7 @@
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
+				D5EE38343C4341009232CAD3 /* Firebase Crashlytics */,
 			);
 			buildRules = (
 			);
@@ -255,6 +256,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+		};
+		D5EE38343C4341009232CAD3 /* Firebase Crashlytics */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			name = "Firebase Crashlytics";
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			shellPath = /bin/sh;
+			shellScript = "if [ -d \"${PODS_ROOT}/FirebaseCrashlytics/run\" ]; then
+  \"${PODS_ROOT}/FirebaseCrashlytics/run\"
+fi
+";
 		};
 /* End PBXShellScriptBuildPhase section */
 

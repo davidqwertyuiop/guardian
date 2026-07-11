@@ -93,6 +93,14 @@ class ClickInviteLink extends AuthEvent {
   const ClickInviteLink();
 }
 
+class HandleDeepLinkInvite extends AuthEvent {
+  final String code;
+  const HandleDeepLinkInvite(this.code);
+
+  @override
+  List<Object?> get props => [code];
+}
+
 class SelectCreateCircle extends AuthEvent {
   const SelectCreateCircle();
 }

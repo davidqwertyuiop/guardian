@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'guardian-821b6',
     storageBucket: 'guardian-821b6.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs',
     appId: '1:733213004282:ios:387167d26e901d6286d443',

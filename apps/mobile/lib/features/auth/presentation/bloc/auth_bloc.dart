@@ -7,6 +7,7 @@ import 'handlers/phone_auth_handler.dart' as phone;
 import 'handlers/profile_handler.dart' as profile;
 import 'handlers/circle_handler.dart' as circle;
 import 'handlers/navigation_handler.dart' as nav;
+import 'handlers/deep_link_handler.dart' as deeplink;
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({AuthStep initialStep = AuthStep.welcome})
@@ -63,6 +64,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SubmitInviteLink>(
       (e, emit) =>
           circle.onSubmitInviteLink(e, emit, state, AuthErrorParser.parse),
+    );
+    on<HandleDeepLinkInvite>(
+      (e, emit) => deeplink.onHandleDeepLinkInvite(e, emit, state),
     );
 
     on<NavigateBack>((e, emit) => nav.onNavigateBack(e, emit, state));

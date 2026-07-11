@@ -115,7 +115,7 @@ Future<void> onEnableNotifications(
     log('Permission request failed: $e');
   }
   if (state.isJoiningCircle) {
-    emit(state.copyWith(step: AuthStep.notifications, status: AuthStatus.success));
+    emit(state.copyWith(step: AuthStep.completed, status: AuthStatus.success));
   } else {
     emit(state.copyWith(step: AuthStep.almostIn));
   }
@@ -130,7 +130,7 @@ Future<void> onSkipNotifications(
   await prefs.setBool('notifications_enabled', false);
   await _syncPreferencesToBackend();
   if (state.isJoiningCircle) {
-    emit(state.copyWith(step: AuthStep.notifications, status: AuthStatus.success));
+    emit(state.copyWith(step: AuthStep.completed, status: AuthStatus.success));
   } else {
     emit(state.copyWith(step: AuthStep.almostIn));
   }

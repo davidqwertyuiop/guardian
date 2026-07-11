@@ -52,3 +52,4 @@ reqwest = { version = "0.13.4", features = ["json"] }
 firebase-auth = "0.5.1"
 base64 = "0.22.1"
 hmac = "0.12"
+tracing-axiom = "0.7.0"

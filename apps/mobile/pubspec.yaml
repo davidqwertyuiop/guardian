@@ -71,6 +71,10 @@ dependencies:
   image_picker: ^1.1.2
   lottie: ^3.1.2
   smart_auth: ^3.2.0
+  firebase_crashlytics: any
+  firebase_analytics: any
+  aptabase_flutter: any
+  app_links: ^7.0.0
 
 
 
@@ -181,3 +185,7 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/app_icon_1024.png"
   remove_alpha_ios: true
+
+dependency_overrides:
+  package_info_plus: ^10.0.0
+  device_info_plus: ^13.2.0
