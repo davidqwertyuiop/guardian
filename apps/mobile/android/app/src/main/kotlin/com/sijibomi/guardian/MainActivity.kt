@@ -2,7 +2,6 @@ package com.sijibomi.guardian
 
 import android.content.Context
 import android.os.Build
-import android.telephony.TelephonyDisplayInfo
 import android.telephony.TelephonyManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine

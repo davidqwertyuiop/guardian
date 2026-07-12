@@ -84,7 +84,6 @@ class NotificationsPermissionScreen extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Chroma-like premium app icon
                     Container(
                       width: 38,
                       height: 38,
@@ -107,7 +106,7 @@ class NotificationsPermissionScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Chroma™',
+                            'Guardian',
                             style: TextStyle(
                               fontFamily: 'Inter',
                               fontSize: AdaptiveLayout.sp(context, 14),
@@ -130,7 +129,7 @@ class NotificationsPermissionScreen extends StatelessWidget {
                 ),
                 SizedBox(height: AdaptiveLayout.h(context, 10)),
                 Text(
-                  'You have two new dreams from last night. Want to unroll them?',
+                  'Temi started an SOS broadcast. Open Guardian to see their live location.',
                   style: TextStyle(
                     fontFamily: 'Inter',
                     fontSize: AdaptiveLayout.sp(context, 14),

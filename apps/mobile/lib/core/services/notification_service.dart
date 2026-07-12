@@ -31,7 +31,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class NotificationService {
   static final _messageController = StreamController<RemoteMessage>.broadcast();
+  static StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
   static bool _tokenRefreshListenerAttached = false;
+  static bool _initialized = false;
 
   static Stream<RemoteMessage> get foregroundMessages =>
       _messageController.stream;
@@ -74,6 +76,9 @@ class NotificationService {
   }
 
   static Future<void> initialize() async {
+    if (_initialized) return;
+    _initialized = true;
+
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
     await FirebaseMessaging.instance
@@ -86,14 +91,10 @@ class NotificationService {
     // 1. Initialize Awesome Notifications channels
     await initializeAwesomeNotifications();
 
-    // 2. Request local notification permissions
-    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
-    if (!isAllowed) {
-      await AwesomeNotifications().requestPermissionToSendNotifications();
-    }
-
-    // 3. Register FCM foreground message handler
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    // 2. Register FCM foreground message handler without requesting permission.
+    _foregroundMessageSubscription ??= FirebaseMessaging.onMessage.listen((
+      RemoteMessage message,
+    ) {
       debugPrint("Received a foreground message: ${message.messageId}");
       _messageController.add(message);
       showLocalNotification(
@@ -111,7 +112,7 @@ class NotificationService {
       );
     });
 
-    // 4. Handle action when user taps on the notification
+    // 3. Handle action when user taps on the notification
     AwesomeNotifications().setListeners(
       onActionReceivedMethod: onActionReceivedMethod,
     );
@@ -136,22 +137,46 @@ class NotificationService {
     }
   }
 
+  static Future<bool> requestPermissionsAndRegisterDevice() async {
+    final settings = await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      // Critical Alerts require a separate Apple entitlement. Requesting them
+      // in a normal build can fail on physical iOS devices during Home startup.
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    final fcmAllowed =
+        settings.authorizationStatus == AuthorizationStatus.authorized ||
+        settings.authorizationStatus == AuthorizationStatus.provisional;
+
+    var localAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!localAllowed) {
+      localAllowed = await AwesomeNotifications()
+          .requestPermissionToSendNotifications();
+    }
+
+    if (fcmAllowed || localAllowed) {
+      await registerDeviceToken();
+      return true;
+    }
+    return false;
+  }
+
   /// Request permissions for FCM and upload device token to our backend
   static Future<void> registerDeviceToken() async {
     try {
-      final settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: Platform.isIOS,
-        provisional: false,
-        sound: true,
-      );
+      final settings = await FirebaseMessaging.instance
+          .getNotificationSettings();
 
-      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+          settings.authorizationStatus != AuthorizationStatus.provisional) {
         debugPrint(
-          "Notification permission denied; skipping FCM token upload.",
+          "Notification permission is not granted; skipping FCM token upload.",
         );
         return;
       }

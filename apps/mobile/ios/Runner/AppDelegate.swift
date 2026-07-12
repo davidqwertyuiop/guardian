@@ -78,20 +78,6 @@ import CoreTelephony
     } else {
       NSLog("Guardian: missing Google Maps iOS API key. Map tiles will not load.")
     }
-    if let controller = window?.rootViewController as? FlutterViewController {
-      let channel = FlutterMethodChannel(
-        name: "guardian/radio_type",
-        binaryMessenger: controller.binaryMessenger
-      )
-      channel.setMethodCallHandler { [weak self] call, result in
-        if call.method == "mobileRadioType" {
-          result(self?.mobileRadioType() ?? "Cellular")
-        } else {
-          result(FlutterMethodNotImplemented)
-        }
-      }
-    }
-
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
@@ -99,7 +85,7 @@ import CoreTelephony
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
   }
 
-  private func mobileRadioType() -> String {
+  func mobileRadioType() -> String {
     let technologies: [String]
     if let serviceTechs = radioInfo.serviceCurrentRadioAccessTechnology?.values {
       technologies = Array(serviceTechs)

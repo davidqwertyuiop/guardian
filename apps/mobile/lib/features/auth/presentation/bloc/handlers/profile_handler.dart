@@ -5,6 +5,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
 import 'package:guardian/core/services/api_service.dart';
+import 'package:guardian/core/services/notification_service.dart';
 import '../auth_event.dart';
 import '../auth_state.dart';
 
@@ -19,7 +20,7 @@ Future<void> onCompleteProfile(
     final prefs = locator<SharedPreferences>();
     await prefs.setString('username', event.username);
     await prefs.setString('country_code', state.countryCode);
-    
+
     try {
       await ApiService.updateProfile(event.username);
     } catch (e) {
@@ -35,10 +36,7 @@ Future<void> onCompleteProfile(
     );
   } catch (e) {
     emit(
-      state.copyWith(
-        status: AuthStatus.failure,
-        errorMessage: parseError(e),
-      ),
+      state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)),
     );
   }
 }
@@ -94,19 +92,9 @@ Future<void> onEnableNotifications(
   Emitter<AuthState> emit,
   AuthState state,
 ) async {
+  var granted = false;
   try {
-    final status = await Permission.notification.request();
-    final granted = status.isGranted;
-
-    // Prompt to turn on GPS settings if location service is disabled (safety fallback)
-    try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        await Geolocator.openLocationSettings();
-      }
-    } catch (e) {
-      log('Geolocator service check failed: $e');
-    }
+    granted = await NotificationService.requestPermissionsAndRegisterDevice();
 
     final prefs = locator<SharedPreferences>();
     await prefs.setBool('notifications_enabled', granted);
@@ -142,7 +130,11 @@ Future<void> _syncPreferencesToBackend() async {
     final location = prefs.getBool('location_enabled') ?? false;
     final notifications = prefs.getBool('notifications_enabled') ?? false;
     await ApiService.updatePreferences(
-        location, notifications, notifications, notifications);
+      location,
+      notifications,
+      notifications,
+      notifications,
+    );
   } catch (e) {
     log('Failed to sync preferences to backend: $e');
   }

@@ -50,8 +50,12 @@ Future<void> onCreateCircle(
       if (invite != null) {
         inviteCode = invite['code'] as String?;
         inviteLink = invite['invite_link'] as String?;
-        if (inviteCode != null) await prefs.setString('invite_code', inviteCode);
-        if (inviteLink != null) await prefs.setString('invite_link', inviteLink);
+        if (inviteCode != null) {
+          await prefs.setString('invite_code', inviteCode);
+        }
+        if (inviteLink != null) {
+          await prefs.setString('invite_link', inviteLink);
+        }
       }
     } catch (e) {
       log('Backend fallback: createCircle failed ($e)');
@@ -65,7 +69,9 @@ Future<void> onCreateCircle(
       ),
     );
   } catch (e) {
-    emit(state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)));
+    emit(
+      state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)),
+    );
   }
 }
 
@@ -89,7 +95,9 @@ Future<void> onSubmitInviteCode(
       ),
     );
   } catch (e) {
-    emit(state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)));
+    emit(
+      state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)),
+    );
   }
 }
 
@@ -121,7 +129,9 @@ Future<void> onSubmitInviteLink(
   try {
     final link = event.link.trim();
     if (link.isEmpty) {
-      emit(state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty));
+      emit(
+        state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty),
+      );
       return;
     }
 
@@ -131,7 +141,9 @@ Future<void> onSubmitInviteLink(
     final hasMembers = await ApiService.checkCircleHasMembers(link);
 
     if (!hasMembers) {
-      emit(state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty));
+      emit(
+        state.copyWith(status: AuthStatus.initial, step: AuthStep.circleEmpty),
+      );
       return;
     }
 
@@ -149,6 +161,8 @@ Future<void> onSubmitInviteLink(
       ),
     );
   } catch (e) {
-    emit(state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)));
+    emit(
+      state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)),
+    );
   }
 }

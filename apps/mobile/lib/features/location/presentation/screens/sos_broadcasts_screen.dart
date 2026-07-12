@@ -48,7 +48,7 @@ class _SosBroadcastsScreenState extends State<SosBroadcastsScreen>
 
   Future<void> _resolveBroadcast(String broadcastId) async {
     try {
-      final success = await SosApiService.resolveSos(broadcastId);
+      final success = await ApiService.resolveSos(broadcastId);
       if (success) {
         toastification.show(
           title: const Text('SOS Resolved'),

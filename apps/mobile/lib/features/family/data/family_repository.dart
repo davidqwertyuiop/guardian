@@ -1,6 +1,5 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:guardian/bootstrap/dependency_injection.dart';
-import 'package:guardian/core/services/api/location_api_service.dart';
 import 'package:guardian/core/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,7 +24,7 @@ class FamilyRepository {
   }
 
   Future<Map<String, Map<String, dynamic>>> locations(String circleId) async {
-    final rows = await LocationApiService.getCircleMemberLocations(circleId);
+    final rows = await ApiService.getCircleMemberLocations(circleId);
     return {for (final row in rows) '${row['user_id']}': row};
   }
 

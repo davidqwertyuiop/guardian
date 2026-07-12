@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:guardian/core/services/background_trigger_service.dart';
 import 'package:guardian/core/services/notification_service.dart';
 import 'package:guardian/export.dart';
 import 'package:guardian/features/notifications/data/models/app_notification.dart';
@@ -21,6 +22,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _homeBloc = context.read<HomeBloc>();
     _homeBloc.add(const LoadHomeData());
+    BackgroundTriggerService().startListening();
+    context.read<NotificationBloc>().add(const NotificationsStarted());
     NotificationService.registerDeviceToken();
   }
 
@@ -35,7 +38,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       _homeBloc.add(const LoadHomeData());
       NotificationService.registerDeviceToken();
-      context.read<NotificationBloc>().add(const NotificationsRefreshRequested());
+      context.read<NotificationBloc>().add(
+        const NotificationsRefreshRequested(),
+      );
     }
   }
 

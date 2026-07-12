@@ -12,20 +12,25 @@ import 'api/sos_api_service.dart';
 class ApiService {
   static String get baseUrl => ApiBase.baseUrl;
 
-  static Future<bool> sendOtp(String phone) =>
-      AuthApiService.sendOtp(phone);
+  static Future<bool> sendOtp(String phone) => AuthApiService.sendOtp(phone);
 
-  static Future<Map<String, dynamic>> verifyOtp(
-    String phone,
-    String code,
-  ) => AuthApiService.verifyOtp(phone, code);
+  static Future<Map<String, dynamic>> verifyOtp(String phone, String code) =>
+      AuthApiService.verifyOtp(phone, code);
   static Future<bool> updateProfile(String name) =>
       AuthApiService.updateProfile(name);
   static Future<bool> updatePreferences(
-          bool location, bool sos, bool broadcast, bool newMember,
-          [DateTime? locationPausedUntil]) =>
-      AuthApiService.updatePreferences(
-          location, sos, broadcast, newMember, locationPausedUntil);
+    bool location,
+    bool sos,
+    bool broadcast,
+    bool newMember, [
+    DateTime? locationPausedUntil,
+  ]) => AuthApiService.updatePreferences(
+    location,
+    sos,
+    broadcast,
+    newMember,
+    locationPausedUntil,
+  );
   static Future<bool> deleteAccount() => AuthApiService.deleteAccount();
   static Future<String> refreshToken(String token) =>
       AuthApiService.refreshToken(token);
@@ -64,6 +69,8 @@ class ApiService {
   );
   static Future<bool> dismissSos(String broadcastId) =>
       SosApiService.dismissSos(broadcastId);
+  static Future<bool> resolveSos(String broadcastId) =>
+      SosApiService.resolveSos(broadcastId);
   static Future<bool> leaveCircle(String circleId) =>
       CirclesApiService.leaveCircle(circleId);
   static Future<Map<String, dynamic>> getCircleInvite(String circleId) =>
@@ -86,10 +93,10 @@ class ApiService {
     bool? arrived,
     String? lastSeenAddress,
   }) => JourneyApiService.stopJourney(
-        circleId: circleId,
-        arrived: arrived,
-        lastSeenAddress: lastSeenAddress,
-      );
+    circleId: circleId,
+    arrived: arrived,
+    lastSeenAddress: lastSeenAddress,
+  );
 
   // ── Location Endpoints ──────────────────────────────────────────────────────
   static Future<void> updateLocation({
