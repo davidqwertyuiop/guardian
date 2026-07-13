@@ -100,7 +100,13 @@ void onNavigateToLogin(
   Emitter<AuthState> emit,
   AuthState state,
 ) {
-  emit(state.copyWith(step: AuthStep.login, status: AuthStatus.initial));
+  emit(
+    state.copyWith(
+      step: AuthStep.login,
+      status: AuthStatus.initial,
+      triggerNavigation: true,
+    ),
+  );
 }
 
 void onNavigateToWelcome(
@@ -108,5 +114,11 @@ void onNavigateToWelcome(
   Emitter<AuthState> emit,
   AuthState state,
 ) {
-  emit(state.copyWith(step: AuthStep.welcome, status: AuthStatus.initial));
+  emit(
+    state.copyWith(
+      step: AuthStep.welcome,
+      status: AuthStatus.initial,
+      triggerNavigation: true,
+    ),
+  );
 }

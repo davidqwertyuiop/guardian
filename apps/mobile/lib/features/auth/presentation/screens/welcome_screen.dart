@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'auth_onboarding_router.dart';
@@ -13,6 +15,7 @@ class WelcomeScreen extends StatefulWidget {
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
   AuthStep _currentStep = AuthStep.splash;
+  AuthStep? _pushedStep;
 
   @override
   void initState() {
@@ -20,14 +23,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     _currentStep = context.read<AuthBloc>().state.step;
   }
 
-  void _handleStepTransition(AuthState state) {
+  Future<void> _handleStepTransition(AuthState state) async {
     final newStep = state.step;
     final oldStep = _currentStep;
     if (newStep == _currentStep) return;
 
-    setState(() {
-      _currentStep = newStep;
-    });
+    if (mounted) {
+      setState(() {
+        _currentStep = newStep;
+      });
+    }
 
     if (newStep == AuthStep.completed) {
       return;
@@ -36,13 +41,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if (!state.triggerNavigation) return;
 
     if (AuthOnboardingRouter.isBackTransition(oldStep, newStep)) {
-      if (ModalRoute.of(context)?.isCurrent ?? false) {
-        // Native back-swipe/pop already occurred, just sync state
-        return;
+      _pushedStep = null;
+      final navigator = Navigator.of(context);
+      if (!(ModalRoute.of(context)?.isCurrent ?? false) &&
+          navigator.canPop()) {
+        navigator.pop();
       }
-      Navigator.of(context).pop();
     } else {
-      Navigator.of(context).push(AuthOnboardingRouter.routeFor(newStep));
+      if (_pushedStep == newStep) return;
+      _pushedStep = newStep;
+      await Navigator.of(context).push(AuthOnboardingRouter.routeFor(newStep));
+      if (!mounted) return;
+      if (context.read<AuthBloc>().state.step == newStep) {
+        _pushedStep = null;
+        context.read<AuthBloc>().add(const NavigateBack(isNativePop: true));
+      }
     }
   }
 
@@ -50,7 +63,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       bloc: context.read<AuthBloc>(),
-      listener: (context, state) => _handleStepTransition(state),
+      listenWhen: (previous, current) => previous.step != current.step,
+      listener: (context, state) {
+        unawaited(_handleStepTransition(state));
+      },
       child: _currentStep == AuthStep.splash
           ? const SplashStepView()
           : const WelcomeStepView(),

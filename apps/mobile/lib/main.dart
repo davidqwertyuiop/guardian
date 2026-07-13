@@ -69,9 +69,7 @@ Future<void> _bootstrap() async {
   // Prefer the latest Android Maps renderer before any GoogleMap is created.
   await _initializeAndroidMapRenderer();
 
-  // Initialize notification channels/listeners without prompting for permission.
-  // Permission is requested later from the onboarding notification screen.
-  await NotificationService.initialize();
+  await _initializeNotificationsSafely();
 
   // Initialize dependency injection and get initial auth step
   final initialStep = await initDependencies();
@@ -84,6 +82,21 @@ Future<void> _bootstrap() async {
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   runApp(GuardianApp(initialStep: initialStep));
+}
+
+Future<void> _initializeNotificationsSafely() async {
+  // Permission is requested later from the onboarding notification screen.
+  // Startup should still reach runApp if native notification setup fails.
+  try {
+    await NotificationService.initialize();
+  } catch (error, stackTrace) {
+    debugPrint('Warning: notification initialization failed: $error');
+    await TelemetryService.recordError(
+      error,
+      stackTrace,
+      reason: 'Notification initialization failed',
+    );
+  }
 }
 
 Future<void> _initializeAndroidMapRenderer() async {
@@ -112,6 +125,13 @@ class GuardianApp extends StatefulWidget {
 class _GuardianAppState extends State<GuardianApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool _deepLinkInitialized = false;
+  late bool _isHomeVisible;
+
+  @override
+  void initState() {
+    super.initState();
+    _isHomeVisible = widget.initialStep == AuthStep.completed;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,14 +175,20 @@ class _GuardianAppState extends State<GuardianApp> {
           ),
         ],
         child: BlocListener<AuthBloc, AuthState>(
-          listenWhen: (previous, current) => previous.step != current.step,
+          listenWhen: (previous, current) {
+            if (previous.step == current.step) return false;
+            return current.step == AuthStep.completed ||
+                previous.step == AuthStep.completed;
+          },
           listener: (context, state) {
-            if (state.step == AuthStep.completed) {
+            if (state.step == AuthStep.completed && !_isHomeVisible) {
+              _isHomeVisible = true;
               _navigatorKey.currentState?.pushAndRemoveUntil(
                 SmoothPageRoute(child: const HomeScreen()),
                 (route) => false,
               );
-            } else if (state.step == AuthStep.welcome) {
+            } else if (state.step != AuthStep.completed && _isHomeVisible) {
+              _isHomeVisible = false;
               _navigatorKey.currentState?.pushAndRemoveUntil(
                 SmoothPageRoute(child: const WelcomeScreen()),
                 (route) => false,

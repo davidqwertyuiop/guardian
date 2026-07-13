@@ -86,10 +86,9 @@ class YouAreInSheet extends StatelessWidget {
                       height: AdaptiveLayout.h(context, 54),
                       child: ElevatedButton(
                         onPressed: () {
+                          final authBloc = context.read<AuthBloc>();
                           Navigator.of(context).pop(); // Close sheet
-                          context.read<AuthBloc>().add(
-                            const CompleteCircleOnboarding(),
-                          );
+                          authBloc.add(const CompleteCircleOnboarding());
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,

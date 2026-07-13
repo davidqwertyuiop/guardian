@@ -10,7 +10,11 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
+  bool _youAreInSheetShown = false;
+
   void _showYouAreInSheet(BuildContext context) {
+    if (_youAreInSheetShown || !mounted) return;
+    _youAreInSheetShown = true;
     showModalBottomSheet(
       context: context,
       isDismissible: false,

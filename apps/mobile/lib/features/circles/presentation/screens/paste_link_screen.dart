@@ -31,11 +31,10 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
     final isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
 
     return PopScope(
-      canPop: true,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          context.read<AuthBloc>().add(const NavigateBack(isNativePop: true));
-        }
+        if (didPop) return;
+        context.read<AuthBloc>().add(const NavigateBack());
       },
       child: Scaffold(
         backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,
@@ -222,10 +221,7 @@ class _PasteLinkScreenState extends State<PasteLinkScreen> {
                     Center(
                       child: GestureDetector(
                         onTap: () {
-                          // Let the PopScope handle the bloc state sync to avoid double pop
-                          if (Navigator.of(context).canPop()) {
-                            Navigator.of(context).pop();
-                          }
+                          context.read<AuthBloc>().add(const NavigateBack());
                         },
                         child: Text(
                           "Enter a code instead",

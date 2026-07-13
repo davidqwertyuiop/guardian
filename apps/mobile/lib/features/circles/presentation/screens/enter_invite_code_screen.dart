@@ -15,6 +15,7 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
   final TextEditingController _pinController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
   bool _canSubmit = false;
+  bool _youreInSheetShown = false;
 
   @override
   void initState() {
@@ -32,6 +33,8 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
   }
 
   void _showYoureInSheet() {
+    if (_youreInSheetShown || !mounted) return;
+    _youreInSheetShown = true;
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -95,11 +98,10 @@ class _EnterInviteCodeScreenState extends State<EnterInviteCodeScreen> {
         }
       },
       child: PopScope(
-        canPop: true,
+        canPop: false,
         onPopInvokedWithResult: (didPop, result) {
-          if (didPop) {
-            context.read<AuthBloc>().add(const NavigateBack(isNativePop: true));
-          }
+          if (didPop) return;
+          context.read<AuthBloc>().add(const NavigateBack());
         },
         child: Scaffold(
           backgroundColor: isDark ? const Color(0xFF080808) : Colors.white,

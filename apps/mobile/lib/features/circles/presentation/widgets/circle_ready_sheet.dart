@@ -140,10 +140,9 @@ class CircleReadySheet extends StatelessWidget {
               height: 54,
               child: TextButton(
                 onPressed: () {
+                  final authBloc = context.read<AuthBloc>();
                   Navigator.of(context).pop();
-                  context.read<AuthBloc>().add(
-                    const CompleteCircleOnboarding(),
-                  );
+                  authBloc.add(const CompleteCircleOnboarding());
                 },
                 style: TextButton.styleFrom(
                   shape: RoundedRectangleBorder(

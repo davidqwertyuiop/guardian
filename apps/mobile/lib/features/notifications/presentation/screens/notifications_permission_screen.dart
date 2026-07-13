@@ -2,10 +2,21 @@ import 'package:flutter/material.dart';
 
 import 'package:guardian/export.dart';
 
-class NotificationsPermissionScreen extends StatelessWidget {
+class NotificationsPermissionScreen extends StatefulWidget {
   const NotificationsPermissionScreen({super.key});
 
+  @override
+  State<NotificationsPermissionScreen> createState() =>
+      _NotificationsPermissionScreenState();
+}
+
+class _NotificationsPermissionScreenState
+    extends State<NotificationsPermissionScreen> {
+  bool _youAreInSheetShown = false;
+
   void _showYouAreInSheet(BuildContext context) {
+    if (_youAreInSheetShown || !mounted) return;
+    _youAreInSheetShown = true;
     showModalBottomSheet(
       context: context,
       isDismissible: false,
