@@ -78,6 +78,7 @@ post_install do |installer|
     target.build_configurations.each do |config|
       # Allow non-modular includes in framework modules to support hybrid SPM/CocoaPods setups
       config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+      config.build_settings['CLANG_ENABLE_MODULE_VERIFIER'] = 'NO'
       
       # Force deployment target to be at least 15.0 for all Pods to avoid compiler/deployment target errors
       if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']

@@ -6,8 +6,14 @@ extension _LiveMapLayout on _LiveMapScreenState {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        bottom: false,
+      body: AnimatedBuilder(
+        animation: _fullAnim,
+        builder: (context, child) => Padding(
+          padding: EdgeInsets.only(
+            top: MediaQuery.paddingOf(context).top * (1 - _fullAnim.value),
+          ),
+          child: child,
+        ),
         child: Stack(
           children: [
             RefreshIndicator(

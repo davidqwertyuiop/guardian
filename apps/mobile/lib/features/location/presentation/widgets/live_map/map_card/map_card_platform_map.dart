@@ -11,7 +11,7 @@ extension MapCardPlatformMap on MapCardState {
     required Set<Polyline> polylines,
   }) {
     return GoogleMap(
-      key: ValueKey('live_map_${widget.mapState.name}'),
+      key: const ValueKey('live_map'),
       initialCameraPosition: CameraPosition(
         target: userLoc,
         zoom: isFull ? 15.0 : 16.0,

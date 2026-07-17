@@ -11,16 +11,33 @@ extension FamilyCircleLoadHandlers on FamilyCircleBloc {
     try {
       final userId = await repository.currentUserId();
       final circles = await repository.circles();
-      final members = <String, List<Map<String, dynamic>>>{};
-      for (final circle in circles) {
-        final id = circle['id'] as String;
-        members[id] = await repository.members(id);
-      }
+
+      // Show the user's circles as soon as the membership request succeeds.
+      // Member details are secondary data and must not make a valid circle
+      // disappear when one of those requests is unavailable.
       emit(
         state.copyWith(
           status: FamilyStatus.success,
           currentUserId: userId,
           circles: circles,
+          membersByCircle: const {},
+          clearMessages: true,
+        ),
+      );
+
+      final members = <String, List<Map<String, dynamic>>>{};
+      for (final circle in circles) {
+        final id = circle['id']?.toString() ?? '';
+        if (id.isEmpty) continue;
+        try {
+          members[id] = await repository.members(id);
+        } catch (_) {
+          members[id] = const [];
+        }
+      }
+      emit(
+        state.copyWith(
+          status: FamilyStatus.success,
           membersByCircle: members,
           clearMessages: true,
         ),

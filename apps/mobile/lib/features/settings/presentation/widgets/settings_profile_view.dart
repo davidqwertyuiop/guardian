@@ -31,13 +31,18 @@ class SettingsProfileView extends StatelessWidget {
     return BlocListener<SettingsBloc, SettingsState>(
       listenWhen: (prev, curr) =>
           // Upload just finished
-          (prev.avatarUploading && !curr.avatarUploading && curr.newAvatarUrl.isNotEmpty) ||
+          (prev.avatarUploading &&
+              !curr.avatarUploading &&
+              curr.newAvatarUrl.isNotEmpty) ||
           // New distinct URL
-          (curr.newAvatarUrl.isNotEmpty && curr.newAvatarUrl != prev.newAvatarUrl) ||
+          (curr.newAvatarUrl.isNotEmpty &&
+              curr.newAvatarUrl != prev.newAvatarUrl) ||
           // Error
-          (curr.status == SettingsStatus.failure && curr.errorMessage != prev.errorMessage),
-      listener: (context, state) {
-        if (state.status == SettingsStatus.failure && state.errorMessage.isNotEmpty) {
+          (curr.status == SettingsStatus.failure &&
+              curr.errorMessage != prev.errorMessage),
+      listener: (context, state) async {
+        if (state.status == SettingsStatus.failure &&
+            state.errorMessage.isNotEmpty) {
           toastification.show(
             context: context,
             title: Text(state.errorMessage),
@@ -47,9 +52,14 @@ class SettingsProfileView extends StatelessWidget {
           );
         }
         if (state.newAvatarUrl.isNotEmpty) {
-          // Evict the old cached image so Flutter reloads it even if the URL
-          // is the same (proxy URL never changes — only the S3 content does).
-          NetworkImage(state.newAvatarUrl).evict();
+          // iOS can retain the old decoded image as a live cache entry even
+          // after the URL changes. Remove both providers before publishing the
+          // new URL so every avatar consumer receives fresh image bytes.
+          if (homeState.avatarUrl.isNotEmpty) {
+            await NetworkImage(homeState.avatarUrl).evict();
+          }
+          await NetworkImage(state.newAvatarUrl).evict();
+          if (!context.mounted) return;
           context.read<HomeBloc>().add(UpdateAvatarUrl(state.newAvatarUrl));
         }
       },
@@ -146,9 +156,7 @@ class SettingsProfileView extends StatelessWidget {
     );
     if (picked == null) return;
     if (!context.mounted) return;
-    context
-        .read<SettingsBloc>()
-        .add(UploadAvatarRequested(File(picked.path)));
+    context.read<SettingsBloc>().add(UploadAvatarRequested(File(picked.path)));
   }
 
   TextStyle _title(BuildContext context) => TextStyle(

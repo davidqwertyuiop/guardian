@@ -40,7 +40,6 @@ class MapCardState extends State<MapCard> {
   @override
   void didUpdateWidget(covariant MapCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.mapState != widget.mapState) _controller = null;
     handleMapCardUpdate(oldWidget);
     refreshDirectionsIfNeeded();
   }

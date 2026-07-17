@@ -9,6 +9,24 @@ extension MapCardView on MapCardState {
     );
     resolveCurrentLocationLabel(userLoc);
     final screenHeight = MediaQuery.sizeOf(context).height;
+    final isCompact = widget.mapState == MapDisplayState.compact;
+    final isFull = widget.mapState == MapDisplayState.full;
+    final ignoreGestures = isCompact;
+    final route = buildRouteInfo(userLoc);
+    final markers = buildGoogleMarkers(userLoc);
+
+    // Keep the native platform view stable while its Flutter parent animates.
+    // Rebuilding/re-keying GoogleMap during every frame causes a visible hitch,
+    // particularly on iOS where the underlying UIView is expensive to create.
+    final mapWidget = buildPlatformMap(
+      isDark: isDark,
+      isFull: isFull,
+      isCompact: isCompact,
+      ignoreGestures: ignoreGestures,
+      userLoc: userLoc,
+      markers: markers,
+      polylines: route.polylines,
+    );
 
     return AnimatedBuilder(
       animation: Listenable.merge([widget.mapAnim, widget.fullAnim]),
@@ -26,21 +44,6 @@ extension MapCardView on MapCardState {
         final compactOpacity = (1.0 - mapVal).clamp(0.0, 1.0);
         final expandedOpacity = (mapVal * (1.0 - fullVal)).clamp(0.0, 1.0);
         final fullOpacity = fullVal.clamp(0.0, 1.0);
-        final isCompact = widget.mapState == MapDisplayState.compact;
-        final isFull = widget.mapState == MapDisplayState.full;
-        final ignoreGestures = isCompact;
-        final route = buildRouteInfo(userLoc);
-        final markers = buildGoogleMarkers(userLoc);
-        final mapWidget = buildPlatformMap(
-          isDark: isDark,
-          isFull: isFull,
-          isCompact: isCompact,
-          ignoreGestures: ignoreGestures,
-          userLoc: userLoc,
-          markers: markers,
-          polylines: route.polylines,
-        );
-
         return GestureDetector(
           onTap: isCompact ? widget.onTap : null,
           child: Container(

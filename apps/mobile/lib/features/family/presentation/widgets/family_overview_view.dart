@@ -44,10 +44,14 @@ class FamilyOverviewView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Expanded(
-            child: state.circles.isEmpty
+            child: state.status == FamilyStatus.loading && state.circles.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : state.circles.isEmpty
                 ? Center(
                     child: Text(
-                      'No circles yet',
+                      state.status == FamilyStatus.failure
+                          ? 'Unable to load circles'
+                          : 'No circles yet',
                       style: _text(16, FontWeight.w600, isDark),
                     ),
                   )
@@ -57,7 +61,7 @@ class FamilyOverviewView extends StatelessWidget {
                     separatorBuilder: (_, _) => const SizedBox(height: 14),
                     itemBuilder: (context, index) {
                       final circle = state.circles[index];
-                      final id = circle['id'] as String;
+                      final id = circle['id']?.toString() ?? '';
                       final members = state.membersByCircle[id] ?? const [];
                       return FamilyCircleTile(
                         circle: circle,

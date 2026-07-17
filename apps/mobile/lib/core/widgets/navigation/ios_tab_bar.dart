@@ -136,9 +136,8 @@ class _IosTabItem extends StatelessWidget {
                 ),
         ),
         child: Center(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const NeverScrollableScrollPhysics(),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -148,11 +147,8 @@ class _IosTabItem extends StatelessWidget {
                   width: 22,
                   height: 22,
                   color: Colors.white,
-                  errorBuilder: (_, _, _) => Icon(
-                    fallbackIcon,
-                    size: 22,
-                    color: Colors.white,
-                  ),
+                  errorBuilder: (_, _, _) =>
+                      Icon(fallbackIcon, size: 22, color: Colors.white),
                 ),
                 if (isActive) ...[
                   const SizedBox(width: 7),
@@ -221,9 +217,8 @@ class _IosProfileTab extends StatelessWidget {
                 ),
         ),
         child: Center(
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const NeverScrollableScrollPhysics(),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
@@ -257,30 +252,36 @@ class _AvatarCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: isActive ? 0.9 : 0.4),
-          width: 2,
+    return SizedBox.square(
+      dimension: 28,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white.withValues(alpha: isActive ? 0.9 : 0.4),
+            width: 2,
+          ),
         ),
-      ),
-      child: ClipOval(
-        child: imageUrl != null
-            ? Image.network(
-                imageUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => _defaultAvatar(),
-              )
-            : _defaultAvatar(),
+        child: ClipOval(
+          clipBehavior: Clip.antiAlias,
+          child: imageUrl != null && imageUrl!.trim().isNotEmpty
+              ? Image.network(
+                  imageUrl!,
+                  key: ValueKey(imageUrl),
+                  headers: const {'Cache-Control': 'no-cache'},
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => _defaultAvatar(),
+                )
+              : _defaultAvatar(),
+        ),
       ),
     );
   }
 
   Widget _defaultAvatar() => Container(
-        color: AppColors.primary.withValues(alpha: 0.3),
-        child: const Icon(Icons.person, size: 16, color: Colors.white),
-      );
+    color: AppColors.primary.withValues(alpha: 0.3),
+    child: const Icon(Icons.person, size: 16, color: Colors.white),
+  );
 }

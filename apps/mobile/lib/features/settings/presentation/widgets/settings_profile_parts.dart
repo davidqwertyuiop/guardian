@@ -39,6 +39,8 @@ class ProfileHero extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(
                             homeState.avatarUrl,
+                            key: ValueKey(homeState.avatarUrl),
+                            headers: const {'Cache-Control': 'no-cache'},
                             fit: BoxFit.contain,
                           ),
                         ),
@@ -73,6 +75,8 @@ class ProfileHero extends StatelessWidget {
                         child: homeState.avatarUrl.isNotEmpty
                             ? Image.network(
                                 homeState.avatarUrl,
+                                key: ValueKey(homeState.avatarUrl),
+                                headers: const {'Cache-Control': 'no-cache'},
                                 width: 72,
                                 height: 72,
                                 fit: BoxFit.cover,
