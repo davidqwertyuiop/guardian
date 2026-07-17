@@ -19,18 +19,10 @@ Future<void> onSubmitPhoneNumber(
 
     await ApiService.sendOtp(fullPhone);
 
-    emit(
-      state.copyWith(
-        status: AuthStatus.codeSent,
-        step: AuthStep.otp,
-      ),
-    );
+    emit(state.copyWith(status: AuthStatus.codeSent, step: AuthStep.otp));
   } catch (e) {
     emit(
-      state.copyWith(
-        status: AuthStatus.failure,
-        errorMessage: parseError(e),
-      ),
+      state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)),
     );
   }
 }
@@ -46,7 +38,8 @@ Future<void> onSubmitVerificationCode(
     final fullPhone = '${state.dialCode}${state.phoneNumber}';
 
     final responseData = await ApiService.verifyOtp(fullPhone, event.code);
-    final isProfileComplete = responseData['is_profile_complete'] as bool? ?? false;
+    final isProfileComplete =
+        responseData['is_profile_complete'] as bool? ?? false;
 
     if (state.isJoiningCircle && state.inviteCode != null) {
       try {
@@ -57,11 +50,11 @@ Future<void> onSubmitVerificationCode(
     }
 
     if (isProfileComplete) {
+      final prefs = await SharedPreferences.getInstance();
       try {
         final profile = await ApiService.getMe();
         final name = profile['name'] as String?;
         if (name != null && name.trim().isNotEmpty) {
-          final prefs = await SharedPreferences.getInstance();
           await prefs.setString('username', name);
         }
       } catch (e) {
@@ -71,17 +64,17 @@ Future<void> onSubmitVerificationCode(
       if (state.isJoiningCircle) {
         emit(state.copyWith(status: AuthStatus.success, step: AuthStep.otp));
       } else {
-        emit(state.copyWith(status: AuthStatus.success, step: AuthStep.completed));
+        await prefs.setBool('onboarding_completed', true);
+        emit(
+          state.copyWith(status: AuthStatus.success, step: AuthStep.completed),
+        );
       }
     } else {
       emit(state.copyWith(status: AuthStatus.success, step: AuthStep.profile));
     }
   } catch (e) {
     emit(
-      state.copyWith(
-        status: AuthStatus.failure,
-        errorMessage: parseError(e),
-      ),
+      state.copyWith(status: AuthStatus.failure, errorMessage: parseError(e)),
     );
   }
 }

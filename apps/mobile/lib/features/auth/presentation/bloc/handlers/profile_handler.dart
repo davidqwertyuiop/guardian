@@ -103,6 +103,7 @@ Future<void> onEnableNotifications(
     log('Permission request failed: $e');
   }
   if (state.isJoiningCircle) {
+    await _markOnboardingComplete();
     emit(state.copyWith(step: AuthStep.completed, status: AuthStatus.success));
   } else {
     emit(state.copyWith(step: AuthStep.almostIn));
@@ -118,10 +119,16 @@ Future<void> onSkipNotifications(
   await prefs.setBool('notifications_enabled', false);
   await _syncPreferencesToBackend();
   if (state.isJoiningCircle) {
+    await _markOnboardingComplete();
     emit(state.copyWith(step: AuthStep.completed, status: AuthStatus.success));
   } else {
     emit(state.copyWith(step: AuthStep.almostIn));
   }
+}
+
+Future<void> _markOnboardingComplete() async {
+  final prefs = locator<SharedPreferences>();
+  await prefs.setBool('onboarding_completed', true);
 }
 
 Future<void> _syncPreferencesToBackend() async {

@@ -117,8 +117,8 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
         height: 48,
         width: isActive ? 116 : 48,
         clipBehavior: Clip.antiAlias,
@@ -198,8 +198,8 @@ class _ProfileNavItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
         height: 48,
         width: isActive ? 116 : 48,
         clipBehavior: Clip.antiAlias,

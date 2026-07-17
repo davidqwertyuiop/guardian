@@ -109,8 +109,8 @@ class _IosTabItem extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
         height: 50,
         width: isActive ? 106 : 50,
         clipBehavior: Clip.antiAlias,
@@ -190,8 +190,8 @@ class _IosProfileTab extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 160),
+        curve: Curves.easeOutCubic,
         height: 50,
         width: isActive ? 106 : 50,
         clipBehavior: Clip.antiAlias,

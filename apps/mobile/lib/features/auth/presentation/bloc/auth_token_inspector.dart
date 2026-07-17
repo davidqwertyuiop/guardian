@@ -11,7 +11,7 @@ class AuthTokenInspector {
 
       final payload = _decodePayload(parts[1]);
       final exp = payload['exp'];
-      if (exp is! int) return false;
+      if (exp is! int) return true;
 
       final expiryTime = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
       return DateTime.now()

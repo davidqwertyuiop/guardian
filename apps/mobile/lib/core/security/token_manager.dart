@@ -30,12 +30,15 @@ class TokenManager {
 
     if (_isExpired(token)) {
       final refreshToken = await getRefreshToken();
-      if (refreshToken != null && refreshToken.isNotEmpty && !_isExpired(refreshToken)) {
+      if (refreshToken != null &&
+          refreshToken.isNotEmpty &&
+          !_isExpired(refreshToken)) {
         final newAccessToken = await _performRefresh(refreshToken);
         if (newAccessToken != null) {
           return newAccessToken;
         }
       }
+      return null;
     }
     return token;
   }
@@ -60,7 +63,7 @@ class TokenManager {
       final payload = json.decode(payloadText) as Map<String, dynamic>;
 
       final exp = payload['exp'];
-      if (exp is! int) return false;
+      if (exp is! int) return true;
 
       final expiryTime = DateTime.fromMillisecondsSinceEpoch(exp * 1000);
       // Expired if within 10 seconds of actual expiration to avoid race conditions
@@ -86,7 +89,7 @@ class TokenManager {
         return newAccessToken;
       }
     } catch (_) {
-      // Network/server failure: fallback will return existing token
+      // A failed refresh must never make an expired access token usable.
     }
     return null;
   }
