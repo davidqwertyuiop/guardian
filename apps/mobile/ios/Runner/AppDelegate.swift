@@ -19,9 +19,9 @@ import CoreTelephony
       }
 
       for name in names {
-        let prefix = "\(name)="
-        if trimmed.hasPrefix(prefix) {
-          return String(trimmed.dropFirst(prefix.count))
+        let parts = trimmed.split(separator: "=", maxSplits: 1).map(String.init)
+        if parts.count == 2 && parts[0].trimmingCharacters(in: .whitespacesAndNewlines) == name {
+          return parts[1]
             .trimmingCharacters(in: CharacterSet(charactersIn: "\"' "))
         }
       }
@@ -30,8 +30,20 @@ import CoreTelephony
     return nil
   }
 
+  private func readMapsKey(fromPlist path: String) -> String? {
+    guard let dict = NSDictionary(contentsOfFile: path),
+          let key = dict["API_KEY"] as? String,
+          !key.isEmpty else {
+      return nil
+    }
+
+    return key
+  }
+
   private func resolveMapsApiKey() -> String? {
-    let keyNames = ["MAPS_API_KEY_IOS", "MAPS_API_KEY"]
+    // Keep these aliases in sync with EnvConfig and the Android build. Local
+    // development uses GOOGLE_MAPS_IOS_KEY in apps/mobile/.env.
+    let keyNames = ["GOOGLE_MAPS_IOS_KEY", "MAPS_API_KEY_IOS", "MAPS_API_KEY"]
 
     // 1. Try local source-tree files for development builds.
     let filePath = #filePath
@@ -48,6 +60,10 @@ import CoreTelephony
         if let key = readMapsKey(from: path, names: keyNames), !key.isEmpty {
           return key
         }
+      }
+
+      if let key = readMapsKey(fromPlist: "\(rootPath)/apps/mobile/ios/Runner/GoogleService-Info.plist") {
+        return key
       }
     }
 

@@ -34,10 +34,10 @@ def guardian_read_key_from_file(path, names)
     next if cleaned.empty? || cleaned.start_with?('#')
 
     names.each do |name|
-      prefix = "#{name}="
-      next unless cleaned.start_with?(prefix)
+      matches = cleaned.match(/\A#{Regexp.escape(name)}\s*=\s*(.*)\z/)
+      next unless matches
 
-      return cleaned[prefix.length..].to_s.strip.gsub(/\A['"]|['"]\z/, '')
+      return matches[1].to_s.strip.gsub(/\A['"]|['"]\z/, '')
     end
   end
 
@@ -45,21 +45,22 @@ def guardian_read_key_from_file(path, names)
 end
 
 def guardian_maps_api_key
-  root = File.expand_path('../../..', __dir__)
+  mobile_root = File.expand_path('..', __dir__)
+  repo_root = File.expand_path('../../..', __dir__)
   candidates = [
     File.join(__dir__, 'Flutter', 'Maps.xcconfig'),
-    File.join(root, 'apps', 'mobile', '.env'),
-    File.join(root, 'apps', 'mobile', 'android', 'local.properties'),
-    File.join(root, 'apps', 'backend', '.env'),
+    File.join(mobile_root, '.env'),
+    File.join(mobile_root, 'android', 'local.properties'),
+    File.join(repo_root, 'apps', 'backend', '.env'),
   ]
-  names = ['MAPS_API_KEY_IOS', 'MAPS_API_KEY']
+  names = ['GOOGLE_MAPS_IOS_KEY', 'MAPS_API_KEY_IOS', 'MAPS_API_KEY']
 
   candidates.each do |path|
     key = guardian_read_key_from_file(path, names)
     return key unless key.nil? || key.empty?
   end
 
-  ENV['MAPS_API_KEY_IOS'] || ENV['MAPS_API_KEY'] || ''
+  ENV['GOOGLE_MAPS_IOS_KEY'] || ENV['MAPS_API_KEY_IOS'] || ENV['MAPS_API_KEY'] || ''
 end
 
 target 'Runner' do

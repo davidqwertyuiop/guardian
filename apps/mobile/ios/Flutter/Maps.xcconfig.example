@@ -1,0 +1,3 @@
+// Copy this file to Maps.xcconfig and set a Google Maps iOS API key.
+// Maps.xcconfig is included by Debug.xcconfig and Release.xcconfig when present.
+MAPS_API_KEY = YOUR_GOOGLE_MAPS_IOS_API_KEY
