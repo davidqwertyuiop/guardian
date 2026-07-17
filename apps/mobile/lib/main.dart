@@ -53,6 +53,10 @@ Future<void> _bootstrap() async {
     aptabaseAppKey: dotenv.env['APTABASE_APP_KEY'] ?? '',
   );
 
+  // Register storage and repositories before any startup service can use
+  // ApiService/TokenManager (notification token upload does exactly that).
+  final initialStep = await initDependencies();
+
   // Log App Open event to Firebase Analytics
   try {
     await FirebaseAnalytics.instance.logAppOpen();
@@ -70,9 +74,6 @@ Future<void> _bootstrap() async {
   await _initializeAndroidMapRenderer();
 
   await _initializeNotificationsSafely();
-
-  // Initialize dependency injection and get initial auth step
-  final initialStep = await initDependencies();
 
   // Lock to portrait — landscape causes overflow on all screens.
   await SystemChrome.setPreferredOrientations([

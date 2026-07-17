@@ -23,6 +23,8 @@ class RegisterNameInput extends StatelessWidget {
           color: isDark ? Colors.white : Colors.black,
         ),
         decoration: InputDecoration(
+          filled: false,
+          fillColor: Colors.transparent,
           hintText: "e.g. non-olem",
           hintStyle: TextStyle(fontFamily: 'Inter', color: Colors.grey[400]),
           border: InputBorder.none,

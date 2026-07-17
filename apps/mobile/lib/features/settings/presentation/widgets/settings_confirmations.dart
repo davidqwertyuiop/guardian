@@ -82,18 +82,20 @@ class _PauseLocationDialogState extends State<PauseLocationDialog> {
                 const SizedBox(height: 24),
                 // Dropdown selector button
                 Theme(
-                  data: Theme.of(context).copyWith(
-                    cardColor: Colors.white,
-                  ),
+                  data: Theme.of(context).copyWith(cardColor: Colors.white),
                   child: PopupMenuButton<String>(
                     offset: const Offset(0, 50),
                     onSelected: (value) async {
                       if (value == '30m') {
                         Navigator.pop(context);
-                        widget.onPause(DateTime.now().add(const Duration(minutes: 30)));
+                        widget.onPause(
+                          DateTime.now().add(const Duration(minutes: 30)),
+                        );
                       } else if (value == '1h') {
                         Navigator.pop(context);
-                        widget.onPause(DateTime.now().add(const Duration(hours: 1)));
+                        widget.onPause(
+                          DateTime.now().add(const Duration(hours: 1)),
+                        );
                       } else if (value == 'custom') {
                         final time = await showTimePicker(
                           context: context,
@@ -102,7 +104,13 @@ class _PauseLocationDialogState extends State<PauseLocationDialog> {
                         if (time != null && context.mounted) {
                           Navigator.pop(context);
                           final now = DateTime.now();
-                          var selected = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+                          var selected = DateTime(
+                            now.year,
+                            now.month,
+                            now.day,
+                            time.hour,
+                            time.minute,
+                          );
                           if (selected.isBefore(now)) {
                             selected = selected.add(const Duration(days: 1));
                           }
@@ -115,17 +123,17 @@ class _PauseLocationDialogState extends State<PauseLocationDialog> {
                         value: '30m',
                         child: Text('30 minutes'),
                       ),
-                      const PopupMenuItem(
-                        value: '1h',
-                        child: Text('1 hour'),
-                      ),
+                      const PopupMenuItem(value: '1h', child: Text('1 hour')),
                       const PopupMenuItem(
                         value: 'custom',
                         child: Text('Custom time...'),
                       ),
                     ],
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF3F4F6),
                         borderRadius: BorderRadius.circular(14),
@@ -374,6 +382,8 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                       color: Colors.black,
                     ),
                     decoration: const InputDecoration(
+                      filled: false,
+                      fillColor: Colors.transparent,
                       border: InputBorder.none,
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
@@ -409,7 +419,9 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                             fontFamily: 'Inter',
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: _canDelete ? const Color(0xFFFF2D7A) : Colors.grey.shade400,
+                            color: _canDelete
+                                ? const Color(0xFFFF2D7A)
+                                : Colors.grey.shade400,
                           ),
                         ),
                       ),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:smart_auth/smart_auth.dart';
@@ -91,7 +93,12 @@ class OtpInputField extends StatelessWidget {
       onCompleted: onCompleted,
       hapticFeedbackType: HapticFeedbackType.lightImpact,
       autofillHints: const [AutofillHints.oneTimeCode],
-      smsRetriever: SmsRetrieverImpl(SmartAuth.instance),
+      // SmartAuth's SMS User Consent API is Android-only. Passing it on iOS
+      // calls a platform channel that does not exist and can destabilize the
+      // route while it is being disposed after successful verification.
+      smsRetriever: Platform.isAndroid
+          ? SmsRetrieverImpl(SmartAuth.instance)
+          : null,
     );
   }
 }

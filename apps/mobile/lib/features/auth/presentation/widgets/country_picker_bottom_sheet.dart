@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:guardian/export.dart';
+
 class CountryPickerBottomSheet extends StatefulWidget {
   final ValueChanged<IntlCountryData> onCountrySelected;
 
@@ -113,6 +114,8 @@ class _CountryPickerBottomSheetState extends State<CountryPickerBottomSheet> {
                         fontSize: 14,
                       ),
                       decoration: InputDecoration(
+                        filled: false,
+                        fillColor: Colors.transparent,
                         hintText: 'Search country name or code...',
                         hintStyle: TextStyle(
                           fontFamily: 'Inter',

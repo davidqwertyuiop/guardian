@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:guardian/export.dart';
+
 class NameCircleScreen extends StatefulWidget {
   const NameCircleScreen({super.key});
 
@@ -137,7 +138,9 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
                             Expanded(
                               child: TextField(
                                 controller: _controller,
-                                cursorColor: isDark ? Colors.white : Colors.black,
+                                cursorColor: isDark
+                                    ? Colors.white
+                                    : Colors.black,
                                 style: TextStyle(
                                   fontFamily: 'Inter',
                                   fontSize: 16,
@@ -145,6 +148,8 @@ class _NameCircleScreenState extends State<NameCircleScreen> {
                                   fontWeight: FontWeight.w500,
                                 ),
                                 decoration: const InputDecoration(
+                                  filled: false,
+                                  fillColor: Colors.transparent,
                                   border: InputBorder.none,
                                   focusedBorder: InputBorder.none,
                                   enabledBorder: InputBorder.none,
