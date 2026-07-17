@@ -58,10 +58,7 @@ impl UpdateAvatarUseCase {
         // because the `serve_avatar` proxy route unconditionally looks up `avatar_{id}.jpg`.
         // The actual image format is determined by the Content-Type header which we set correctly below.
         let s3_key = format!("avatars/avatar_{id}.jpg");
-        let host = format!(
-            "{}.s3.{}.amazonaws.com",
-            self.s3_bucket, self.s3_region
-        );
+        let host = format!("{}.s3.{}.amazonaws.com", self.s3_bucket, self.s3_region);
         let url = format!("https://{}/{}", host, s3_key);
 
         // ── AWS Signature V4 ──────────────────────────────────────────────────
@@ -86,10 +83,7 @@ impl UpdateAvatarUseCase {
         );
 
         // String to sign
-        let credential_scope = format!(
-            "{}/{}/{}/aws4_request",
-            datestamp, self.s3_region, service
-        );
+        let credential_scope = format!("{}/{}/{}/aws4_request", datestamp, self.s3_region, service);
         let string_to_sign = format!(
             "AWS4-HMAC-SHA256\n{}\n{}\n{}",
             amzdate,
@@ -162,10 +156,7 @@ impl UpdateAvatarUseCase {
         region: &str,
         service: &str,
     ) -> Result<Vec<u8>, AppError> {
-        let key_date = Self::hmac_sign(
-            format!("AWS4{}", secret).as_bytes(),
-            datestamp.as_bytes(),
-        )?;
+        let key_date = Self::hmac_sign(format!("AWS4{}", secret).as_bytes(), datestamp.as_bytes())?;
         let key_region = Self::hmac_sign(&key_date, region.as_bytes())?;
         let key_service = Self::hmac_sign(&key_region, service.as_bytes())?;
         let key_signing = Self::hmac_sign(&key_service, b"aws4_request")?;

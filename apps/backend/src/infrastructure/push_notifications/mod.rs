@@ -111,7 +111,10 @@ pub async fn send_push_notification(
                     serde_json::Value::String(s) => s,
                     _ => v.to_string(),
                 };
-                data_json.as_object_mut().unwrap().insert(k, serde_json::Value::String(val_str));
+                data_json
+                    .as_object_mut()
+                    .unwrap()
+                    .insert(k, serde_json::Value::String(val_str));
             }
         }
     }

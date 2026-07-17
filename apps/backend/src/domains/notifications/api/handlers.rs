@@ -74,7 +74,10 @@ pub async fn list_notifications(
         })
         .collect();
 
-    Ok(Json(NotificationListResponse { unread_count, items }))
+    Ok(Json(NotificationListResponse {
+        unread_count,
+        items,
+    }))
 }
 
 pub async fn mark_all_read(

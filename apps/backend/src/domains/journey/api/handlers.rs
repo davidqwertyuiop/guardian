@@ -75,7 +75,8 @@ pub async fn start_journey(
 
     for row in &recipients {
         if let Ok(token) = row.try_get::<String, _>("fcm_token") {
-            let recipient_name = row.try_get::<Option<String>, _>("user_name")
+            let recipient_name = row
+                .try_get::<Option<String>, _>("user_name")
                 .unwrap_or(None)
                 .unwrap_or_else(|| "Guardian User".into());
             let personalized_title = format!("Hi {}!", recipient_name);
@@ -175,12 +176,24 @@ pub async fn stop_journey(
 
     // 3. Fetch FCM tokens and names for other circle members
     let arrived = body.arrived.unwrap_or(false);
-    let last_seen = body.last_seen_address.clone().unwrap_or_else(|| "Surulere, Lagos".to_string());
-    
+    let last_seen = body
+        .last_seen_address
+        .clone()
+        .unwrap_or_else(|| "Surulere, Lagos".to_string());
+
     let (notif_type, body_text) = if arrived {
-        ("journey_completed", format!("🏠 {} has arrived home.", user_name))
+        (
+            "journey_completed",
+            format!("🏠 {} has arrived home.", user_name),
+        )
     } else {
-        ("journey_stopped", format!("{}'s broadcast has ended. She was last seen in {}.", user_name, last_seen))
+        (
+            "journey_stopped",
+            format!(
+                "{}'s broadcast has ended. She was last seen in {}.",
+                user_name, last_seen
+            ),
+        )
     };
 
     let title = format!("{} stopped broadcasting", user_name);
@@ -201,7 +214,11 @@ pub async fn stop_journey(
         &state.db_pool,
         &recipient_ids,
         Some(user_id),
-        if arrived { "journey_completed" } else { "journey_stopped" },
+        if arrived {
+            "journey_completed"
+        } else {
+            "journey_stopped"
+        },
         &title,
         &body_text,
         serde_json::json!({
@@ -214,7 +231,8 @@ pub async fn stop_journey(
 
     for row in &recipients {
         if let Ok(token) = row.try_get::<String, _>("fcm_token") {
-            let recipient_name = row.try_get::<Option<String>, _>("user_name")
+            let recipient_name = row
+                .try_get::<Option<String>, _>("user_name")
                 .unwrap_or(None)
                 .unwrap_or_else(|| "Guardian User".into());
             let personalized_title = format!("Hi {}!", recipient_name);

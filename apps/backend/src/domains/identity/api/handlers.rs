@@ -1,4 +1,3 @@
-use axum::{extract::State, Json};
 use crate::domains::identity::{
     api::dto::*,
     application::{
@@ -13,6 +12,7 @@ use crate::infrastructure::sms::infobip::InfobipSmsService;
 use crate::routes::AppState;
 use crate::shared::{errors::AppError, middleware::auth::AuthUser};
 use axum::extract::Multipart;
+use axum::{extract::State, Json};
 use std::sync::Arc;
 
 // ── PATCH /api/v1/auth/profile ─────────────────────────────────────────────
@@ -147,7 +147,11 @@ pub async fn get_sessions(
     let mut seen_devices = std::collections::HashSet::new();
 
     for s in sessions {
-        let key = format!("{}:{}", s.device_name.to_lowercase(), s.platform.to_lowercase());
+        let key = format!(
+            "{}:{}",
+            s.device_name.to_lowercase(),
+            s.platform.to_lowercase()
+        );
         if seen_devices.contains(&key) {
             // This is an older duplicate session. Delete it in background to keep DB clean
             let session_repo = state.session_repo.clone();
@@ -308,9 +312,11 @@ pub async fn update_avatar(
     let mut bytes = Vec::new();
 
     loop {
-        match multipart.next_field().await.map_err(|e| {
-            AppError::InvalidInput(format!("Multipart error: {e}"))
-        })? {
+        match multipart
+            .next_field()
+            .await
+            .map_err(|e| AppError::InvalidInput(format!("Multipart error: {e}")))?
+        {
             None => break,
             Some(field) => {
                 if field.name() == Some("avatar") {
@@ -366,7 +372,9 @@ pub async fn send_otp_handler(
 ) -> Result<Json<SendOtpResponse>, AppError> {
     let phone = body.phone.trim().to_string();
     if phone.is_empty() {
-        return Err(AppError::InvalidInput("Phone number cannot be empty".into()));
+        return Err(AppError::InvalidInput(
+            "Phone number cannot be empty".into(),
+        ));
     }
 
     let sms_service = Arc::new(InfobipSmsService::new(
@@ -444,10 +452,7 @@ pub async fn serve_avatar(
         .find_by_id(id)
         .await?
         .ok_or_else(|| AppError::NotFound("User not found".into()))?;
-    let avatar_url = user
-        .avatar_url
-        .as_deref()
-        .unwrap_or("");
+    let avatar_url = user.avatar_url.as_deref().unwrap_or("");
 
     if avatar_url.is_empty() {
         return Err(AppError::NotFound("No avatar set".into()));
@@ -501,8 +506,7 @@ pub async fn serve_avatar(
 
     // Derive signing key
     fn hmac_sign(key: &[u8], data: &[u8]) -> Vec<u8> {
-        let mut mac =
-            HmacSha256::new_from_slice(key).expect("HMAC key");
+        let mut mac = HmacSha256::new_from_slice(key).expect("HMAC key");
         mac.update(data);
         mac.finalize().into_bytes().to_vec()
     }

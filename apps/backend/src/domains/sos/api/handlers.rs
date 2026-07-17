@@ -108,7 +108,8 @@ pub async fn trigger_sos(
 
     for row in &recipients {
         if let Ok(token) = row.try_get::<String, _>("fcm_token") {
-            let recipient_name = row.try_get::<Option<String>, _>("user_name")
+            let recipient_name = row
+                .try_get::<Option<String>, _>("user_name")
                 .unwrap_or(None)
                 .unwrap_or_else(|| "Guardian User".into());
             let personalized_title = format!("Hi {}!", recipient_name);
@@ -122,7 +123,10 @@ pub async fn trigger_sos(
                 "address": body.address.as_deref().unwrap_or("Unknown location")
             });
             crate::infrastructure::push_notifications::send_push_notification(
-                &token, &personalized_title, &body_text, Some(extra_data)
+                &token,
+                &personalized_title,
+                &body_text,
+                Some(extra_data),
             )
             .await;
         }
@@ -267,7 +271,8 @@ pub async fn dismiss_sos(
 
     for row in &recipients {
         if let Ok(token) = row.try_get::<String, _>("fcm_token") {
-            let recipient_name = row.try_get::<Option<String>, _>("user_name")
+            let recipient_name = row
+                .try_get::<Option<String>, _>("user_name")
                 .unwrap_or(None)
                 .unwrap_or_else(|| "Guardian User".into());
             let personalized_title = format!("Hi {}!", recipient_name);

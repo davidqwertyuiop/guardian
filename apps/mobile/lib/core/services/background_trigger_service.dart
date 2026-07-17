@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -154,7 +155,7 @@ class BackgroundTriggerService {
       // Notify the user locally that the SOS was dispatched successfully
       await NotificationService.showLocalNotification(
         title: "SOS Broadcast Dispatched",
-        body: "Your circle has been notified of your emergency.",
+        body: "Your circle has been notified of your emergency.", payload: jsonEncode({}),
       );
     } catch (e) {
       debugPrint(

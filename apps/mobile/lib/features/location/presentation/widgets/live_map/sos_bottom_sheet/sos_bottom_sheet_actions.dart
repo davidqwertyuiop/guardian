@@ -24,7 +24,7 @@ extension _SosBottomSheetActions on _SosBottomSheetState {
 
       await NotificationService.showLocalNotification(
         title: 'SOS Broadcast Dispatched',
-        body: 'Your circle has been notified and can see your live location.',
+        body: 'Your circle has been notified and can see your live location.', payload: '',
       );
 
       if (!mounted) return;

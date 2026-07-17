@@ -7,4 +7,3 @@ pub mod setup_profile;
 pub mod update_avatar;
 pub mod update_preferences;
 pub mod verify_otp;
-

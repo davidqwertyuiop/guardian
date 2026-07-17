@@ -19,9 +19,5 @@ pub fn router() -> Router<AppState> {
         .route("/sessions", get(handlers::get_sessions))
         .route("/devices", post(handlers::register_device))
         .route("/account", delete(handlers::delete_account))
-        .route(
-            "/sessions/{hash}",
-            delete(handlers::revoke_session),
-        )
+        .route("/sessions/{hash}", delete(handlers::revoke_session))
 }
-

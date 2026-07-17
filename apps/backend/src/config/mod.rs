@@ -69,11 +69,9 @@ impl AppConfig {
         let aws_secret_access_key =
             std::env::var("AWS_SECRET_ACCESS_KEY").expect("AWS_SECRET_ACCESS_KEY must be set");
 
-        let aws_region =
-            std::env::var("AWS_REGION").unwrap_or_else(|_| "us-west-1".to_string());
+        let aws_region = std::env::var("AWS_REGION").unwrap_or_else(|_| "us-west-1".to_string());
 
-        let aws_s3_bucket =
-            std::env::var("AWS_S3_BUCKET").expect("AWS_S3_BUCKET must be set");
+        let aws_s3_bucket = std::env::var("AWS_S3_BUCKET").expect("AWS_S3_BUCKET must be set");
 
         Self {
             jwt_secret,

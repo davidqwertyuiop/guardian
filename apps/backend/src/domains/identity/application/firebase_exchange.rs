@@ -50,7 +50,10 @@ impl FirebaseExchangeUseCase {
                 if s.device_name.to_lowercase() == device_name.to_lowercase()
                     && s.platform.to_lowercase() == platform.to_lowercase()
                 {
-                    let _ = self.session_repo.delete_by_token_hash(&s.refresh_token_hash).await;
+                    let _ = self
+                        .session_repo
+                        .delete_by_token_hash(&s.refresh_token_hash)
+                        .await;
                 }
             }
         }

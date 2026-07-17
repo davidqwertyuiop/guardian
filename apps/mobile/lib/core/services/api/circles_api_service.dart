@@ -118,10 +118,10 @@ abstract class CirclesApiService {
     return true;
   }
 
-  /// GET /api/v1/circles/{id}/locations (requires Bearer token)
+  /// Legacy convenience method for the Location domain endpoint.
   static Future<List<dynamic>> getMemberLocations(String circleId) async {
     final token = await TokenManager().getAccessToken();
-    final url = Uri.parse('$baseUrl/api/v1/circles/$circleId/locations');
+    final url = Uri.parse('$baseUrl/api/v1/location/circles/$circleId');
     try {
       final response = await http.get(
         url,
@@ -141,10 +141,10 @@ abstract class CirclesApiService {
     }
   }
 
-  /// GET /api/v1/sos/broadcasts (requires Bearer token)
+  /// Legacy convenience method for the SOS domain endpoint.
   static Future<List<dynamic>> getSosBroadcasts(String circleId) async {
     final token = await TokenManager().getAccessToken();
-    final url = Uri.parse('$baseUrl/api/v1/sos/broadcasts?circle_id=$circleId');
+    final url = Uri.parse('$baseUrl/api/v1/sos/circles/$circleId');
     try {
       final response = await http.get(
         url,
