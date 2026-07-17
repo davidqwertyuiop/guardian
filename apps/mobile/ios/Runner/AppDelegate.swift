@@ -90,7 +90,7 @@ import CoreTelephony
     if let serviceTechs = radioInfo.serviceCurrentRadioAccessTechnology?.values {
       technologies = Array(serviceTechs)
     } else {
-      technologies = [radioInfo.currentRadioAccessTechnology].compactMap { $0 }
+      technologies = []
     }
     if technologies.contains(CTRadioAccessTechnologyNR) ||
        technologies.contains(CTRadioAccessTechnologyNRNSA) {
