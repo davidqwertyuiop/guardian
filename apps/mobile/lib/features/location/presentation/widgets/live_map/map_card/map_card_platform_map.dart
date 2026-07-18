@@ -5,7 +5,6 @@ extension MapCardPlatformMap on MapCardState {
     required bool isDark,
     required bool isFull,
     required bool isCompact,
-    required bool ignoreGestures,
     required LatLng userLoc,
     required Set<Marker> markers,
     required Set<Polyline> polylines,
@@ -29,10 +28,10 @@ extension MapCardPlatformMap on MapCardState {
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
-      zoomGesturesEnabled: !ignoreGestures,
-      scrollGesturesEnabled: !ignoreGestures,
-      tiltGesturesEnabled: !ignoreGestures,
-      rotateGesturesEnabled: !ignoreGestures,
+      zoomGesturesEnabled: true,
+      scrollGesturesEnabled: true,
+      tiltGesturesEnabled: true,
+      rotateGesturesEnabled: true,
       onTap: (_) => handlePlatformMapTap(isCompact, isFull),
     );
   }

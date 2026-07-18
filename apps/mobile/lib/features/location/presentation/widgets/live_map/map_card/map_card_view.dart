@@ -8,12 +8,14 @@ extension MapCardView on MapCardState {
       _currentLongitude ?? widget.userLongitude,
     );
     resolveCurrentLocationLabel(userLoc);
-    final screenHeight = MediaQuery.sizeOf(context).height;
     final isCompact = widget.mapState == MapDisplayState.compact;
     final isFull = widget.mapState == MapDisplayState.full;
     final ignoreGestures = isCompact;
     final route = buildRouteInfo(userLoc);
     final markers = buildGoogleMarkers(userLoc);
+    final screenSize = MediaQuery.sizeOf(context);
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
 
     // Keep the native platform view stable while its Flutter parent animates.
     // Rebuilding/re-keying GoogleMap during every frame causes a visible hitch,
@@ -22,7 +24,6 @@ extension MapCardView on MapCardState {
       isDark: isDark,
       isFull: isFull,
       isCompact: isCompact,
-      ignoreGestures: ignoreGestures,
       userLoc: userLoc,
       markers: markers,
       polylines: route.polylines,
@@ -59,9 +60,21 @@ extension MapCardView on MapCardState {
               child: Stack(
                 children: [
                   Positioned.fill(
-                    child: ignoreGestures
-                        ? IgnorePointer(child: mapWidget)
-                        : mapWidget,
+                    child: OverflowBox(
+                      alignment: Alignment.center,
+                      minWidth: screenWidth,
+                      maxWidth: screenWidth,
+                      minHeight: screenHeight,
+                      maxHeight: screenHeight,
+                      child: SizedBox(
+                        width: screenWidth,
+                        height: screenHeight,
+                        child: IgnorePointer(
+                          ignoring: ignoreGestures,
+                          child: mapWidget,
+                        ),
+                      ),
+                    ),
                   ),
                   if (compactOpacity > 0.0) buildCompactOverlay(compactOpacity),
                   if (expandedOpacity > 0.0)
