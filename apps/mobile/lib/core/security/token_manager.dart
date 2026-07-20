@@ -43,6 +43,11 @@ class TokenManager {
     return token;
   }
 
+  Future<bool> hasValidAccessToken() async {
+    final token = await _secureStorage.read(_accessTokenKey);
+    return token != null && token.isNotEmpty && !_isExpired(token);
+  }
+
   Future<String?> getRefreshToken() async {
     return await _secureStorage.read(_refreshTokenKey);
   }
@@ -77,11 +82,13 @@ class TokenManager {
 
   Future<String?> _performRefresh(String refreshToken) async {
     try {
-      final response = await http.post(
-        Uri.parse('${ApiBase.baseUrl}/api/v1/auth/refresh'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'refresh_token': refreshToken}),
-      );
+      final response = await http
+          .post(
+            Uri.parse('${ApiBase.baseUrl}/api/v1/auth/refresh'),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'refresh_token': refreshToken}),
+          )
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode == 200) {
         final data = json.decode(response.body) as Map<String, dynamic>;
         final newAccessToken = data['access_token'] as String;

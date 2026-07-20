@@ -1,11 +1,11 @@
 use crate::infrastructure::cache::otp_store::OtpStore;
-use crate::infrastructure::sms::infobip::InfobipSmsService;
+use crate::infrastructure::sms::sendchamp::SendchampSmsService;
 use crate::shared::errors::AppError;
 use std::sync::Arc;
 
 pub struct SendOtpUseCase {
     pub otp_store: Arc<OtpStore>,
-    pub sms_service: Arc<InfobipSmsService>,
+    pub sms_service: Arc<SendchampSmsService>,
 }
 
 impl SendOtpUseCase {

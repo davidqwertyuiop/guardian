@@ -26,7 +26,7 @@ pub async fn build_router(pool: PgPool, config: AppConfig) -> Router {
     let location_repo = Arc::new(PostgresLocationRepository { pool: pool.clone() });
     let sos_repo = Arc::new(PostgresSosRepository { pool: pool.clone() });
 
-    // Shared HTTP client (used for Infobip + S3)
+    // Shared HTTP client (used for Sendchamp + S3)
     let http_client = Arc::new(Client::new());
 
     // OTP store

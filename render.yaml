@@ -39,6 +39,14 @@ services:
         value: "AIzaSyCrE5sgJcL8HmahdId4k2vbYtzrtDJCl2Q"
       - key: MAPS_API_KEY_IOS
         value: "AIzaSyCHPSzdW1BqZR725BOBC7EeQbYZZ4JBtQs"
+      - key: SENDCHAMP_API_KEY
+        sync: false
+      - key: SENDCHAMP_BASE_URL
+        value: "https://api.sendchamp.com/api/v1"
+      - key: SENDCHAMP_SENDER
+        value: "Guardian"
+      - key: SENDCHAMP_ROUTE
+        value: "dnd"
       - key: AWS_ACCESS_KEY_ID
         sync: false
       - key: AWS_SECRET_ACCESS_KEY

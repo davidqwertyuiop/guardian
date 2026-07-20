@@ -49,15 +49,29 @@ Future<void> _bootstrap() async {
     );
   }
 
+  // Register the local dependencies needed to decide which screen to render.
+  // Network-backed startup services are initialized after the first frame.
+  final initialStep = await initDependencies();
+
+  // Prefer the latest Android Maps renderer before any GoogleMap is created.
+  await _initializeAndroidMapRenderer();
+
+  // Lock to portrait — landscape causes overflow on all screens.
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  runApp(GuardianApp(initialStep: initialStep));
+  unawaited(_initializePostLaunchServices());
+}
+
+Future<void> _initializePostLaunchServices() async {
   await TelemetryService.initialize(
     aptabaseAppKey: dotenv.env['APTABASE_APP_KEY'] ?? '',
   );
 
-  // Register storage and repositories before any startup service can use
-  // ApiService/TokenManager (notification token upload does exactly that).
-  final initialStep = await initDependencies();
-
-  // Log App Open event to Firebase Analytics
   try {
     await FirebaseAnalytics.instance.logAppOpen();
     await TelemetryService.trackEvent('app_open');
@@ -70,19 +84,7 @@ Future<void> _bootstrap() async {
     );
   }
 
-  // Prefer the latest Android Maps renderer before any GoogleMap is created.
-  await _initializeAndroidMapRenderer();
-
   await _initializeNotificationsSafely();
-
-  // Lock to portrait — landscape causes overflow on all screens.
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-  ]);
-
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  runApp(GuardianApp(initialStep: initialStep));
 }
 
 Future<void> _initializeNotificationsSafely() async {

@@ -18,8 +18,9 @@ Future<AuthStep> initDependencies() async {
 
   // Determine initial onboarding/authentication step
   final onboardingCompleted = prefs.getBool('onboarding_completed') ?? false;
-  final token = await TokenManager().getAccessToken();
-  final hasJwt = token != null && token.isNotEmpty;
+  // This check must remain local so a slow token refresh cannot block the
+  // first Flutter frame. AuthBloc validates/refreshes the session after launch.
+  final hasJwt = await TokenManager().hasValidAccessToken();
   final initialStep = (onboardingCompleted && hasJwt)
       ? AuthStep.completed
       : AuthStep.welcome;

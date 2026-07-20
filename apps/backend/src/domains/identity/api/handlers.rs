@@ -8,7 +8,7 @@ use crate::domains::identity::{
         verify_otp::VerifyOtpUseCase,
     },
 };
-use crate::infrastructure::sms::infobip::InfobipSmsService;
+use crate::infrastructure::sms::sendchamp::SendchampSmsService;
 use crate::routes::AppState;
 use crate::shared::{errors::AppError, middleware::auth::AuthUser};
 use axum::extract::Multipart;
@@ -377,10 +377,12 @@ pub async fn send_otp_handler(
         ));
     }
 
-    let sms_service = Arc::new(InfobipSmsService::new(
-        state.config.infobip_base_url.clone(),
-        state.config.infobip_api_key.clone(),
-        state.config.infobip_sender.clone(),
+    let sms_service = Arc::new(SendchampSmsService::new(
+        state.http_client.clone(),
+        state.config.sendchamp_base_url.clone(),
+        state.config.sendchamp_api_key.clone(),
+        state.config.sendchamp_sender.clone(),
+        state.config.sendchamp_route.clone(),
     ));
 
     let use_case = SendOtpUseCase {

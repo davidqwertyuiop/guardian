@@ -28,9 +28,9 @@ pub struct AppState {
     pub location_repo: Arc<dyn LocationRepository>,
     // SOS domain
     pub sos_repo: Arc<dyn SosRepository>,
-    // OTP (Infobip)
+    // OTP
     pub otp_store: Arc<OtpStore>,
-    // Shared HTTP client (used for S3 uploads + Infobip calls)
+    // Shared HTTP client (used for S3 uploads + Sendchamp calls)
     pub http_client: Arc<Client>,
     // S3 config (used by UpdateAvatarUseCase)
     pub s3_bucket: String,

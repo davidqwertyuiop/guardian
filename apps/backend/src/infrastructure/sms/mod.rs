@@ -1,1 +1,1 @@
-pub mod infobip;
+pub mod sendchamp;

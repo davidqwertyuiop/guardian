@@ -78,7 +78,7 @@ pub struct RegisterDeviceRequest {
     pub platform: String,
 }
 
-// ── OTP / Infobip Auth ───────────────────────────────────────────────────────
+// ── OTP Auth ─────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Deserialize)]
 pub struct SendOtpRequest {
