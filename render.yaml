@@ -44,7 +44,7 @@ services:
       - key: SENDCHAMP_BASE_URL
         value: "https://api.sendchamp.com/api/v1"
       - key: SENDCHAMP_SENDER
-        value: "Guardian"
+        value: "Guardian."
       - key: SENDCHAMP_ROUTE
         value: "dnd"
       - key: AWS_ACCESS_KEY_ID

@@ -62,7 +62,7 @@ impl AppConfig {
             .unwrap_or_else(|_| "https://api.sendchamp.com/api/v1".to_string());
 
         let sendchamp_sender =
-            std::env::var("SENDCHAMP_SENDER").unwrap_or_else(|_| "Guardian".to_string());
+            std::env::var("SENDCHAMP_SENDER").unwrap_or_else(|_| "Guardian.".to_string());
 
         let sendchamp_route =
             std::env::var("SENDCHAMP_ROUTE").unwrap_or_else(|_| "dnd".to_string());
