@@ -43,7 +43,6 @@ impl SendchampSmsService {
                 code
             ),
             "sender_name": self.sender,
-            "route": self.route,
         });
 
         let response = self
