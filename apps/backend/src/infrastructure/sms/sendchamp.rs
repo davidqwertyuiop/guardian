@@ -33,34 +33,68 @@ impl SendchampSmsService {
     }
 
     /// Sends a 6-digit OTP to an international-format phone number.
+    /// It first tries to send using the custom sender name on the DND route.
+    /// If that fails, it falls back to the default route without specifying the route.
     pub async fn send_otp(&self, phone: &str, code: &str) -> Result<(), AppError> {
         let recipient = normalize_phone(phone)?;
         let url = format!("{}{}", self.base_url, SEND_SMS_PATH);
-        let body = json!({
-            "to": [recipient],
+        
+        // Try stage 1: Approved custom Sender ID on DND route
+        let body_primary = json!({
+            "to": [recipient.clone()],
             "message": format!(
                 "Your Guardian verification code is: {}. It expires in 5 minutes.",
                 code
             ),
             "sender_name": self.sender,
+            "route": self.route,
         });
 
         let response = self
             .client
-            .post(url)
+            .post(&url)
             .bearer_auth(&self.api_key)
             .header("Accept", "application/json")
-            .json(&body)
-            .timeout(Duration::from_secs(15))
+            .json(&body_primary)
+            .timeout(Duration::from_secs(10))
+            .send()
+            .await;
+
+        let success = match response {
+            Ok(res) => res.status().is_success(),
+            Err(_) => false,
+        };
+
+        if success {
+            return Ok(());
+        }
+
+        // Try stage 2 (Fallback): Default route (omitted route parameter)
+        let body_fallback = json!({
+            "to": [recipient],
+            "message": format!(
+                "Your Guardian verification code is: {}. It expires in 5 minutes.",
+                code
+            ),
+            "sender_name": "Sendchamp", 
+        });
+
+        let response_fallback = self
+            .client
+            .post(&url)
+            .bearer_auth(&self.api_key)
+            .header("Accept", "application/json")
+            .json(&body_fallback)
+            .timeout(Duration::from_secs(10))
             .send()
             .await
-            .map_err(|error| AppError::Internal(format!("Sendchamp request failed: {error}")))?;
+            .map_err(|error| AppError::Internal(format!("Sendchamp fallback request failed: {error}")))?;
 
-        let status = response.status();
+        let status = response_fallback.status();
         if !status.is_success() {
-            let provider_message = response.text().await.unwrap_or_default();
+            let provider_message = response_fallback.text().await.unwrap_or_default();
             return Err(AppError::Internal(format!(
-                "Sendchamp returned {status}: {}",
+                "Sendchamp fallback returned {status}: {}",
                 truncate(&provider_message, 500)
             )));
         }
