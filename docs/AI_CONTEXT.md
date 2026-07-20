@@ -14,7 +14,8 @@ Guardian should not feel like a social network or a generic map app. Location sh
 
 Build the MVP around a small number of dependable flows:
 
-- Phone-number authentication and OTP verification.
+- Sign in with Apple, Google Sign-In, and phone-number OTP, all exchanged for a
+  Guardian backend session.
 - User profile setup.
 - Family or trusted circles.
 - Invite and join circle flows.
@@ -779,6 +780,122 @@ Private event record in PostgreSQL
 
 Good blockchain candidates are SOS proofs, permission changes, revocations, device ownership proofs, and high-value audit records.
 
+## Authentication And Returning Users
+
+Guardian should support Sign in with Apple, Google Sign-In, and phone OTP. These
+are identity-entry methods, not separate kinds of Guardian accounts. The Rust
+backend remains the authority that links verified provider identities to one
+Guardian user and issues Guardian access/refresh sessions.
+
+```text
+Apple / Google / phone provider verifies the user
+  -> mobile receives a short-lived provider credential
+  -> mobile sends it to the Rust backend over TLS
+  -> backend validates issuer, audience, signature, expiry, and nonce
+  -> backend links or creates the Guardian identity
+  -> backend issues a device-bound Guardian session
+  -> refresh credential is stored in Keychain/Keystore-backed secure storage
+```
+
+Never trust a provider user ID, email, phone number, or success flag sent without
+verifying the provider credential on the backend. Use PKCE/state/nonce controls
+where the provider flow supports them. Do not put Apple, Google, Firebase, or
+Guardian service secrets in Flutter.
+
+### Account Linking
+
+A person who first registered by phone and later chooses Apple or Google must be
+able to link that identity to the existing account rather than accidentally
+creating a second family profile. Linking or unlinking a sign-in method requires
+a recent reauthentication and should generate a security notification and audit
+event.
+
+Do not automatically merge accounts solely because two providers return the same
+email address. Apple may provide a private relay address, emails can change, and
+phone numbers can be recycled. Require proof of both identities or an explicit
+authenticated linking flow. Prevent removal of the last usable recovery/sign-in
+method.
+
+### First-Time And New-Device Flow
+
+A genuinely new Guardian account still completes the relevant onboarding:
+
+- Basic profile and consent.
+- Location and notification education/permissions.
+- Create or join a circle/family.
+- Emergency contacts and essential safety preferences.
+- Optional biometric app unlock.
+
+Signing into an existing account on a new device should not replay brand/story
+onboarding or recreate the profile. It should show a short device setup flow for
+permissions, device naming/trust, notification registration, and any capabilities
+that are local to that phone. Notify the account and authorized guardians about
+a new trusted-device login.
+
+### Returning Trusted-Device Flow
+
+After onboarding succeeds, persist the completion state locally and on the
+backend. On an ordinary return:
+
+```text
+App starts
+  -> render immediately from safe local state
+  -> if app lock is enabled, request Face ID / Touch ID / Android biometric
+  -> unlock the secure local refresh credential
+  -> refresh/validate the Guardian session in the background
+  -> synchronize current data
+  -> restore the last safe destination
+```
+
+Biometrics are a local app-unlock convenience, not the server login itself.
+Guardian must never receive or store biometric templates. Use the operating
+system biometric prompt and hardware-backed Keychain/Keystore protection where
+available, with device credential fallback according to the user's configured
+policy.
+
+Do not show the full onboarding again merely because the app was force-closed,
+updated, or the short-lived access token expired. Use the refresh session. Return
+to full sign-in only when the refresh session is expired/revoked, secure storage
+was cleared, the user explicitly logged out, the account was disabled, or a
+security policy requires reauthentication.
+
+Biometric failure must not erase the session or onboarding state. After a limited
+number of failures, offer device passcode or a full Apple/Google/phone
+reauthentication path. SOS and other deliberately lock-screen-accessible emergency
+actions must not be blocked by biometrics.
+
+### Safe State Restoration
+
+Remember a semantic destination and minimal state, not an arbitrary serialized
+widget tree. Examples include Home, selected circle, Map member focus, Activity,
+or an active journey. Restore only after confirming that the destination is still
+authorized and relevant.
+
+Do not automatically reopen:
+
+- OTP, onboarding, subscription purchase, or account-linking screens.
+- A dismissed modal or partially completed destructive action.
+- Sensitive health/care details before biometric unlock.
+- An ended SOS, expired temporary-guardian view, or stale member permission.
+- A recovery or emergency action that requires fresh confirmation.
+
+Active journey/SOS state comes from the backend or verified offline queue, not
+only from the remembered route. If restoration fails, fall back cleanly to Home.
+
+### Session And Device Controls
+
+- Use short-lived access tokens and rotating/revocable refresh sessions.
+- Associate sessions with a Guardian device record and last-active metadata.
+- Show users their signed-in devices and allow individual remote revocation.
+- Revoke the local session on logout while preserving only non-sensitive setup
+  choices required by policy.
+- Require recent reauthentication for adding/removing guardians, changing care
+  access, exporting history, linking identities, changing recovery methods, and
+  disabling important safety controls.
+- Handle offline unlock using a narrowly bounded cached entitlement/session state;
+  complete server validation as soon as connectivity returns.
+- Never make successful biometrics override a backend-revoked account indefinitely.
+
 ## Current Repository Shape
 
 Top-level repo:
@@ -932,14 +1049,19 @@ The latest Figma screenshots define seven design areas. Treat these screenshots 
 
 ### 1. Onboarding Setup
 
-The onboarding flow includes splash/welcome, phone entry, OTP, profile/name setup, permission prompts, circle setup, invite/join flows, and completion states.
+The onboarding flow includes splash/welcome, Apple/Google/phone sign-in, OTP when
+phone is selected, profile/name setup, permission prompts, circle setup,
+invite/join flows, and completion states.
 
 Implementation expectations:
 
 - Must be adaptive across iPhone-style and Android-style screen sizes.
 - Use native-feeling spacing, safe areas, keyboard avoidance, and bottom sheets.
 - Keep forms simple and high-contrast.
-- OTP should be ready for Firebase/Auth provider integration.
+- Apple, Google, and OTP credentials must be exchanged for Guardian backend
+  sessions; provider success must not directly grant app authorization.
+- Returning trusted devices should use biometric app unlock when enabled and
+  should not replay onboarding.
 - Permission screens should explain why Guardian needs location and notifications.
 - Circle setup should offer create circle, invite member, paste/join link, and empty/ready states.
 
